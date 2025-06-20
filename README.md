@@ -34,14 +34,14 @@ TabLift fixes this behavior, making app switching intuitive and seamless — no 
 
 ### Option 1: Download Prebuilt App
 
-1. [Download the latest release](https://github.com/turtle-key/tablift/releases)
+1. [Download the latest release](https://github.com/turtle-key/TabLift/releases)
 2. Move it to `/Applications`
 3. Launch TabLift and grant Accessibility permission when prompted
 
 ### Option 2: Build from Source
 
 ```bash
-git clone https://github.com/turtle-key/tablift.git
+git clone https://github.com/turtle-key/TabLift.git
 cd tablift
 open TabLift.xcodeproj
 ```
