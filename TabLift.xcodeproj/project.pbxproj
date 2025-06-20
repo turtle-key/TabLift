@@ -10,22 +10,9 @@
 		BEBC5E4A2E05826B004B38DB /* TabLift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TabLift.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		BEB1667C2E05F5090008B24F /* Exceptions for "TabLift" folder in "TabLift" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = BEBC5E492E05826B004B38DB /* TabLift */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		BEBC5E4C2E05826B004B38DB /* TabLift */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				BEB1667C2E05F5090008B24F /* Exceptions for "TabLift" folder in "TabLift" target */,
-			);
 			path = TabLift;
 			sourceTree = "<group>";
 		};
