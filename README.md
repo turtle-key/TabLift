@@ -4,7 +4,7 @@
 By default, macOS ignores minimized windows unless you hold the `Option` key.  
 TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.
 
-![TabLift Banner](https://tablift.mihai.sh)
+![TabLift Banner](https://github.com/turtle-key/TabLift/blob/701044324789a20bdfe8b5fa395796f1e45d5bea/logo.png)
 
 ---
 
