@@ -42,7 +42,7 @@ TabLift fixes this behavior, making app switching intuitive and seamless — no 
 
 ```bash
 git clone https://github.com/turtle-key/TabLift.git
-cd tablift
+cd TabLift
 open TabLift.xcodeproj
 ```
 
