@@ -34,7 +34,7 @@ If a minimized window is found, it is instantly restored for you.
 ### Option 1: Download Prebuilt App
 
 1. [Download the latest release](https://github.com/turtle-key/TabLift/releases)
-2. Move TabLift to your `/Applications` folder
+2. Open the .dmg file and move the app into the /Applications folder
 3. Launch TabLift
 4. **Grant Accessibility permission** when prompted
 
