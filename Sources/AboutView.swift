@@ -3,7 +3,7 @@ import SwiftUI
 struct AboutView: View {
     let appName = "TabLift"
     let appDescription = "Minimized App Restorer"
-    let appVersion = "Version 1.0 (1)"
+    let appVersion = "Version " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")
     let copyright = "MIT © Mihai-Eduard Ghețu"
     let appIconName = "AppIcon"
 
