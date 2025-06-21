@@ -23,17 +23,15 @@ jobs:
       matrix:
         include:
         - language: swift
-          build-mode: autobuild
+          build-mode: manual
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # List available Xcodes for debugging
     - name: List available Xcodes
       run: ls -l /Applications | grep Xcode
 
-    # Select Xcode 26 beta explicitly, try all likely paths
     - name: Select Xcode 26 (try all possible paths)
       run: |
         if [ -d /Applications/Xcode_26_beta.app ]; then
@@ -57,15 +55,9 @@ jobs:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
 
-    - if: matrix.build-mode == 'manual'
-      shell: bash
+    - name: Build with xcodebuild for CodeQL
       run: |
-        echo 'If you are using a "manual" build mode for one or more of the' \
-          'languages you are analyzing, replace this with the commands to build' \
-          'your code, for example:'
-        echo '  make bootstrap'
-        echo '  make release'
-        exit 1
+        xcodebuild -scheme TabLift -project TabLift.xcodeproj -configuration Release build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
