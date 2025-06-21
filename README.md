@@ -118,7 +118,7 @@ If you have suggestions, bug reports, or want to help improve TabLift:
 ## Credits
 
 Built for macOS power users frustrated with Apple's default app switching.  
-Thanks to the accessibility community and everyone who contributed feedback.
+Thanks to the accessibility community and everyone who contributed feedback(my voices).
 
 ---
 
