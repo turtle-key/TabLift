@@ -11,8 +11,7 @@ on:
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
-    # Use macOS 15 for Swift/Xcode 26 support, ubuntu-latest for others
-    runs-on: ${{ (matrix.language == 'swift' && 'macos-15') || 'ubuntu-latest' }}
+    runs-on: macos-15
     permissions:
       security-events: write
       packages: read
@@ -29,9 +28,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: List available Xcodes (debug)
-      run: ls -l /Applications | grep Xcode
 
     - name: Select Xcode 26 (try all likely paths)
       run: |
@@ -54,14 +50,11 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
-        build-mode: ${{ matrix.build-mode }}
-    
-    # If autobuild fails, you'll need to set to manual and provide your xcodebuild command here.
-    - if: matrix.build-mode == 'manual'
-      shell: bash
+        build-mode: manual
+
+    - name: Build TabLift with Xcode 26
       run: |
-        echo 'Replace with your manual build commands'
-        xcodebuild -scheme TabLift -project TabLift.xcodeproj -destination 'platform=macOS' build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+        xcodebuild -scheme TabLift -project TabLift.xcodeproj -configuration Debug -destination 'platform=macOS' build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO -derivedDataPath ./derivedData
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
