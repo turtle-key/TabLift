@@ -1,6 +1,24 @@
 <p align="center">
   <img src="https://github.com/turtle-key/TabLift/blob/2d16a5d1632467252e0975ea9988131a819270b3/banner.png" alt="TabLift Banner" width="400"/>
 </p>
+
+<p align="center">
+  <a href="https://hackclub.com/hackatime/">
+    <img src="https://hackatime-badge.hackclub.com/U092L97H9LZ/TabLift" alt="Hackatime Badge" style="margin-right:4px;"/>
+  </a>
+  <a href="https://github.com/turtle-key/TabLift/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/turtle-key/TabLift?color=29c469&label=License" alt="License: MIT" style="margin-right:4px;"/>
+  </a>
+  <a href="https://github.com/turtle-key/TabLift/releases">
+    <img src="https://img.shields.io/github/v/release/turtle-key/TabLift?color=007aff&label=Release" alt="Latest Release" style="margin-right:4px;"/>
+  </a>
+  <img src="https://img.shields.io/badge/macOS-000000?style=flat&logo=apple&logoColor=white" alt="macOS" style="margin-right:4px;"/>
+  <img src="https://img.shields.io/badge/Swift-F05138?style=flat&logo=swift&logoColor=white" alt="Swift" style="margin-right:4px;"/>
+  <a href="https://github.com/turtle-key/TabLift/stargazers">
+    <img src="https://img.shields.io/github/watchers/turtle-key/TabLift?label=Watchers&style=social" alt="Watchers"/>
+  </a>
+</p>
+
 <p align="center">
   TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with <code>⌘+Tab</code>.<br>
   By default, macOS ignores minimized windows unless you hold the <code>Option</code> key.<br>
