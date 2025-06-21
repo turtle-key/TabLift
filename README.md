@@ -88,7 +88,8 @@ TabLift/
 │   ├── TabLiftApp.swift
 │   ├── AppMonitor.swift
 │   ├── WindowManager.swift
-│   └── LaunchAgentInstaller.swift
+│   └── PermissionsService.swift
+│   └── AboutView.swift
 ├── Assets.xcassets/
 ├── Info.plist
 └── TabLift.xcodeproj
