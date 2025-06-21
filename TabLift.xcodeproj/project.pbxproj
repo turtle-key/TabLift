@@ -6,17 +6,25 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		BEE1EC4D2E062CD500D8CE5F /* AppMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC482E062CD500D8CE5F /* AppMonitor.swift */; };
+		BEE1EC4E2E062CD500D8CE5F /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC472E062CD500D8CE5F /* AboutView.swift */; };
+		BEE1EC4F2E062CD500D8CE5F /* WindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC4B2E062CD500D8CE5F /* WindowManager.swift */; };
+		BEE1EC502E062CD500D8CE5F /* TabLiftApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC4A2E062CD500D8CE5F /* TabLiftApp.swift */; };
+		BEE1EC512E062CD500D8CE5F /* PermissionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC492E062CD500D8CE5F /* PermissionsService.swift */; };
+		BEE1EC532E062CD500D8CE5F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BEE1EC452E062CD500D8CE5F /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		BEBC5E4A2E05826B004B38DB /* TabLift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TabLift.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BEE1EC452E062CD500D8CE5F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BEE1EC462E062CD500D8CE5F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BEE1EC472E062CD500D8CE5F /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
+		BEE1EC482E062CD500D8CE5F /* AppMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMonitor.swift; sourceTree = "<group>"; };
+		BEE1EC492E062CD500D8CE5F /* PermissionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsService.swift; sourceTree = "<group>"; };
+		BEE1EC4A2E062CD500D8CE5F /* TabLiftApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabLiftApp.swift; sourceTree = "<group>"; };
+		BEE1EC4B2E062CD500D8CE5F /* WindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		BEBC5E4C2E05826B004B38DB /* TabLift */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = TabLift;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		BEBC5E472E05826B004B38DB /* Frameworks */ = {
@@ -32,7 +40,9 @@
 		BEBC5E412E05826B004B38DB = {
 			isa = PBXGroup;
 			children = (
-				BEBC5E4C2E05826B004B38DB /* TabLift */,
+				BEE1EC452E062CD500D8CE5F /* Assets.xcassets */,
+				BEE1EC462E062CD500D8CE5F /* Info.plist */,
+				BEE1EC4C2E062CD500D8CE5F /* Sources */,
 				BEBC5E4B2E05826B004B38DB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -43,6 +53,18 @@
 				BEBC5E4A2E05826B004B38DB /* TabLift.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		BEE1EC4C2E062CD500D8CE5F /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				BEE1EC472E062CD500D8CE5F /* AboutView.swift */,
+				BEE1EC482E062CD500D8CE5F /* AppMonitor.swift */,
+				BEE1EC492E062CD500D8CE5F /* PermissionsService.swift */,
+				BEE1EC4A2E062CD500D8CE5F /* TabLiftApp.swift */,
+				BEE1EC4B2E062CD500D8CE5F /* WindowManager.swift */,
+			);
+			path = Sources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -59,9 +81,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				BEBC5E4C2E05826B004B38DB /* TabLift */,
 			);
 			name = TabLift;
 			packageProductDependencies = (
@@ -109,6 +128,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BEE1EC532E062CD500D8CE5F /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,6 +139,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BEE1EC4D2E062CD500D8CE5F /* AppMonitor.swift in Sources */,
+				BEE1EC4E2E062CD500D8CE5F /* AboutView.swift in Sources */,
+				BEE1EC4F2E062CD500D8CE5F /* WindowManager.swift in Sources */,
+				BEE1EC502E062CD500D8CE5F /* TabLiftApp.swift in Sources */,
+				BEE1EC512E062CD500D8CE5F /* PermissionsService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -263,7 +288,7 @@
 				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = TabLift/Info.plist;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -321,7 +346,7 @@
 				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = TabLift/Info.plist;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
