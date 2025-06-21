@@ -29,7 +29,7 @@ struct AboutView: View {
 
                 Text(appName)
                     .font(.system(size: 36, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                     .padding(.top, 2)
 
                 Text(appDescription)
@@ -89,7 +89,7 @@ struct AboutLinkRow: View {
 
                 Text(link.label)
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                 Spacer()
             }
             .frame(maxWidth: .infinity, alignment: .leading)
