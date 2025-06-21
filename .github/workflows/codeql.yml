@@ -1,0 +1,69 @@
+name: "CodeQL Advanced"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '15 17 * * 6'
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    # Use macOS 15 for Swift/Xcode 26 support, ubuntu-latest for others
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-15') || 'ubuntu-latest' }}
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - language: swift
+          build-mode: autobuild
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: List available Xcodes (debug)
+      run: ls -l /Applications | grep Xcode
+
+    - name: Select Xcode 26 (try all likely paths)
+      run: |
+        if [ -d /Applications/Xcode_26_beta.app ]; then
+          sudo xcode-select -s /Applications/Xcode_26_beta.app
+        elif [ -d /Applications/Xcode_26.0.app ]; then
+          sudo xcode-select -s /Applications/Xcode_26.0.app
+        elif [ -d /Applications/Xcode_26.0.0.app ]; then
+          sudo xcode-select -s /Applications/Xcode_26.0.0.app
+        else
+          echo "Xcode 26 not found!"
+          ls -l /Applications
+          exit 1
+        fi
+
+    - name: Show Xcode version (debug)
+      run: xcodebuild -version
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        build-mode: ${{ matrix.build-mode }}
+
+    # If autobuild fails, you'll need to set to manual and provide your xcodebuild command here.
+    - if: matrix.build-mode == 'manual'
+      shell: bash
+      run: |
+        echo 'Replace with your manual build commands'
+        exit 1
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
