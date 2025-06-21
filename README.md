@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/turtle-key/TabLift/blob/2d16a5d1632467252e0975ea9988131a819270b3/banner.png" alt="TabLift Banner" width="400"/>
+  <img src="Images/banner.png" alt="TabLift Banner" width="400"/>
 </p>
 
 <p align="center">
@@ -78,7 +78,7 @@ System Settings → Privacy & Security → Accessibility → Enable TabLift
 ## UI Preview
 
 <p align="center">
-  <img src="https://github.com/turtle-key/TabLift/blob/e267d33494e1bda72bc97ce73c35997fb1744f3d/app-screenshot.png" alt="App Screenshot" width="320"/>
+  <img src="Images/app-screenshot.png" alt="App Screenshot" width="320"/>
 </p>
 
 <p align="center">
