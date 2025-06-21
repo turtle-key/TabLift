@@ -11,7 +11,7 @@ on:
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
-    runs-on: macos-latest
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-15') || 'ubuntu-latest' }}
     permissions:
       security-events: write
       packages: read
@@ -29,8 +29,27 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Select Xcode 26.0 beta
-      run: sudo xcode-select -s /Applications/Xcode_26_beta.app
+    # List available Xcodes for debugging
+    - name: List available Xcodes
+      run: ls -l /Applications | grep Xcode
+
+    # Select Xcode 26 beta explicitly, try all likely paths
+    - name: Select Xcode 26 (try all possible paths)
+      run: |
+        if [ -d /Applications/Xcode_26_beta.app ]; then
+          sudo xcode-select -s /Applications/Xcode_26_beta.app
+        elif [ -d /Applications/Xcode_26.0.app ]; then
+          sudo xcode-select -s /Applications/Xcode_26.0.app
+        elif [ -d /Applications/Xcode_26.0.0.app ]; then
+          sudo xcode-select -s /Applications/Xcode_26.0.0.app
+        else
+          echo "Xcode 26 not found!"
+          ls -l /Applications
+          exit 1
+        fi
+
+    - name: Show Xcode version
+      run: xcodebuild -version
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
