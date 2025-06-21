@@ -19,32 +19,32 @@ struct AboutView: View {
             // Header Section
             VStack(spacing: 16) {
                 Spacer().frame(height: 2)
-
+                
                 Image(appIconName)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 96, height: 96)
                     .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                     .shadow(radius: 4)
-
+                
                 Text(appName)
                     .font(.system(size: 36, weight: .bold))
                     .foregroundColor(.primary)
                     .padding(.top, 2)
-
+                
                 Text(appDescription)
                     .font(.title2)
                     .foregroundColor(.gray)
-
+                
                 Text(appVersion)
                     .font(.body)
                     .foregroundColor(.gray)
                     .padding(.bottom, 6)
             }
             .frame(maxWidth: .infinity)
-
+            
             Divider()
-
+            
             VStack {
                 Spacer()
                 VStack(spacing: 18) {
@@ -56,13 +56,29 @@ struct AboutView: View {
                 .frame(maxWidth: .infinity)
                 Spacer()
             }
-
+            
             Divider()
-
-            Text(copyright)
-                .font(.footnote)
-                .foregroundColor(.gray)
-                .padding(.vertical, 18)
+            
+            // Bottom row: copyright left, Quit button right
+            HStack {
+                Text(copyright)
+                    .font(.footnote)
+                    .foregroundColor(.gray)
+                Spacer()
+                Button(action: {
+                    NSApplication.shared.terminate(nil)
+                }) {
+                    Text("Quit")
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 3)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
         }
         .frame(width: 480, height: 560)
     }
