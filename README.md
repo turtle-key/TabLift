@@ -1,42 +1,50 @@
 # TabLift
 
-**TabLift** is a lightweight macOS utility that restores minimized apps when switching with `⌘+Tab`.  
+**TabLift** is a lightweight macOS utility that restores minimized apps instantly when switching with `⌘+Tab`.
+
 By default, macOS ignores minimized windows unless you hold the `Option` key.  
 TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.
 
-![TabLift Banner](https://github.com/turtle-key/TabLift/blob/2d16a5d1632467252e0975ea9988131a819270b3/banner.png)
+<p align="center">
+  <img src="https://github.com/turtle-key/TabLift/blob/2d16a5d1632467252e0975ea9988131a819270b3/banner.png" alt="TabLift Banner" width="400"/>
+</p>
 
 ---
 
 ## Features
 
--  Automatically restores minimized windows on app switch
--  Feels native and integrates smoothly with macOS
--  Runs quietly in the background with minimal resource usage
--  Built using public APIs with sandbox-safe practices
--  Compatible with multiple desktops and Mission Control
+- **Instantly restores minimized windows** when you switch to an app using `⌘+Tab`
+- No need to press extra keys — just switch!
+- **Native macOS experience** (built with Swift, SwiftUI, and AppKit)
+- **Runs quietly in the background** with minimal resource usage
+- **Open source** and privacy-friendly  
+- Compatible with Mission Control, multiple desktops, and most macOS versions
 
 ---
 
-## Tech Stack
+## How It Works
 
-| Component       | Technology                                 |
-|----------------|---------------------------------------------|
-| Language        | Swift                                      |
-| UI Framework    | SwiftUI (optional) / AppKit (for behavior) |
-| APIs Used       | Accessibility API (AXUIElement), NSWorkspace |
-| Platform        | macOS Monterey (12.0) and later            |
-| Packaging       | `.app` bundle with LaunchAgent `.plist`    |
+TabLift uses public Apple APIs to monitor when you activate a different app (via [`NSWorkspace`](https://developer.apple.com/documentation/appkit/nsworkspace) notifications).  
+As soon as an app is activated, TabLift checks for minimized windows via the Accessibility API (`AXUIElement`).  
+If a minimized window is found, it is instantly restored for you.
+
+**Technical flow:**
+
+1. **Listening**: `AppMonitor` listens for app activation events.
+2. **Restoring**: `WindowManager` inspects the app's window list. If any window is minimized, it sets the `AXMinimized` attribute to `false`.
+3. **Permissions**: On first launch, `PermissionsService` prompts you to grant Accessibility permissions, which are required for window management.
+4. **UI**: The About window (built in SwiftUI) provides quick links and info.
 
 ---
 
-## Installation
+## Quick Start
 
 ### Option 1: Download Prebuilt App
 
 1. [Download the latest release](https://github.com/turtle-key/TabLift/releases)
-2. Move it to `/Applications`
-3. Launch TabLift and grant Accessibility permission when prompted
+2. Move TabLift to your `/Applications` folder
+3. Launch TabLift
+4. **Grant Accessibility permission** when prompted
 
 ### Option 2: Build from Source
 
@@ -45,51 +53,47 @@ git clone https://github.com/turtle-key/TabLift.git
 cd TabLift
 open TabLift.xcodeproj
 ```
-
-Then:
-- Build and run using Xcode
-- Accept any permission prompts
-
----
-
-## How It Works
-
-1. TabLift listens for app switch events (via `NSWorkspace` notifications).
-2. If the target app is minimized, it:
-   - Accesses the app’s window list via `AXUIElement`
-   - Checks for `AXMinimized == true`
-   - Sets `AXMinimized = false` to restore the window
-3. Done instantly with no UI flicker.
-
-No constant polling, only efficient event-based behavior.
+Then build and run in Xcode.  
+You'll be prompted to grant Accessibility permission.
 
 ---
 
 ## Permissions
 
-To function correctly, TabLift requires:
+TabLift needs **Accessibility Access** to restore minimized windows.  
+You'll be prompted on first launch, or you can enable it manually:
 
-- **Accessibility Access**
-
-Prompted automatically on first launch.  
-Or you can enable it manually:
-
-```bash
+```
 System Settings → Privacy & Security → Accessibility → Enable TabLift
 ```
 
 ---
 
-## 📁 File Structure
+## UI Preview
+
+<p align="center">
+  <img src="https://github.com/turtle-key/TabLift/blob/e267d33494e1bda72bc97ce73c35997fb1744f3d/app-screenshot.png" alt="App Screenshot" width="320"/>
+</p>
+
+TabLift has a simple About window with helpful links:
+
+- [Know more about TabLift](https://tablift.mihai.sh)
+- [Buy me a coffee](https://coff.ee/turtle.key)
+- [Source code on GitHub](https://github.com/turtle-key/TabLift)
+- [Email support](mailto:ghetumihaieduard@gmail.com)
+
+---
+
+## File Structure
 
 ```
 TabLift/
 ├── Sources/
-│   ├── TabLiftApp.swift
-│   ├── AppMonitor.swift
-│   ├── WindowManager.swift
-│   └── PermissionsService.swift
-│   └── AboutView.swift
+│   ├── TabLiftApp.swift          // Main app entry point and delegate
+│   ├── AppMonitor.swift          // Listens for app switch events
+│   ├── WindowManager.swift       // Restores minimized windows
+│   ├── PermissionsService.swift  // Handles Accessibility permissions
+│   └── AboutView.swift           // SwiftUI About & links window
 ├── Assets.xcassets/
 ├── Info.plist
 └── TabLift.xcodeproj
@@ -97,7 +101,22 @@ TabLift/
 
 ---
 
-## 🤝 Contributing
+## Tech Stack
+
+| Component       | Technology                                   |
+|-----------------|----------------------------------------------|
+| Language        | Swift                                        |
+| UI Framework    | SwiftUI (About window), AppKit (behavior)    |
+| APIs Used       | Accessibility API (AXUIElement), NSWorkspace |
+| Platform        | macOS 12.0 Monterey and later                |
+| Packaging       | `.app` bundle (no kernel extensions)         |
+
+---
+
+## Contributing
+
+Pull requests are welcome!  
+If you have suggestions, bug reports, or want to help improve TabLift:
 
 1. Fork the repo
 2. Create a feature branch:
@@ -106,21 +125,19 @@ TabLift/
    ```
 3. Push and open a PR
 
-Bug fixes, enhancements, and refactors are welcome!
-
 ---
 
-## 📜 License
+## License
 
 **MIT License**  
-© [Mihai-Eduard Ghețu] – See [`LICENSE`](LICENSE) for details.
+© Mihai-Eduard Ghețu – See [`LICENSE`](LICENSE) for details.
 
 ---
 
-## 🌐 Credits
+## Credits
 
-Built for macOS power users frustrated with app switching limitations.  
-Thanks to the accessibility team docs and community insights!
+Built for macOS power users frustrated with Apple's default app switching.  
+Thanks to the accessibility community and everyone who contributed feedback.
 
 ---
 
