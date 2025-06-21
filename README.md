@@ -1,11 +1,11 @@
 <p align="center">
   <img src="https://github.com/turtle-key/TabLift/blob/2d16a5d1632467252e0975ea9988131a819270b3/banner.png" alt="TabLift Banner" width="400"/>
 </p>
-
-**TabLift** is a lightweight macOS utility that restores minimized apps instantly when switching with `⌘+Tab`.
-
-By default, macOS ignores minimized windows unless you hold the `Option` key.  
-TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.
+<p align="center">
+  TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with <code>⌘+Tab</code>.<br>
+  By default, macOS ignores minimized windows unless you hold the <code>Option</code> key.<br>
+  TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.
+</p>
 
 ## Features
 
