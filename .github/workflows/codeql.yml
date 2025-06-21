@@ -24,7 +24,7 @@ jobs:
       matrix:
         include:
         - language: swift
-          build-mode: autobuild
+          build-mode: manual
 
     steps:
     - name: Checkout repository
@@ -55,13 +55,13 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
-
+    
     # If autobuild fails, you'll need to set to manual and provide your xcodebuild command here.
     - if: matrix.build-mode == 'manual'
       shell: bash
       run: |
         echo 'Replace with your manual build commands'
-        exit 1
+        xcodebuild -scheme TabLift -project TabLift.xcodeproj -destination 'platform=macOS' build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
