@@ -12,11 +12,17 @@
   <a href="https://github.com/turtle-key/TabLift/releases">
     <img src="https://img.shields.io/github/v/release/turtle-key/TabLift?color=007aff&label=Release" alt="Latest Release" style="margin-right:4px;"/>
   </a>
-  <img src="https://img.shields.io/badge/macOS-000000?style=flat&logo=apple&logoColor=white" alt="macOS" style="margin-right:4px;"/>
-  <img src="https://img.shields.io/badge/Swift-F05138?style=flat&logo=swift&logoColor=white" alt="Swift" style="margin-right:4px;"/>
   <a href="https://github.com/turtle-key/TabLift/stargazers">
     <img src="https://img.shields.io/github/watchers/turtle-key/TabLift?label=Watchers&style=social" alt="Watchers"/>
   </a>
+</p>
+<p align="center">
+  <img src="https://img.shields.io/badge/macOS-000000?style=flat&logo=apple&logoColor=white" alt="macOS" style="margin-right:4px;"/>
+  <img src="https://img.shields.io/badge/Swift-F05138?style=flat&logo=swift&logoColor=white" alt="Swift" style="margin-right:4px;"/>
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white" alt="HTML5" style="margin-right:4px;"/>
+  <img src="https://img.shields.io/badge/Svelte-FF3E00?style=flat&logo=svelte&logoColor=white" alt="Svelte" style="margin-right:4px;"/>
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white" alt="Svelte" style="margin-right:4px;"/>
+  <img src="https://img.shields.io/badge/CSS-563d7c?&style=flat&logo=css3&logoColor=white" alt="Svelte" style="margin-right:4px;"/>
 </p>
 
 <p align="center">
