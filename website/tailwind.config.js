@@ -1,6 +1,12 @@
 module.exports = {
-  darkMode: 'selector',
   content: ['./src/**/*.{html,js,svelte,ts}'],
-  theme: { extend: {} },
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
+    },
+  },
+  darkMode: 'class',
   plugins: [],
 };
