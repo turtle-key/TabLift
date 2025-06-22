@@ -1,38 +1,11 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+
 
   let tonOn = true;
   let videoSrc = '/with.mp4';
   $: videoSrc = tonOn ? '/with.mp4' : '/without.mp4';
 
-  type Theme = 'light' | 'dark';
-  let theme: Theme = 'light';
-  let darkMode = false;
 
-  function applyTheme(newTheme: Theme) {
-    theme = newTheme;
-    if (theme === 'light') {
-      document.documentElement.classList.remove('dark');
-      localStorage.theme = 'light';
-      darkMode = false;
-    } else if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-      localStorage.theme = 'dark';
-      darkMode = true;
-    }
-  }
-
-  function cycleTheme() {
-    if (theme === 'dark') applyTheme('light');
-    else applyTheme('dark');
-  }
-
-  onMount(() => {
-    if (typeof window !== 'undefined') {
-      if (localStorage.theme === 'dark') applyTheme('dark');
-      else if (localStorage.theme === 'light') applyTheme('light');
-    }
-  });
 
   function toggleTonOn() {
     tonOn = !tonOn;
@@ -41,85 +14,15 @@
   const repoOwner = 'turtle-key';
   const repoName = 'TabLift';
 
-  let menuOpen = false;
-  function toggleMenu() {
-    menuOpen = !menuOpen;
-  }
-  function closeMenu() {
-    menuOpen = false;
-  }
+
 </script>
 
 <svelte:head>
   <title>TabLift</title>
   <meta name="description" content="TabLift — Fresh visuals for tab & window management on macOS." />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
 </svelte:head>
 
-<header class="fixed top-0 w-full z-50 backdrop-blur bg-[#f8fafcdd] dark:bg-[#18181cdd] h-[68px] flex items-center font-sans">
-  <div class="w-full flex items-center h-full px-4">
-    <nav class="flex justify-end items-center w-full h-full">
-      <ul class="hidden sm:flex flex-row gap-4 sm:gap-6 items-center h-full font-sans">
-        <li>
-          <a href="/privacypolicy" class="mainnav-link text-base font-semibold leading-none px-1 text-black dark:text-white">
-            Privacy Policy
-          </a>
-        </li>
-        <li>
-          <a href="/faq" class="mainnav-link text-base font-semibold leading-none px-1 text-black dark:text-white">
-            F.A.Q.
-          </a>
-        </li>
-        <li>
-          <button
-            class="w-10 h-10 rounded-full flex items-center justify-center p-0 ml-1 hover:bg-slate-200 hover:dark:bg-slate-700"
-            aria-label="Toggle dark mode"
-            type="button"
-            on:click={cycleTheme}
-          >
-            <span class="material-symbols-rounded text-2xl text-slate-600 dark:text-slate-200 select-none">
-              {theme == 'dark'
-                  ? 'light_mode'
-                  : 'dark_mode'}
-            </span>
-          </button>
-        </li>
-      </ul>
-      <div class="sm:hidden ml-auto relative">
-        <button
-          class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-slate-200 hover:dark:bg-slate-700 transition-colors"
-          aria-label="Open menu"
-          on:click={toggleMenu}
-        >
-          <span class="material-symbols-rounded text-2xl text-slate-600 dark:text-slate-200 select-none">
-            menu
-          </span>
-        </button>
-        {#if menuOpen}
-          <div class="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white dark:bg-[#18181c] border border-slate-200 dark:border-slate-800 py-2 z-50 animate-fade-in">
-            <div class="flex flex-col items-center justify-center text-center">
-              <a href="/privacypolicy" class=" block w-full px-4 py-3 text-black dark:text-white font-semibold rounded-t-xl text-center" on:click={closeMenu}>Privacy Policy</a>
-              <a href="/faq" class="block w-full px-4 py-3 text-black dark:text-white font-semibold text-center" on:click={closeMenu}>F.A.Q.</a>
-              <button
-                class="w-10 h-10 rounded-full flex items-center justify-center m-2 hover:bg-slate-200 hover:dark:bg-slate-700 transition-colors"
-                aria-label="Toggle dark mode"
-                type="button"
-                on:click={() => { cycleTheme(); closeMenu(); }}
-              >
-                <span class="material-symbols-rounded text-2xl text-slate-600 dark:text-slate-200 select-none">
-                  {theme === 'dark'
-                      ? 'light_mode'
-                      : 'dark_mode'}
-                </span>
-              </button>
-            </div>
-          </div>
-        {/if}
-      </div>
-    </nav>
-  </div>
-</header>
+
 
 <main class="min-h-screen bg-[#f7fafc] dark:bg-[#18181c] flex flex-col items-center font-sans pt-[90px]" style="font-family:Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;">
   <div class="w-full max-w-4xl mx-auto px-4">
@@ -218,35 +121,9 @@
   </div>
 </main>
 
-<footer class="w-full py-6 text-center bg-[#f7fafc] dark:bg-[#18181c] text-gray-400 dark:text-gray-500 text-xs" style="font-family:inherit;">
-  <div class="w-full max-w-4xl mx-auto px-4">
-    © {new Date().getFullYear()} Mihai-Eduard Ghețu. All Rights Reserved.
-  </div>
-</footer>
+
 
 <style>
-.mainnav-link {
-  text-decoration: none;
-  border-radius: 0.5rem;
-  transition: background 0.16s, color 0.16s;
-  font-weight: 600;
-  padding-left: 13px;
-  padding-right: 13px;
-  padding-top: 7px;
-  padding-bottom: 7px;
-  display: inline-block;
-  line-height: 1.4;
-}
-@media (hover: hover) {
-  .mainnav-link:hover,
-  .mainnav-link:focus-visible {
-    background: rgba(0,0,0,0.06);
-  }
-  :global(html.dark) .mainnav-link:hover,
-  :global(html.dark) .mainnav-link:focus-visible {
-    background: rgba(255,255,255,0.13);
-  }
-}
 .switch-ios {
   position: relative;
   display: inline-block;
@@ -286,11 +163,5 @@
 .slider-ios.checked:before {
   transform: translateX(22px);
 }
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(-10px);}
-  to { opacity: 1; transform: translateY(0);}
-}
-.animate-fade-in {
-  animation: fade-in 0.18s cubic-bezier(.4,0,.2,1);
-}
+
 </style>
