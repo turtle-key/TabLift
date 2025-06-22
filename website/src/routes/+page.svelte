@@ -1,20 +1,13 @@
 <script lang="ts">
-
-
+  import { base } from '$app/paths';
   let tonOn = true;
-  let videoSrc = '/with.mp4';
-  $: videoSrc = tonOn ? '/with.mp4' : '/without.mp4';
-
-
-
+  let videoSrc = `${base}/with.mp4`;
+  $: videoSrc = tonOn ? `${base}/with.mp4` : `${base}/without.mp4`;
   function toggleTonOn() {
     tonOn = !tonOn;
   }
-
   const repoOwner = 'turtle-key';
   const repoName = 'TabLift';
-
-
 </script>
 
 <svelte:head>
@@ -26,7 +19,7 @@
 
 <main class="min-h-screen bg-[#f7fafc] dark:bg-[#18181c] flex flex-col items-center font-sans pt-[90px]" style="font-family:Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;">
   <div class="w-full max-w-4xl mx-auto px-4">
-    <img src="/logo.png" alt="TabLift Icon" class="mx-auto mt-12 mb-8 w-[168px] h-[168px] rounded-3xl shadow" draggable="false" loading="lazy" decoding="async" />
+    <img src="{base}/logo.png" alt="TabLift Icon" class="mx-auto mt-12 mb-8 w-[168px] h-[168px] rounded-3xl shadow" draggable="false" loading="lazy" decoding="async" />
     <h1 class="text-6xl md:text-7xl font-extrabold text-gray-900 dark:text-gray-100 text-center mb-3">TabLift</h1>
     <p class="text-gray-600 dark:text-gray-300 mb-8 text-center text-xl sm:text-2xl max-w-2xl mx-auto">
       Makes ⌘+Tab work the way it should — minimized windows included.
@@ -45,7 +38,7 @@
     <div class="relative flex justify-center items-center mb-20 w-full" style="height:430px;">
       <!-- Macbook image (top layer) -->
       <img
-        src="/macbook.png"
+        src="{base}/macbook.png"
         alt="macOS screenshot"
         class="absolute top-0 left-1/2 -translate-x-1/2 z-20 w-full max-w-4xl pointer-events-none select-none"
         draggable="false"
