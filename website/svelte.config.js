@@ -1,17 +1,10 @@
-import adapter from '@sveltejs/adapter-auto';
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import adapter from '@sveltejs/adapter-static';
 
-const config = {
-	preprocess: vitePreprocess(),
-	kit: {
-    adapter: adapter({
-      pages: 'build',
-      assets: 'build',
-      fallback: null
-    }),
+export default {
+  kit: {
+    adapter: adapter(),
     paths: {
-      base: process.env.NODE_ENV === 'production' ? '/TabLift' : ''
+      base: '/TabLift'
     }
   }
 };
-export default config;
