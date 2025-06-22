@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import '../app.css';
 	import { onMount } from "svelte";
 	let menuOpen = $state(false);
@@ -50,12 +51,12 @@
     <nav class="flex justify-end items-center w-full h-full">
       <ul class="hidden sm:flex flex-row gap-4 sm:gap-6 items-center h-full font-sans">
         <li>
-          <a href="/privacypolicy" class="mainnav-link text-base font-semibold leading-none px-1 text-black dark:text-white">
+          <a href="{base}/privacypolicy" class="mainnav-link text-base font-semibold leading-none px-1 text-black dark:text-white">
             Privacy Policy
           </a>
         </li>
         <li>
-          <a href="/faq" class="mainnav-link text-base font-semibold leading-none px-1 text-black dark:text-white">
+          <a href="{base}/faq" class="mainnav-link text-base font-semibold leading-none px-1 text-black dark:text-white">
             F.A.Q.
           </a>
         </li>
