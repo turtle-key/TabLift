@@ -1,8 +1,10 @@
 <script lang="ts">
   import { base } from '$app/paths';
   let tonOn = true;
-  let videoSrc = `${base}/with.mp4`;
-  $: videoSrc = tonOn ? `${base}/with.mp4` : `${base}/without.mp4`;
+  const VIDEO_WITH = "https://bucket.mihai.sh/with.mp4";
+  const VIDEO_WITHOUT = "https://bucket.mihai.sh/without.mp4";
+  let videoSrc = VIDEO_WITH;
+  $: videoSrc = tonOn ? VIDEO_WITH : VIDEO_WITHOUT;
   function toggleTonOn() {
     tonOn = !tonOn;
   }
@@ -37,7 +39,7 @@
     </div>
     <div class="relative flex flex-col items-center mb-20 w-full">
       <img
-        src="{base}/macbook.png"
+        src="https://bucket.mihai.sh/macbook.png"
         alt="macOS screenshot"
         class="z-10 w-full absolute pointer-events-none select-none"
         style="top: -15.75%;"
