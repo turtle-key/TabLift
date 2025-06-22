@@ -43,7 +43,7 @@
         style="top: -15.75%;"
         draggable="false"
       />
-      <div class="relative w-[76.7%] aspect-[700/430] flex justify-center items-center">
+      <div class="relative w-[76.7%] flex justify-center items-center">
         <video
           src={videoSrc}
           muted
