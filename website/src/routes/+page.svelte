@@ -42,15 +42,17 @@
         Download
       </a>
     </div>
-    <div class="relative flex flex-col items-center mb-20 w-full">
+    <div class="relative flex justify-center items-center mb-20 w-full" style="height:430px;">
+      <!-- Macbook image (top layer) -->
       <img
         src="/macbook.png"
         alt="macOS screenshot"
-        class="z-10 w-full absolute pointer-events-none select-none"
-        style="top: -15.75%;"
+        class="absolute top-0 left-1/2 -translate-x-1/2 z-20 w-full max-w-4xl pointer-events-none select-none"
         draggable="false"
+        style="height:100%; object-fit:contain;"
       />
-      <div class="relative w-[76.7%] aspect-[700/430] flex justify-center items-center">
+      <!-- Video (bottom layer, inside the 'screen' area) -->
+      <div class="absolute top-[13.5%] left-1/2 -translate-x-1/2 z-10 w-[76.7%] aspect-[700/430] flex justify-center items-center" style="border-radius:7px 7px 0 0; overflow:hidden;">
         <video
           src={videoSrc}
           muted
@@ -58,7 +60,7 @@
           loop
           autoplay
           class="w-full h-full object-cover"
-          style="border-radius:7px 7px 0px 0px;"
+          style="border-radius:7px 7px 0 0;"
         ></video>
       </div>
     </div>
