@@ -6,7 +6,8 @@ struct AboutView: View {
     let appVersion = "Version " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")
     let copyright = "MIT © Mihai-Eduard Ghețu"
     let appIconName = "AppIcon"
-
+    let releaseURL = URL(string: "https://github.com/turtle-key/TabLift/releases/tag/v\((Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""))")!
+    let licenseURL = URL(string: "https://github.com/turtle-key/TabLift/blob/main/LICENSE")!
     let aboutLinks: [AboutLink] = [
         .init(iconName: "info.circle", label: "Know more about TabLift", url: URL(string: "https://tablift.mihai.sh")!),
         .init(iconName: "cup.and.saucer", label: "Buy me a coffee", url: URL(string: "https://coff.ee/turtle.key")!),
@@ -36,10 +37,12 @@ struct AboutView: View {
                     .font(.title2)
                     .foregroundColor(.gray)
                 
-                Text(appVersion)
-                    .font(.body)
-                    .foregroundColor(.gray)
-                    .padding(.bottom, 6)
+                Link(destination:releaseURL){
+                    Text(appVersion)
+                        .font(.body)
+                        .foregroundColor(.gray)
+                        .padding(.bottom, 6)
+                }
             }
             .frame(maxWidth: .infinity)
             
@@ -61,9 +64,11 @@ struct AboutView: View {
             
             // Bottom row: copyright left, Quit button right
             HStack {
-                Text(copyright)
-                    .font(.footnote)
-                    .foregroundColor(.gray)
+                Link(destination: licenseURL){
+                    Text(copyright)
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+                }
                 Spacer()
                 Button(action: {
                     NSApplication.shared.terminate(nil)
