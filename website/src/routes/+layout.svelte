@@ -207,7 +207,6 @@
   flex-shrink: 0;
 }
 .external-link-icon {
-  /* Nudge up for better vertical centering of material icon */
   position: relative;
   top: 0.5px;
   font-size: 1em;
