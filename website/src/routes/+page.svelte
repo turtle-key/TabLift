@@ -14,7 +14,28 @@
 
 <svelte:head>
   <title>TabLift</title>
-  <meta name="description" content="TabLift — Fresh visuals for tab & window management on macOS." />
+  <meta name="description" content="TabLift — Makes ⌘+Tab work the way it should — minimized windows included." />
+  <meta property="og:title" content="TabLift" />
+  <meta property="og:description" content="TabLift - Makes ⌘+Tab work the way it should — minimized windows included." />
+  <meta property="og:image" content="https://bucket.mihai.sh/app-icon.png" />
+  <meta property="og:url" content="https://tablift.mihai.sh/" />
+  <script type="application/ld+json">
+    {`
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "TabLift",
+        "operatingSystem": "macOS 13+",
+        "applicationCategory": "ProductivityApplication",
+        "description": "TabLift — Fresh visuals for tab & window management on macOS.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    `}
+  </script>
 </svelte:head>
 
 
