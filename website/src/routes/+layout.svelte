@@ -1,16 +1,12 @@
 <script lang="ts">
   import { base } from '$app/paths';
-	import '../app.css';
-	import { onMount } from "svelte";
-	let menuOpen = $state(false);
-  function toggleMenu() {
-    menuOpen = !menuOpen;
-  }
-  function closeMenu() {
-    menuOpen = false;
-  }
-	type Theme = 'light' | 'dark';
-  let theme: Theme = $state('light');;
+  import '../app.css';
+  import { onMount } from "svelte";
+  let menuOpen = $state(false);
+  function toggleMenu() { menuOpen = !menuOpen; }
+  function closeMenu() { menuOpen = false; }
+  type Theme = 'light' | 'dark';
+  let theme: Theme = $state('light');
   let darkMode = false;
 
   function applyTheme(newTheme: Theme) {
@@ -37,31 +33,32 @@
       else if (localStorage.theme === 'light') applyTheme('light');
     }
   });
-	let { children } = $props();
+  let { children } = $props();
 
-  // GitHub repo info for button
   const repoUrl = "https://github.com/turtle-key/TabLift";
 </script>
 
 {@render children()}
 
 <svelte:head>
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
 </svelte:head>
 <header class="fixed top-0 w-full z-50 backdrop-blur bg-[#f8fafcdd] dark:bg-[#18181cdd] h-[68px] flex items-center font-sans">
   <div class="w-full flex items-center h-full px-4">
-    <!-- Custom GitHub Button -->
     <a
       href={repoUrl}
       target="_blank"
       rel="noopener"
       aria-label="View on GitHub"
-      class="github-btn flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-base bg-[#edece6] dark:bg-[#262524] text-[#22211c] dark:text-[#edece6] border border-[#d6d3c1] dark:border-[#353438] shadow-none hover:bg-[#e4e3dd] hover:dark:bg-[#302f2a] transition-colors mr-4"
-      style="min-width:42px;"
+      class="github-btn flex items-center gap-2 py-2 rounded-lg font-semibold text-base bg-[#edece6] dark:bg-[#262524] text-[#22211c] dark:text-[#edece6] border border-[#d6d3c1] dark:border-[#353438] shadow-none hover:bg-[#e4e3dd] hover:dark:bg-[#302f2a] transition-colors mr-4"
     >
-      <!-- GitHub Icon SVG -->
-      <svg width="20" height="20" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
+      <svg
+        aria-hidden="true"
+        fill="currentColor"
+        class="github-icon"
+        viewBox="0 0 16 16"
+      >
         <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
           0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52
           -.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.67.07-.52.28-.87.5-1.07-1.78-.2
@@ -70,13 +67,8 @@
           1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
           0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
       </svg>
-      <span class="hidden sm:inline">GitHub</span>
-      <!-- Diagonal Arrow Icon (External Link) -->
-      <svg height="16" width="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px;">
-        <path d="M18 13V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7"/>
-        <polyline points="15 3 21 3 21 9"/>
-        <line x1="10" y1="14" x2="21" y2="3"/>
-      </svg>
+      <span class="github-label">GitHub</span>
+      <span class="material-symbols-rounded external-link-icon" aria-hidden="true">open_in_new</span>
     </a>
     <nav class="flex justify-end items-center w-full h-full">
       <ul class="hidden sm:flex flex-row gap-4 sm:gap-6 items-center h-full font-sans">
@@ -120,31 +112,6 @@
             <div class="flex flex-col items-center justify-center text-center">
               <a href="/privacypolicy" class=" block w-full px-4 py-3 text-black dark:text-white font-semibold rounded-t-xl text-center" onclick={closeMenu}>Privacy Policy</a>
               <a href="/faq" class="block w-full px-4 py-3 text-black dark:text-white font-semibold text-center" onclick={closeMenu}>F.A.Q.</a>
-              <a
-                href={repoUrl}
-                target="_blank"
-                rel="noopener"
-                aria-label="View on GitHub"
-                class="github-btn-mobile flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-base bg-[#edece6] dark:bg-[#262524] text-[#22211c] dark:text-[#edece6] border border-[#d6d3c1] dark:border-[#353438] shadow-none hover:bg-[#e4e3dd] hover:dark:bg-[#302f2a] transition-colors my-2"
-                style="min-width:42px;"
-                onclick={closeMenu}
-              >
-                <svg width="20" height="20" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
-                  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
-                    0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52
-                    -.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.67.07-.52.28-.87.5-1.07-1.78-.2
-                    -3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21
-                    2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16
-                    1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
-                    0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-                </svg>
-                <span>GitHub</span>
-                <svg height="16" width="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px;">
-                  <path d="M18 13V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7"/>
-                  <polyline points="15 3 21 3 21 9"/>
-                  <line x1="10" y1="14" x2="21" y2="3"/>
-                </svg>
-              </a>
               <button
                 class="w-10 h-10 rounded-full flex items-center justify-center m-2 hover:bg-slate-200 hover:dark:bg-slate-700 transition-colors"
                 aria-label="Toggle dark mode"
@@ -171,7 +138,7 @@
   </div>
 </footer>
 <style>
-	.mainnav-link {
+.mainnav-link {
   text-decoration: none;
   border-radius: 0.5rem;
   transition: background 0.16s, color 0.16s;
@@ -193,14 +160,14 @@
     background: rgba(255,255,255,0.13);
   }
 }
-.github-btn, .github-btn-mobile {
+.github-btn {
   font-family: inherit;
   background: #edece6;
   color: #22211c;
   border: 1.5px solid #d6d3c1;
   box-shadow: none;
   border-radius: 8px;
-  gap: 6px;
+  gap: 8px;
   transition: background 0.15s, color 0.15s, border 0.15s;
   display: flex;
   align-items: center;
@@ -208,23 +175,74 @@
   font-weight: 600;
   line-height: 1.1;
   text-decoration: none;
+  padding-left: 1em;
+  padding-right: 1em;
 }
-.github-btn:hover, .github-btn-mobile:hover {
-  background: #e4e3dd;
-  color: #18181c;
-  border-color: #bdb9a2;
-}
-:global(html.dark) .github-btn,
-:global(html.dark) .github-btn-mobile {
+:global(html.dark) .github-btn {
   background: #262524;
   color: #edece6;
   border: 1.5px solid #353438;
 }
-:global(html.dark) .github-btn:hover,
-:global(html.dark) .github-btn-mobile:hover {
+.github-btn:hover {
+  background: #e4e3dd;
+  color: #18181c;
+  border-color: #bdb9a2;
+}
+:global(html.dark) .github-btn:hover {
   background: #302f2a;
   color: #fff;
   border-color: #57534e;
+}
+.github-icon, .external-link-icon {
+  width: 1em;
+  height: 1em;
+  min-width: 16px;
+  min-height: 16px;
+  max-width: 18px;
+  max-height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.external-link-icon {
+  /* Nudge up for better vertical centering of material icon */
+  position: relative;
+  top: 0.5px;
+  font-size: 1em;
+  line-height: 1;
+}
+.github-label {
+  display: inline-block;
+  min-width: 54px;
+  text-align: center;
+  transition: color 0.15s, min-width 0.15s;
+}
+@media (max-width: 639px) {
+  .github-label {
+    color: transparent !important;
+    min-width: 0;
+    width: 0;
+    padding: 0;
+    margin: 0;
+    user-select: none;
+    pointer-events: none;
+    transition: color 0.15s, min-width 0.15s;
+  }
+  .github-btn {
+    padding-left: 0.7em;
+    padding-right: 0.7em;
+    gap: 6px;
+  }
+  .github-icon, .external-link-icon {
+    width: 1em;
+    height: 1em;
+    min-width: 14px;
+    min-height: 14px;
+    max-width: 16px;
+    max-height: 16px;
+  }
 }
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(-10px);}
