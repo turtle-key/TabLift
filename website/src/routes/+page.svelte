@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { base } from '$app/paths';
   let tonOn = true;
   const VIDEO_WITH = "https://bucket.mihai.sh/with.mp4";
   const VIDEO_WITHOUT = "https://bucket.mihai.sh/without.mp4";
@@ -15,20 +14,17 @@
 <svelte:head>
   <title>TabLift</title>
   <meta name="description" content="TabLift — Makes ⌘+Tab work the way it should — minimized windows included." />
-  <!-- Facebook Meta Tags -->
   <meta property="og:url" content="https://tablift.mihai.sh">
   <meta property="og:type" content="website">
   <meta property="og:title" content="TabLift — Makes ⌘+Tab work the way it should — minimized windows included">
-  <meta property="og:description" content="TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with ⌘+Tab.By default, macOS ignores minimized windows unless you hold the Option key.TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.">
+  <meta property="og:description" content="TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with ⌘+Tab. By default, macOS ignores minimized windows unless you hold the Option key. TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.">
   <meta property="og:image" content="https://bucket.mihai.sh/banner.png">
   <meta property="og:site_name" content="TabLift">
-
-  <!-- Twitter Meta Tags -->
   <meta name="twitter:card" content="summary_large_image">
   <meta property="twitter:domain" content="tablift.mihai.sh">
   <meta property="twitter:url" content="https://tablift.mihai.sh">
   <meta name="twitter:title" content="TabLift — Makes ⌘+Tab work the way it should — minimized windows included">
-  <meta name="twitter:description" content="TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with ⌘+Tab.By default, macOS ignores minimized windows unless you hold the Option key.TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.">
+  <meta name="twitter:description" content="TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with ⌘+Tab. By default, macOS ignores minimized windows unless you hold the Option key. TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.">
   <meta name="twitter:image" content="https://bucket.mihai.sh/banner.png">
   <script type="application/ld+json">
   {
@@ -47,9 +43,7 @@
   </script>
 </svelte:head>
 
-
-
-<main class="min-h-screen bg-[#f7fafc] dark:bg-[#18181c] flex flex-col items-center font-sans pt-[90px]" style="font-family:Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;">
+<main class="min-h-screen bg-[#f7fafc] dark:bg-[#18181c] flex flex-col items-center font-sans pt-[90px]">
   <div class="w-full max-w-4xl mx-auto px-4">
     <img src="https://bucket.mihai.sh/app-icon.png" alt="TabLift Icon" class="mx-auto mt-12 mb-8 w-[168px] h-[168px] rounded-3xl shadow" draggable="false" loading="lazy" decoding="async" />
     <h1 class="text-6xl md:text-7xl font-extrabold text-gray-900 dark:text-gray-100 text-center mb-3">TabLift</h1>
@@ -146,8 +140,6 @@
   </div>
 </main>
 
-
-
 <style>
 .switch-ios {
   position: relative;
@@ -188,5 +180,4 @@
 .slider-ios.checked:before {
   transform: translateX(22px);
 }
-
 </style>

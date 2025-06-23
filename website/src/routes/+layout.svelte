@@ -34,20 +34,18 @@
     }
   });
   let { children } = $props();
-
-  const repoUrl = "https://github.com/turtle-key/TabLift";
 </script>
 
-{@render children()}
 
 <svelte:head>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=swap" rel="stylesheet" />
 </svelte:head>
+{@render children()}
 <header class="fixed top-0 w-full z-50 backdrop-blur bg-[#f8fafcdd] dark:bg-[#18181cdd] h-[68px] flex items-center font-sans">
   <div class="w-full flex items-center h-full px-4">
     <a
-      href={repoUrl}
+      href="https://github.com/turtle-key/TabLift"
       target="_blank"
       rel="noopener"
       aria-label="View on GitHub"
@@ -73,12 +71,12 @@
     <nav class="flex justify-end items-center w-full h-full">
       <ul class="hidden sm:flex flex-row gap-4 sm:gap-6 items-center h-full font-sans">
         <li>
-          <a href="{base}/privacypolicy" class="mainnav-link text-base font-semibold leading-none px-1 text-black dark:text-white">
+          <a href={base + "/privacypolicy"} class="mainnav-link text-base font-semibold leading-none px-1 text-black dark:text-white">
             Privacy Policy
           </a>
         </li>
         <li>
-          <a href="{base}/faq" class="mainnav-link text-base font-semibold leading-none px-1 text-black dark:text-white">
+          <a href={base + "/faq"} class="mainnav-link text-base font-semibold leading-none px-1 text-black dark:text-white">
             F.A.Q.
           </a>
         </li>
@@ -90,7 +88,7 @@
             onclick={cycleTheme}
           >
             <span class="material-symbols-rounded text-2xl text-slate-600 dark:text-slate-200 select-none">
-              {theme == 'dark'
+              {theme === 'dark'
                   ? 'light_mode'
                   : 'dark_mode'}
             </span>
@@ -110,8 +108,8 @@
         {#if menuOpen}
           <div class="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white dark:bg-[#18181c] border border-slate-200 dark:border-slate-800 py-2 z-50 animate-fade-in">
             <div class="flex flex-col items-center justify-center text-center">
-              <a href="/privacypolicy" class=" block w-full px-4 py-3 text-black dark:text-white font-semibold rounded-t-xl text-center" onclick={closeMenu}>Privacy Policy</a>
-              <a href="/faq" class="block w-full px-4 py-3 text-black dark:text-white font-semibold text-center" onclick={closeMenu}>F.A.Q.</a>
+              <a href={base + "/privacypolicy"} class="block w-full px-4 py-3 text-black dark:text-white font-semibold rounded-t-xl text-center" onclick={closeMenu}>Privacy Policy</a>
+              <a href={base + "/faq"} class="block w-full px-4 py-3 text-black dark:text-white font-semibold text-center" onclick={closeMenu}>F.A.Q.</a>
               <button
                 class="w-10 h-10 rounded-full flex items-center justify-center m-2 hover:bg-slate-200 hover:dark:bg-slate-700 transition-colors"
                 aria-label="Toggle dark mode"
