@@ -45,7 +45,7 @@
 
 <main class="min-h-screen bg-[#f7fafc] dark:bg-[#18181c] flex flex-col items-center font-sans pt-[90px]">
   <div class="w-full max-w-4xl mx-auto px-4">
-    <img src="https://bucket.mihai.sh/app-icon.png" alt="TabLift Icon" class="mx-auto mt-12 mb-8 w-[168px] h-[168px] rounded-3xl shadow" draggable="false" loading="lazy" decoding="async" />
+    <img src="https://bucket.mihai.sh/app-icon.webp" alt="TabLift Icon" class="mx-auto mt-12 mb-8 w-[168px] h-[168px] rounded-3xl shadow" draggable="false" loading="lazy" decoding="async" />
     <h1 class="text-6xl md:text-7xl font-extrabold text-gray-900 dark:text-gray-100 text-center mb-3">TabLift</h1>
     <p class="text-gray-600 dark:text-gray-300 mb-8 text-center text-xl sm:text-2xl max-w-2xl mx-auto">
       Makes ⌘+Tab work the way it should — minimized windows included.
@@ -63,7 +63,7 @@
     </div>
     <div class="relative flex flex-col items-center mb-20 w-full">
       <img
-        src="https://bucket.mihai.sh/macbook.png"
+        src="https://bucket.mihai.sh/macbook.webp"
         alt="macOS screenshot"
         class="z-10 w-full absolute pointer-events-none select-none"
         style="top: -15.75%;"
