@@ -3,7 +3,7 @@
   <meta name="description" content="Learn how TabLift handles your data and privacy. Read our privacy policy to understand what information is collected, how it is used, and how your privacy is protected." />
 </svelte:head>
 <main class="min-h-screen bg-[#f7fafc] dark:bg-[#18181c] flex flex-col items-center font-sans pt-[90px]">
-  <div class="w-full max-w-4xl mx-auto px-4">
+  <div class="w-full max-w-4xl mx-auto px-4 text-gray-900 dark:text-gray-100">
     <h1 class="text-3xl font-bold mb-2">Privacy Policy for TabLift</h1>
 
     <h2 class="font-semibold mt-6 mb-1">1. Information Collected</h2>
