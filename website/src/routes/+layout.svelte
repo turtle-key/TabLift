@@ -42,6 +42,33 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=swap" rel="stylesheet" />
+  <meta property="og:url" content="https://tablift.mihai.sh">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="TabLift — Makes ⌘+Tab work the way it should — minimized windows included">
+  <meta property="og:description" content="TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with ⌘+Tab. By default, macOS ignores minimized windows unless you hold the Option key. TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.">
+  <meta property="og:image" content="https://bucket.mihai.sh/banner.png">
+  <meta property="og:site_name" content="TabLift">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="twitter:domain" content="tablift.mihai.sh">
+  <meta property="twitter:url" content="https://tablift.mihai.sh">
+  <meta name="twitter:title" content="TabLift — Makes ⌘+Tab work the way it should — minimized windows included">
+  <meta name="twitter:description" content="TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with ⌘+Tab. By default, macOS ignores minimized windows unless you hold the Option key. TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.">
+  <meta name="twitter:image" content="https://bucket.mihai.sh/banner.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "TabLift",
+    "operatingSystem": "macOS 13+",
+    "applicationCategory": "ProductivityApplication",
+    "description": "TabLift — Fresh visuals for tab & window management on macOS.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
 </svelte:head>
 {@render children()}
 <header class="fixed top-0 w-full z-50 backdrop-blur bg-[#f8fafcdd] dark:bg-[#18181cdd] h-[68px] flex items-center font-sans">
