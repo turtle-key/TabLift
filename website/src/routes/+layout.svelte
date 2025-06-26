@@ -1,5 +1,6 @@
 <script lang="ts">
   import { base } from '$app/paths';
+  import { page } from '$app/stores';
   import '../app.css';
   import { onMount } from "svelte";
   let menuOpen = $state(false);
@@ -21,7 +22,19 @@
       darkMode = true;
     }
   }
-
+  function highlightMenuItem(currpage: string) {
+    document.querySelectorAll('.mainnav-link').forEach(el => {
+      el.classList.remove('menu-active');
+    });
+    var elem = document.getElementById(currpage);
+    elem?.classList.add('menu-active');
+  }
+  function getMenuIdFromPath(path: string){
+    path = path.replace(/\/+$/, '');
+    if (path === '' || path === '/' || path === base) return 'home';
+    const segments = path.split('/');
+    return segments[segments.length - 1] || 'home';
+  }
   function cycleTheme() {
     if (theme === 'dark') applyTheme('light');
     else applyTheme('dark');
@@ -32,7 +45,16 @@
       if (localStorage.theme === 'dark') applyTheme('dark');
       else if (localStorage.theme === 'light') applyTheme('light');
     }
+    const path = window.location.pathname.replace(base, '');
+    const menuId = getMenuIdFromPath(path);
+    highlightMenuItem(menuId);
   });
+  let currPath = $derived(() =>
+    $page.url.pathname.replace(base, '').replace(/\/+$/, '') || '/'
+  );
+  let activeId = $derived(() =>
+    currPath() === '/' ? 'home' : currPath().split('/').pop()
+  );
   let { children } = $props();
 </script>
 
@@ -100,12 +122,22 @@
     <nav class="flex justify-end items-center w-full h-full">
       <ul class="hidden sm:flex flex-row gap-4 sm:gap-6 items-center h-full font-sans">
         <li>
-          <a href={base + "/privacypolicy"} class="mainnav-link text-base font-semibold leading-none px-1 text-black dark:text-white">
+          <a
+            href={base + "/privacypolicy"}
+            class="mainnav-link text-base font-semibold leading-none px-1 text-black dark:text-white"
+            id="privacypolicy"
+            class:menu-active={activeId() === 'privacypolicy'}
+          >
             Privacy Policy
           </a>
         </li>
         <li>
-          <a href={base + "/faq"} class="mainnav-link text-base font-semibold leading-none px-1 text-black dark:text-white">
+          <a
+            href={base + "/faq"}
+            class="mainnav-link text-base font-semibold leading-none px-1 text-black dark:text-white"
+            id="faq"
+            class:menu-active={activeId() === 'faq'}
+          >
             F.A.Q.
           </a>
         </li>
@@ -165,6 +197,14 @@
   </div>
 </footer>
 <style>
+:global(.menu-active) {
+  background: #2B3440 !important;
+  color: #fff !important;
+}
+:global(html.dark) :global(.menu-active) {
+  background: #fff2 !important;
+  color: #fff !important;
+}
 .mainnav-link {
   text-decoration: none;
   border-radius: 0.5rem;
