@@ -1,3 +1,6 @@
+<script lang="ts">
+  import { base } from '$app/paths';
+</script>
 <svelte:head>
   <title>TabLift FAQ – Answers to Common Questions</title>
   <meta name="description" content="Find answers to frequently asked questions about TabLift, the macOS utility that makes switching between apps with ⌘+Tab more intuitive by including minimized windows." />
@@ -37,7 +40,7 @@
   <section class="mb-8">
     <h2 class="font-semibold text-lg mb-2">Does TabLift collect any personal data?</h2>
     <p>
-      TabLift does not collect any personal or sensitive information. Only anonymized usage data such as app version, macOS version, and basic feature usage may be collected to help improve the app. For more details, see our <a href="/privacypolicy" class="underline">Privacy Policy</a>.
+      TabLift does not collect any personal or sensitive information. Only anonymized usage data such as app version, macOS version, and basic feature usage may be collected to help improve the app. For more details, see our <a href={base + "/privacypolicy"} class="underline">Privacy Policy</a>.
     </p>
   </section>
 
