@@ -169,8 +169,8 @@
         {#if menuOpen}
           <div class="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white dark:bg-[#18181c] border border-slate-200 dark:border-slate-800 py-2 z-50 animate-fade-in">
             <div class="flex flex-col items-center justify-center text-center">
-              <a href={base + "/privacypolicy"} class="block w-full px-4 py-3 text-black dark:text-white font-semibold rounded-t-xl text-center" onclick={closeMenu}>Privacy Policy</a>
-              <a href={base + "/faq"} class="block w-full px-4 py-3 text-black dark:text-white font-semibold text-center" onclick={closeMenu}>F.A.Q.</a>
+              <a href={base + "/privacypolicy"} class="block w-full px-4 py-3 text-black dark:text-white font-semibold rounded-t-xl text-center" class:menu-active={activeId() === 'privacypolicy'} onclick={closeMenu}>Privacy Policy</a>
+              <a href={base + "/faq"} class="block w-full px-4 py-3 text-black dark:text-white font-semibold text-center" class:menu-active={activeId() === 'faq'} onclick={closeMenu}>F.A.Q.</a>
               <button
                 class="w-10 h-10 rounded-full flex items-center justify-center m-2 hover:bg-slate-200 hover:dark:bg-slate-700 transition-colors"
                 aria-label="Toggle dark mode"
