@@ -58,7 +58,6 @@
   let { children } = $props();
 </script>
 
-
 <svelte:head>
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
@@ -95,6 +94,18 @@
 {@render children()}
 <header class="fixed top-0 w-full z-50 backdrop-blur bg-[#f8fafcdd] dark:bg-[#18181cdd] h-[68px] flex items-center font-sans">
   <div class="w-full flex items-center h-full px-4">
+    {#if currPath() !== '/'}
+      <a
+        href={base}
+        aria-label="Go to the homepage"
+        class="icon-link mr-4"
+      >
+        <img
+          src="https://bucket.mihai.sh/app-icon-168.webp"
+          alt="TabLift icon"
+        >
+      </a>
+    {/if}
     <a
       href="https://github.com/turtle-key/TabLift"
       target="_blank"
@@ -196,6 +207,7 @@
     © {new Date().getFullYear()} Mihai-Eduard Ghețu. All Rights Reserved.
   </div>
 </footer>
+
 <style>
 :global(.menu-active) {
   background: #2B3440 !important;
@@ -316,5 +328,32 @@
 }
 .animate-fade-in {
   animation: fade-in 0.18s cubic-bezier(.4,0,.2,1);
+}
+.icon-link {
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  padding:20px;
+  transition: border 0.15s, background 0.15s;
+}
+.icon-link:hover, .icon-link:focus-visible {
+  background: rgba(31, 41, 55, 0.086);
+}
+:global(html.dark) .icon-link:hover, 
+:global(html.dark) .icon-link:focus-visible {
+  background: #302f2a;
+}
+.icon-link img {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  max-width: 40px;
+  max-height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
 }
 </style>
