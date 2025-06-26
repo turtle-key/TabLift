@@ -96,7 +96,7 @@
   <div class="w-full flex items-center h-full px-4">
     {#if currPath() !== '/'}
       <a
-        href={base}
+        href={base + "/"}
         aria-label="Go to the homepage"
         class="icon-link mr-4"
       >
