@@ -19,7 +19,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        PermissionsService.acquireAccessibilityPrivileges()
+        guard AccessibilityPermission.enabled else {
+            AccessibilityPermissionWindow.shared.bringToFront()
+            return
+        }
         appMonitor = AppMonitor()
         registerLoginItem()
     }

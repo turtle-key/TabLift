@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BE83CD3C2E0EDC2500DF73E8 /* AccessibilityPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD3B2E0EDC2500DF73E8 /* AccessibilityPermission.swift */; };
+		BE83CD3E2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD3D2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift */; };
+		BE83CD402E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD3F2E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift */; };
+		BE83CD422E0EDC8600DF73E8 /* HyperLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD412E0EDC8600DF73E8 /* HyperLink.swift */; };
+		BE83CD462E0EDD2800DF73E8 /* NSWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD452E0EDD2800DF73E8 /* NSWindow.swift */; };
 		BEE1EC4D2E062CD500D8CE5F /* AppMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC482E062CD500D8CE5F /* AppMonitor.swift */; };
 		BEE1EC4E2E062CD500D8CE5F /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC472E062CD500D8CE5F /* AboutView.swift */; };
 		BEE1EC4F2E062CD500D8CE5F /* WindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC4B2E062CD500D8CE5F /* WindowManager.swift */; };
@@ -16,6 +21,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		BE83CD3B2E0EDC2500DF73E8 /* AccessibilityPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermission.swift; sourceTree = "<group>"; };
+		BE83CD3D2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermissionWindow.swift; sourceTree = "<group>"; };
+		BE83CD3F2E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermissionView.swift; sourceTree = "<group>"; };
+		BE83CD412E0EDC8600DF73E8 /* HyperLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HyperLink.swift; sourceTree = "<group>"; };
+		BE83CD452E0EDD2800DF73E8 /* NSWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSWindow.swift; sourceTree = "<group>"; };
 		BEBC5E4A2E05826B004B38DB /* TabLift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TabLift.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BEE1EC452E062CD500D8CE5F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BEE1EC462E062CD500D8CE5F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -63,6 +73,11 @@
 				BEE1EC492E062CD500D8CE5F /* PermissionsService.swift */,
 				BEE1EC4A2E062CD500D8CE5F /* TabLiftApp.swift */,
 				BEE1EC4B2E062CD500D8CE5F /* WindowManager.swift */,
+				BE83CD3B2E0EDC2500DF73E8 /* AccessibilityPermission.swift */,
+				BE83CD3D2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift */,
+				BE83CD3F2E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift */,
+				BE83CD412E0EDC8600DF73E8 /* HyperLink.swift */,
+				BE83CD452E0EDD2800DF73E8 /* NSWindow.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -139,11 +154,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BE83CD462E0EDD2800DF73E8 /* NSWindow.swift in Sources */,
+				BE83CD402E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift in Sources */,
 				BEE1EC4D2E062CD500D8CE5F /* AppMonitor.swift in Sources */,
+				BE83CD422E0EDC8600DF73E8 /* HyperLink.swift in Sources */,
 				BEE1EC4E2E062CD500D8CE5F /* AboutView.swift in Sources */,
 				BEE1EC4F2E062CD500D8CE5F /* WindowManager.swift in Sources */,
 				BEE1EC502E062CD500D8CE5F /* TabLiftApp.swift in Sources */,
+				BE83CD3C2E0EDC2500DF73E8 /* AccessibilityPermission.swift in Sources */,
 				BEE1EC512E062CD500D8CE5F /* PermissionsService.swift in Sources */,
+				BE83CD3E2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -304,7 +324,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.TabLift;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -362,7 +382,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.TabLift;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
