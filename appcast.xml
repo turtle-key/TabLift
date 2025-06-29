@@ -4,11 +4,11 @@
         <title>TabLift</title>
         <item>
             <title>1.3</title>
-            <pubDate>Sun, 29 Jun 2025 23:58:38 +0300</pubDate>
-            <sparkle:version>1</sparkle:version>
+            <pubDate>Mon, 30 Jun 2025 00:40:54 +0300</pubDate>
+            <sparkle:version>1.3</sparkle:version>
             <sparkle:shortVersionString>1.3</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/turtle-key/TabLift/releases/download/v1.3/TabLift.dmg" length="3035969" type="application/octet-stream" sparkle:edSignature="rrI+i7qg4MUEWwJd5Zxu3+eRBjUZzgjmdg8yWg7hoc641Mvm7uC57gePVNpJl56KQP9YU4LlCSbMaJaX3RdGDg=="/>
+            <enclosure url="https://github.com/turtle-key/TabLift/releases/download/v1.3/TabLift.dmg"length="3035994" type="application/octet-stream" sparkle:edSignature="F57kEFAGUsq3Dgv4YqLKAXjKV0h8okcT1LhOfTbXWDfLEeS7kUntq8C9OwgX+eoXHHcDxddFm4izTbFj1EetBw=="/>
         </item>
     </channel>
 </rss>
