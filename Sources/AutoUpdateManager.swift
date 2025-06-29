@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (c) 2021-2025 LinearMouse
-
 import Defaults
 import Foundation
 import Sparkle
@@ -25,10 +22,6 @@ class AutoUpdateManager: NSObject {
 }
 
 extension AutoUpdateManager: SPUUpdaterDelegate {
-    func allowedChannels(for _: SPUUpdater) -> Set<String> {
-        Defaults[.betaChannelOn] ? ["beta"] : []
-    }
-
     func versionComparator(for _: SPUUpdater) -> SUVersionComparison? {
         SemanticVersioningComparator()
     }

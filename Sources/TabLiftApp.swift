@@ -8,16 +8,17 @@ struct TabLiftApp: App {
 
     var body: some Scene {
         Settings {
-            EmptyView()
+            // Show new settings view with tabs
+            SettingsView()
         }
     }
 }
 
-
 class AppDelegate: NSObject, NSApplicationDelegate {
     var appMonitor: AppMonitor?
     var window: NSWindow?
-    
+    private let autoUpdateManager = AutoUpdateManager.shared
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard AccessibilityPermission.enabled else {
             AccessibilityPermissionWindow.shared.bringToFront()
@@ -44,13 +45,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func showUI() {
         if window == nil {
-            let aboutView = AboutView()
+            // Use the new SettingsView with tabs
+            let settingsView = SettingsView()
             window = NSWindow(
                 contentRect: NSMakeRect(0, 0, 500, 450),
                 styleMask: [.titled, .closable, .unifiedTitleAndToolbar],
                 backing: .buffered, defer: false)
             window?.center()
-            window?.contentView = NSHostingView(rootView: aboutView)
+            window?.contentView = NSHostingView(rootView: settingsView)
             window?.isReleasedWhenClosed = false
         }
         window?.makeKeyAndOrderFront(nil)
