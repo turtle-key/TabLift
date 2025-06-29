@@ -32,7 +32,7 @@
 </p>
 
 <p align="center">
-  <a href="https://tablift.mihai.sh"><b>🌐 Visit the TabLift website → tablift.mihai.sh</b></a>
+  <a href="https://tablift.mihai.sh"><b>🌐 Visit the TabLift website</b></a>
 </p>
 
 ---
@@ -45,7 +45,9 @@
 - **Runs quietly in the background** with minimal resource usage
 - **Open source** and privacy-friendly  
 - Compatible with Mission Control, multiple desktops, and most macOS versions
-- **Modern About window** with clickable version and license links
+- **Modern Settings & About window** with clickable version and license links
+- **Sparkle-powered update checker**
+- **Dedicated onboarding & accessibility permission flow**
 - **Website** included in the repo, for documentation and SEO
 
 ## How It Works
@@ -56,10 +58,11 @@ If a minimized window is found, it is instantly restored for you.
 
 **Technical flow:**
 
-1. **Listening:** `AppMonitor` listens for app activation events.
-2. **Restoring:** `WindowManager` inspects the app's window list. If any window is minimized, it sets the `AXMinimized` attribute to `false`.
-3. **Permissions:** On first launch, `PermissionsService` prompts you to grant Accessibility permissions, which are required for window management.
-4. **UI:** The About window (built in SwiftUI) provides quick links and info, including clickable version and license links.
+1. **Listening:** `AppMonitor.swift` listens for app activation events.
+2. **Restoring:** `WindowManager.swift` inspects the app's window list. If any window is minimized, it sets the `AXMinimized` attribute to `false`.
+3. **Permissions:** On first launch, `PermissionsService.swift` prompts you to grant Accessibility permissions, which are required for window management.
+4. **UI:** The `SettingsView.swift` (tabbed, includes About tab) provides quick links and info, including clickable version and license links.
+5. **Updates:** The app checks for updates with Sparkle, customizable via the settings.
 
 ## Quick Start
 
@@ -107,7 +110,7 @@ System Settings → Privacy & Security → Accessibility → Enable TabLift
 </p>
 
 <p align="center">
-TabLift has a simple About window with helpful links:
+TabLift has a simple, modern Settings/About window with helpful links:
 </p>
 <p align="center">
   <a href="https://tablift.mihai.sh">Know more about TabLift</a> •
@@ -127,7 +130,8 @@ TabLift/
 │   ├── AppMonitor.swift          // Listens for app switch events
 │   ├── WindowManager.swift       // Restores minimized windows
 │   ├── PermissionsService.swift  // Handles Accessibility permissions
-│   └── AboutView.swift           // SwiftUI About & links window
+│   ├── SettingsView.swift        // Tabbed Settings & About window (SwiftUI)
+│   └── ...                      // Other supporting Swift files
 ├── website/                      // SvelteKit-powered website
 │   ├── src/
 │   ├── static/
@@ -138,6 +142,7 @@ TabLift/
 │   └── app-screenshot.png
 ├── Assets.xcassets/
 ├── Info.plist
+├── Sparkle/                      // Update framework
 └── TabLift.xcodeproj
 ```
 
@@ -146,9 +151,9 @@ TabLift/
 | Component            | Technology                                         |
 |----------------------|----------------------------------------------------|
 | macOS App Language   | Swift                                              |
-| macOS UI Frameworks  | SwiftUI (About window), AppKit (core behavior)     |
+| macOS UI Frameworks  | SwiftUI (Settings/About window), AppKit (core)     |
 | macOS APIs Used      | Accessibility API (`AXUIElement`), NSWorkspace     |
-| Platform             | macOS 12.0 Monterey and later                      |
+| Platform             | macOS 13.0 Ventura and later                       |
 | macOS Packaging      | `.app` bundle (no kernel extensions)               |
 | Website Framework    | SvelteKit (Svelte, TypeScript, Vite)               |
 | Website Styling      | CSS, HTML5                                         |
