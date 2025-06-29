@@ -10,5 +10,9 @@
 	<false/>
 	<key>SUFeedURL</key>
 	<string>https://tablift.mihai.sh/appcast.xml</string>
+	<key>SUEnableInstallerLauncherService</key>
+	<true/>
+	<key>SUPublicEDKey</key>
+	<string>NUbqo71QhdMNKoubUuZtAkx0uyZ1zUQhkSDXVm0r1dE=</string>
 </dict>
 </plist>

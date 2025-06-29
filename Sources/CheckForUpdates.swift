@@ -61,7 +61,7 @@ struct CheckForUpdatesView: View {
     @ObservedObject var updaterViewModel = UpdaterViewModel.shared
 
     var body: some View {
-        Text("Version: (TabLift.appVersion)")
+        Text("Version: \(TabLift.appVersion)")
             .foregroundColor(.secondary)
 
         Toggle(isOn: $updaterViewModel.automaticallyChecksForUpdates.animation()) {
