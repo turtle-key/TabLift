@@ -16,6 +16,7 @@
 		BE5209D72E1183AF0048CC49 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = BE5209D62E1183AF0048CC49 /* Config.xcconfig */; };
 		BE5209D92E1185CF0048CC49 /* FormViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5209D82E1185CF0048CC49 /* FormViewModifier.swift */; };
 		BE5209E92E1189E80048CC49 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5209E82E1189E80048CC49 /* SettingsView.swift */; };
+		BE5209EB2E11A1270048CC49 /* TabLift.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5209EA2E11A1270048CC49 /* TabLift.swift */; };
 		BE83CD3C2E0EDC2500DF73E8 /* AccessibilityPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD3B2E0EDC2500DF73E8 /* AccessibilityPermission.swift */; };
 		BE83CD3E2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD3D2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift */; };
 		BE83CD402E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD3F2E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift */; };
@@ -34,6 +35,8 @@
 		BE5209D82E1185CF0048CC49 /* FormViewModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormViewModifier.swift; sourceTree = "<group>"; };
 		BE5209DE2E1187D80048CC49 /* SchemeIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemeIndicator.swift; sourceTree = "<group>"; };
 		BE5209E82E1189E80048CC49 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		BE5209EA2E11A1270048CC49 /* TabLift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabLift.swift; sourceTree = "<group>"; };
+		BE5209EC2E11A2FD0048CC49 /* TabLift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TabLift.entitlements; sourceTree = "<group>"; };
 		BE83CD3B2E0EDC2500DF73E8 /* AccessibilityPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermission.swift; sourceTree = "<group>"; };
 		BE83CD3D2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermissionWindow.swift; sourceTree = "<group>"; };
 		BE83CD3F2E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermissionView.swift; sourceTree = "<group>"; };
@@ -68,6 +71,7 @@
 				BE5209D62E1183AF0048CC49 /* Config.xcconfig */,
 				BEE1EC452E062CD500D8CE5F /* Assets.xcassets */,
 				BEE1EC462E062CD500D8CE5F /* Info.plist */,
+				BE5209EC2E11A2FD0048CC49 /* TabLift.entitlements */,
 				BEE1EC4C2E062CD500D8CE5F /* Sources */,
 				BEBC5E4B2E05826B004B38DB /* Products */,
 			);
@@ -94,6 +98,7 @@
 				BE83CD3B2E0EDC2500DF73E8 /* AccessibilityPermission.swift */,
 				BE83CD3D2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift */,
 				BE83CD3F2E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift */,
+				BE5209EA2E11A1270048CC49 /* TabLift.swift */,
 				BE83CD412E0EDC8600DF73E8 /* HyperLink.swift */,
 				BE83CD452E0EDD2800DF73E8 /* NSWindow.swift */,
 				BE5209D12E117C2A0048CC49 /* AutoUpdateManager.swift */,
@@ -193,6 +198,7 @@
 				BE5209C62E117A010048CC49 /* CheckForUpdates.swift in Sources */,
 				BEE1EC502E062CD500D8CE5F /* TabLiftApp.swift in Sources */,
 				BE83CD3C2E0EDC2500DF73E8 /* AccessibilityPermission.swift in Sources */,
+				BE5209EB2E11A1270048CC49 /* TabLift.swift in Sources */,
 				BE83CD3E2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift in Sources */,
 				BE5209D92E1185CF0048CC49 /* FormViewModifier.swift in Sources */,
 			);
@@ -234,6 +240,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_ENTITLEMENTS[sdk=*]" = "";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 3VR9A5DCST;
@@ -297,6 +304,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_ENTITLEMENTS[sdk=*]" = "";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 3VR9A5DCST;
@@ -325,19 +333,25 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				AUTOMATION_APPLE_EVENTS = NO;
+				"CODE_SIGN_ENTITLEMENTS[sdk=*]" = TabLift.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 1.3;
 				DEVELOPMENT_TEAM = 3VR9A5DCST;
-				ENABLE_APP_SANDBOX = NO;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
 				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
 				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
 				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
 				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
@@ -383,19 +397,25 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				AUTOMATION_APPLE_EVENTS = NO;
+				"CODE_SIGN_ENTITLEMENTS[sdk=*]" = TabLift.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 1.3;
 				DEVELOPMENT_TEAM = 3VR9A5DCST;
-				ENABLE_APP_SANDBOX = NO;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
 				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
 				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
 				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
 				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
