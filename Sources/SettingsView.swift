@@ -16,13 +16,14 @@ struct SettingsView: View {
     }
 }
 
-// ABOUT TAB
 struct AboutTab: View {
     private let appName = "TabLift"
     private let appDescription = "Minimized App Restorer"
     private let appVersion = "v" + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")
     private let copyright = "MIT © Mihai-Eduard Ghețu"
     private let appIconName = "AppIcon"
+
+    @State private var isHoveringQuit = false
 
     private var releaseURL: URL {
         URL(string: "https://github.com/turtle-key/TabLift/releases/tag/\(appVersion)")!
@@ -40,13 +41,14 @@ struct AboutTab: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header (no background, no shadow)
             VStack(spacing: 16) {
                 Spacer().frame(height: 12)
                 Image(appIconName)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 96, height: 96)
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .shadow(radius: 4)
                 Text(appName)
                     .font(.system(size: 36, weight: .bold))
                     .foregroundColor(.primary)
@@ -64,92 +66,128 @@ struct AboutTab: View {
             .frame(maxWidth: .infinity)
             .padding(.bottom, 4)
 
-            // Main content and footer separated
-            VStack {
-                Form {
-                    Section {
-                        HyperLink(URLs.homepage) {
-                            HStack(alignment: .firstTextBaseline, spacing: 5) {
-                                Image(systemName: "info.circle")
-                                    .symbolRenderingMode(.hierarchical)
-                                Text("Know more about TabLift")
-                            }
-                        }
-                        HyperLink(URLs.donate) {
-                            HStack(alignment: .firstTextBaseline, spacing: 5) {
-                                Image(systemName: "cup.and.saucer")
-                                    .symbolRenderingMode(.hierarchical)
-                                Text("Buy me a coffee")
-                            }
-                        }
-                        HyperLink(URLs.repo) {
-                            HStack(alignment: .firstTextBaseline, spacing: 5) {
-                                Image(systemName: "chevron.left.slash.chevron.right")
-                                    .symbolRenderingMode(.hierarchical)
-                                Text("This app is fully open source")
-                            }
-                        }
-                        HyperLink(URLs.email) {
-                            HStack(alignment: .firstTextBaseline, spacing: 5) {
-                                Image(systemName: "envelope")
-                                    .symbolRenderingMode(.hierarchical)
-                                Text("Email me")
-                            }
-                        }
-                    }
-                    .modifier(SectionViewModifier())
-                    .frame(minHeight: 22)
-                }
-                .modifier(FormViewModifier())
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            Spacer()
 
-                // Footer at the bottom
-                HStack {
-                    Link(destination: licenseURL) {
-                        Text(copyright)
-                            .font(.footnote)
-                            .foregroundColor(.gray)
-                    }
-                    Spacer()
-                    Button(action: {
-                        NSApplication.shared.terminate(nil)
-                    }) {
-                        Text("Quit")
-                            .font(.footnote)
-                            .foregroundColor(.gray)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 3)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                }
-                .padding(.vertical, 12)
-                .padding(.horizontal, 16)
+            VStack(spacing: 14) {
+                ModernAboutLink(
+                    destination: URLs.repo,
+                    systemImage: "chevron.left.slash.chevron.right",
+                    label: "This app is fully open source"
+                )
+                ModernAboutLink(
+                    destination: URLs.homepage,
+                    systemImage: "info.circle",
+                    label: "Know more about TabLift"
+                )
+                ModernAboutLink(
+                    destination: URLs.donate,
+                    systemImage: "cup.and.saucer",
+                    label: "Buy me a coffee"
+                )
+                ModernAboutLink(
+                    destination: URLs.email,
+                    systemImage: "envelope",
+                    label: "Email me"
+                )
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: 320)
+            .padding(.vertical, 10)
+            .padding(.horizontal, 16)
+            .multilineTextAlignment(.center)
+
+            Spacer()
+
+            HStack {
+                Link(destination: licenseURL) {
+                    Text(copyright)
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+                }
+                Spacer()
+                ModernQuitButton(isHovering: $isHoveringQuit)
+            }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
         }
         .frame(width: 480, height: 560)
     }
 }
 
-// GENERAL SETTINGS TAB (includes Updates)
+struct ModernAboutLink: View {
+    let destination: URL
+    let systemImage: String
+    let label: String
+
+    @State private var hovering = false
+
+    var body: some View {
+        Link(destination: destination) {
+            HStack(spacing: 10) {
+                Image(systemName: systemImage)
+                    .foregroundColor(.accentColor)
+                    .font(.system(size: 18, weight: .medium))
+                Text(label)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.primary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(hovering ? Color.accentColor.opacity(0.14) : Color(NSColor.controlBackgroundColor))
+            )
+            .animation(.easeInOut(duration: 0.14), value: hovering)
+            .contentShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(PlainButtonStyle())
+        .onHover { hovering in
+            self.hovering = hovering
+        }
+    }
+}
+
+struct ModernQuitButton: View {
+    @Binding var isHovering: Bool
+
+    var body: some View {
+        Button(action: {
+            NSApplication.shared.terminate(nil)
+        }) {
+            HStack(spacing: 6) {
+                Image(systemName: "power")
+                    .font(.system(size: 14, weight: .semibold))
+                Text("Quit")
+                    .font(.footnote)
+                    .fontWeight(.medium)
+            }
+            .foregroundColor(isHovering ? Color.white : Color.red)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isHovering ? Color.red : Color.clear)
+                    .animation(.easeInOut(duration: 0.15), value: isHovering)
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+        .onHover { hovering in
+            isHovering = hovering
+        }
+        .help("Quit TabLift")
+    }
+}
+
 struct GeneralSettingsTab: View {
     var body: some View {
-        VStack {
-            Form {
-                Section {
-                    // Add your general settings toggles here, for example:
-                    // Toggle("Some setting", isOn: $someState)
-                }
+        Form {
+            Section { }
                 .modifier(SectionViewModifier())
-
-                Section {
-                    CheckForUpdatesView()
-                }
-                .modifier(SectionViewModifier())
+            Section {
+                CheckForUpdatesView()
             }
-            .modifier(FormViewModifier())
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .modifier(SectionViewModifier())
         }
+        .modifier(FormViewModifier())
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

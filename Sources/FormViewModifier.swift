@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (c) 2021-2025 LinearMouse
-
 import SwiftUI
 
 struct FormViewModifier: ViewModifier {
@@ -36,7 +33,6 @@ struct PickerViewModifier: ViewModifier {
         if #available(macOS 13.0, *) {
             content
         } else {
-            // TODO: fixedSize?
             content
         }
     }

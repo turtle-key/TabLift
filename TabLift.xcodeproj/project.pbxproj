@@ -7,20 +7,33 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BE5209C62E117A010048CC49 /* CheckForUpdates.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5209C52E1179FB0048CC49 /* CheckForUpdates.swift */; };
+		BE5209C92E117B560048CC49 /* Defaults in Frameworks */ = {isa = PBXBuildFile; productRef = BE5209C82E117B560048CC49 /* Defaults */; };
+		BE5209CB2E117B560048CC49 /* DefaultsMacros in Frameworks */ = {isa = PBXBuildFile; productRef = BE5209CA2E117B560048CC49 /* DefaultsMacros */; };
+		BE5209CE2E117BBC0048CC49 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = BE5209CD2E117BBC0048CC49 /* Sparkle */; };
+		BE5209D22E117C2A0048CC49 /* AutoUpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5209D12E117C2A0048CC49 /* AutoUpdateManager.swift */; };
+		BE5209D52E117C790048CC49 /* Version in Frameworks */ = {isa = PBXBuildFile; productRef = BE5209D42E117C790048CC49 /* Version */; };
+		BE5209D72E1183AF0048CC49 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = BE5209D62E1183AF0048CC49 /* Config.xcconfig */; };
+		BE5209D92E1185CF0048CC49 /* FormViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5209D82E1185CF0048CC49 /* FormViewModifier.swift */; };
+		BE5209E92E1189E80048CC49 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5209E82E1189E80048CC49 /* SettingsView.swift */; };
 		BE83CD3C2E0EDC2500DF73E8 /* AccessibilityPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD3B2E0EDC2500DF73E8 /* AccessibilityPermission.swift */; };
 		BE83CD3E2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD3D2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift */; };
 		BE83CD402E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD3F2E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift */; };
 		BE83CD422E0EDC8600DF73E8 /* HyperLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD412E0EDC8600DF73E8 /* HyperLink.swift */; };
 		BE83CD462E0EDD2800DF73E8 /* NSWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD452E0EDD2800DF73E8 /* NSWindow.swift */; };
 		BEE1EC4D2E062CD500D8CE5F /* AppMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC482E062CD500D8CE5F /* AppMonitor.swift */; };
-		BEE1EC4E2E062CD500D8CE5F /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC472E062CD500D8CE5F /* AboutView.swift */; };
 		BEE1EC4F2E062CD500D8CE5F /* WindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC4B2E062CD500D8CE5F /* WindowManager.swift */; };
 		BEE1EC502E062CD500D8CE5F /* TabLiftApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC4A2E062CD500D8CE5F /* TabLiftApp.swift */; };
-		BEE1EC512E062CD500D8CE5F /* PermissionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC492E062CD500D8CE5F /* PermissionsService.swift */; };
 		BEE1EC532E062CD500D8CE5F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BEE1EC452E062CD500D8CE5F /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		BE5209C52E1179FB0048CC49 /* CheckForUpdates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckForUpdates.swift; sourceTree = "<group>"; };
+		BE5209D12E117C2A0048CC49 /* AutoUpdateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoUpdateManager.swift; sourceTree = "<group>"; };
+		BE5209D62E1183AF0048CC49 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Config.xcconfig; path = Sources/Config.xcconfig; sourceTree = "<group>"; };
+		BE5209D82E1185CF0048CC49 /* FormViewModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormViewModifier.swift; sourceTree = "<group>"; };
+		BE5209DE2E1187D80048CC49 /* SchemeIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemeIndicator.swift; sourceTree = "<group>"; };
+		BE5209E82E1189E80048CC49 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		BE83CD3B2E0EDC2500DF73E8 /* AccessibilityPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermission.swift; sourceTree = "<group>"; };
 		BE83CD3D2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermissionWindow.swift; sourceTree = "<group>"; };
 		BE83CD3F2E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermissionView.swift; sourceTree = "<group>"; };
@@ -29,9 +42,7 @@
 		BEBC5E4A2E05826B004B38DB /* TabLift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TabLift.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BEE1EC452E062CD500D8CE5F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BEE1EC462E062CD500D8CE5F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		BEE1EC472E062CD500D8CE5F /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		BEE1EC482E062CD500D8CE5F /* AppMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMonitor.swift; sourceTree = "<group>"; };
-		BEE1EC492E062CD500D8CE5F /* PermissionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsService.swift; sourceTree = "<group>"; };
 		BEE1EC4A2E062CD500D8CE5F /* TabLiftApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabLiftApp.swift; sourceTree = "<group>"; };
 		BEE1EC4B2E062CD500D8CE5F /* WindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -41,6 +52,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BE5209CE2E117BBC0048CC49 /* Sparkle in Frameworks */,
+				BE5209D52E117C790048CC49 /* Version in Frameworks */,
+				BE5209C92E117B560048CC49 /* Defaults in Frameworks */,
+				BE5209CB2E117B560048CC49 /* DefaultsMacros in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -50,6 +65,7 @@
 		BEBC5E412E05826B004B38DB = {
 			isa = PBXGroup;
 			children = (
+				BE5209D62E1183AF0048CC49 /* Config.xcconfig */,
 				BEE1EC452E062CD500D8CE5F /* Assets.xcassets */,
 				BEE1EC462E062CD500D8CE5F /* Info.plist */,
 				BEE1EC4C2E062CD500D8CE5F /* Sources */,
@@ -61,6 +77,7 @@
 			isa = PBXGroup;
 			children = (
 				BEBC5E4A2E05826B004B38DB /* TabLift.app */,
+				BE5209DE2E1187D80048CC49 /* SchemeIndicator.swift */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -68,9 +85,10 @@
 		BEE1EC4C2E062CD500D8CE5F /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				BEE1EC472E062CD500D8CE5F /* AboutView.swift */,
+				BE5209C52E1179FB0048CC49 /* CheckForUpdates.swift */,
+				BE5209E82E1189E80048CC49 /* SettingsView.swift */,
 				BEE1EC482E062CD500D8CE5F /* AppMonitor.swift */,
-				BEE1EC492E062CD500D8CE5F /* PermissionsService.swift */,
+				BE5209D82E1185CF0048CC49 /* FormViewModifier.swift */,
 				BEE1EC4A2E062CD500D8CE5F /* TabLiftApp.swift */,
 				BEE1EC4B2E062CD500D8CE5F /* WindowManager.swift */,
 				BE83CD3B2E0EDC2500DF73E8 /* AccessibilityPermission.swift */,
@@ -78,6 +96,7 @@
 				BE83CD3F2E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift */,
 				BE83CD412E0EDC8600DF73E8 /* HyperLink.swift */,
 				BE83CD452E0EDD2800DF73E8 /* NSWindow.swift */,
+				BE5209D12E117C2A0048CC49 /* AutoUpdateManager.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -99,6 +118,10 @@
 			);
 			name = TabLift;
 			packageProductDependencies = (
+				BE5209C82E117B560048CC49 /* Defaults */,
+				BE5209CA2E117B560048CC49 /* DefaultsMacros */,
+				BE5209CD2E117BBC0048CC49 /* Sparkle */,
+				BE5209D42E117C790048CC49 /* Version */,
 			);
 			productName = TabLift;
 			productReference = BEBC5E4A2E05826B004B38DB /* TabLift.app */;
@@ -128,6 +151,11 @@
 			);
 			mainGroup = BEBC5E412E05826B004B38DB;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				BE5209C72E117B560048CC49 /* XCRemoteSwiftPackageReference "Defaults" */,
+				BE5209CC2E117BBC0048CC49 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				BE5209D32E117C790048CC49 /* XCRemoteSwiftPackageReference "Version" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = BEBC5E4B2E05826B004B38DB /* Products */;
 			projectDirPath = "";
@@ -143,6 +171,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BE5209D72E1183AF0048CC49 /* Config.xcconfig in Resources */,
 				BEE1EC532E062CD500D8CE5F /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -157,13 +186,15 @@
 				BE83CD462E0EDD2800DF73E8 /* NSWindow.swift in Sources */,
 				BE83CD402E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift in Sources */,
 				BEE1EC4D2E062CD500D8CE5F /* AppMonitor.swift in Sources */,
+				BE5209D22E117C2A0048CC49 /* AutoUpdateManager.swift in Sources */,
+				BE5209E92E1189E80048CC49 /* SettingsView.swift in Sources */,
 				BE83CD422E0EDC8600DF73E8 /* HyperLink.swift in Sources */,
-				BEE1EC4E2E062CD500D8CE5F /* AboutView.swift in Sources */,
 				BEE1EC4F2E062CD500D8CE5F /* WindowManager.swift in Sources */,
+				BE5209C62E117A010048CC49 /* CheckForUpdates.swift in Sources */,
 				BEE1EC502E062CD500D8CE5F /* TabLiftApp.swift in Sources */,
 				BE83CD3C2E0EDC2500DF73E8 /* AccessibilityPermission.swift in Sources */,
-				BEE1EC512E062CD500D8CE5F /* PermissionsService.swift in Sources */,
 				BE83CD3E2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift in Sources */,
+				BE5209D92E1185CF0048CC49 /* FormViewModifier.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -426,6 +457,56 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		BE5209C72E117B560048CC49 /* XCRemoteSwiftPackageReference "Defaults" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/Defaults";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.0.3;
+			};
+		};
+		BE5209CC2E117BBC0048CC49 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.7.1;
+			};
+		};
+		BE5209D32E117C790048CC49 /* XCRemoteSwiftPackageReference "Version" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mrackwitz/Version";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.8.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BE5209C82E117B560048CC49 /* Defaults */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BE5209C72E117B560048CC49 /* XCRemoteSwiftPackageReference "Defaults" */;
+			productName = Defaults;
+		};
+		BE5209CA2E117B560048CC49 /* DefaultsMacros */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BE5209C72E117B560048CC49 /* XCRemoteSwiftPackageReference "Defaults" */;
+			productName = DefaultsMacros;
+		};
+		BE5209CD2E117BBC0048CC49 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BE5209CC2E117BBC0048CC49 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+		BE5209D42E117C790048CC49 /* Version */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BE5209D32E117C790048CC49 /* XCRemoteSwiftPackageReference "Version" */;
+			productName = Version;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = BEBC5E422E05826B004B38DB /* Project object */;
 }

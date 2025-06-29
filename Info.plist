@@ -8,5 +8,7 @@
 	<true/>
 	<key>NSQuitAlwaysKeepsWindows</key>
 	<false/>
+	<key>SUFeedURL</key>
+	<string>https://tablift.mihai.sh/appcast.xml</string>
 </dict>
 </plist>
