@@ -39,30 +39,33 @@
 
 ## Features
 
-- **Instantly restores minimized windows** when you switch to an app using `⌘+Tab`
-- No need to press extra keys — just switch!
-- **Native macOS experience** (built with Swift, SwiftUI, and AppKit)
-- **Runs quietly in the background** with minimal resource usage
-- **Open source** and privacy-friendly  
-- Compatible with Mission Control, multiple desktops, and most macOS versions
+- **Instantly restores minimized windows** when you switch to an app using `⌘ + Tab` or ``⌘ + ` ``
+- **No** need to press **extra keys** — just switch!
+- **Menu bar icon** with quick popover for access and control
+- **One-click toggle**  for restoring all minimized windows or just the last minimized window, from the menu bar or settings
 - **Modern Settings & About window** with clickable version and license links
 - **Sparkle-powered update checker**
-- **Dedicated onboarding & accessibility permission flow**
+- **Runs quietly in the background** with minimal resource usage
+- **Compatible** with Mission Control, multiple desktops, and most macOS versions
 - **Website** included in the repo, for documentation and SEO
+---
 
 ## How It Works
 
 TabLift uses public Apple APIs to monitor when you activate a different app (via [`NSWorkspace`](https://developer.apple.com/documentation/appkit/nsworkspace) notifications).  
 As soon as an app is activated, TabLift checks for minimized windows via the Accessibility API (`AXUIElement`).  
-If a minimized window is found, it is instantly restored for you.
+If a minimized window is found, it is instantly restored for you, either restoring all or just the most recently minimized window (configurable).
 
 **Technical flow:**
 
 1. **Listening:** `AppMonitor.swift` listens for app activation events.
-2. **Restoring:** `WindowManager.swift` inspects the app's window list. If any window is minimized, it sets the `AXMinimized` attribute to `false`.
-3. **Permissions:** On first launch, `PermissionsService.swift` prompts you to grant Accessibility permissions, which are required for window management.
-4. **UI:** The `SettingsView.swift` (tabbed, includes About tab) provides quick links and info, including clickable version and license links.
-5. **Updates:** The app checks for updates with Sparkle, customizable via the settings.
+2. **Restoring:** `WindowManager.swift` inspects the app's window list. If any window is minimized, it sets the `AXMinimized` attribute to `false`. The behavior (restore all or just the latest) is determined by a global toggle.
+3. **Menu Bar:** `MenuBarManager.swift` provides a menu bar icon and popover with a quick settings toggle, open settings, and quit.
+4. **Permissions:** On first launch, `PermissionsService.swift` prompts you to grant Accessibility permissions, which are required for window management.
+5. **UI:** The `SettingsView.swift` (tabbed, includes About tab) provides quick links and info, including clickable version and license links, and toggles for behavior and launch at login.
+6. **Updates:** The app checks for updates with Sparkle, customizable via the settings.
+
+---
 
 ## Quick Start
 
@@ -94,6 +97,8 @@ npm install
 npm run dev
 ```
 
+---
+
 ## Permissions
 
 TabLift needs **Accessibility Access** to restore minimized windows.  
@@ -102,6 +107,8 @@ You'll be prompted on first launch, or you can enable it manually:
 ```
 System Settings → Privacy & Security → Accessibility → Enable TabLift
 ```
+
+---
 
 ## UI Preview
 
@@ -126,25 +133,30 @@ TabLift has a simple, modern Settings/About window with helpful links:
 ```
 TabLift/
 ├── Sources/
-│   ├── TabLiftApp.swift          // Main app entry point and delegate
-│   ├── AppMonitor.swift          // Listens for app switch events
-│   ├── WindowManager.swift       // Restores minimized windows
-│   ├── PermissionsService.swift  // Handles Accessibility permissions
-│   ├── SettingsView.swift        // Tabbed Settings & About window (SwiftUI)
-│   └── ...                      // Other supporting Swift files
-├── website/                      // SvelteKit-powered website
+│   ├── TabLiftApp.swift              // Main app entry point and delegate
+│   ├── AppMonitor.swift              // Listens for app switch events
+│   ├── WindowManager.swift           // Restores minimized windows (all or last, toggleable)
+│   ├── MenuBarManager.swift          // Manages menu bar icon, popover, and quick toggles
+│   ├── PermissionsService.swift      // Handles Accessibility permissions
+│   ├── SettingsView.swift            // Tabbed Settings & About window (SwiftUI)
+│   ├── AccessibilityPermissionWindow.swift // UI for requesting permissions
+│   └── ...                           // Other supporting Swift files
+├── website/                          // SvelteKit-powered website
 │   ├── src/
 │   ├── static/
 │   ├── package.json
 │   └── ... (SvelteKit structure)
 ├── Images/
 │   ├── banner.png
+│   ├── banner-wbg.png
 │   └── app-screenshot.png
 ├── Assets.xcassets/
 ├── Info.plist
-├── Sparkle/                      // Update framework
+├── Sparkle/                          // Update framework
 └── TabLift.xcodeproj
 ```
+
+---
 
 ## Tech Stack
 
@@ -160,6 +172,8 @@ TabLift/
 | Website Hosting      | Static (exportable, deploy anywhere)               |
 | Other                | Open Graph, Twitter Cards, SEO meta, robots.txt    |
 
+---
+
 ## Contributing
 
 Pull requests are welcome!  
@@ -172,6 +186,8 @@ If you have suggestions, bug reports, or want to help improve TabLift:
    ```
 3. Push and open a PR
 
+---
+
 ## License
 
 **MIT License**  
@@ -180,7 +196,7 @@ If you have suggestions, bug reports, or want to help improve TabLift:
 ## Credits
 
 Built for macOS power users frustrated with Apple's default app switching.  
-Thanks to the accessibility community and everyone who contributed feedback(my voices).
+Thanks to the accessibility community and everyone who contributed feedback(the voices in my head).
 
 ---
 
