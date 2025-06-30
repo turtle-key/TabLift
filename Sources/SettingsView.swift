@@ -43,7 +43,7 @@ struct GeneralSettingsTab: View {
                 .help("Launch TabLift automatically when you log in to your Mac.")
             }
             Section {
-                AccesibilityPermissionCheckView()
+                AccessibilityPermissionCheckView()
             }
             Section {
                 VStack(alignment: .leading, spacing: 12) {
