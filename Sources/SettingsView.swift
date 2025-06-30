@@ -183,10 +183,10 @@ struct GeneralSettingsTab: View {
             Section { }
                 .modifier(SectionViewModifier())
             Section {
-                CheckForUpdatesView()
+                AccesibilityPermissionCheckView()
             }
             Section {
-                AccesibilityPermissionCheckView()
+                CheckForUpdatesView()
             }
             .modifier(SectionViewModifier())
         }
