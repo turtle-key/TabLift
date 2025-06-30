@@ -8,7 +8,6 @@ struct TabLiftApp: App {
 
     var body: some Scene {
         Settings {
-            // Show new settings view with tabs
             SettingsView()
         }
     }
@@ -21,31 +20,44 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let autoUpdateManager = AutoUpdateManager.shared
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        UserDefaults.standard.register(defaults: [
+            "showMenuBarIcon": true,
+            "startAtLogin": true
+        ])
         guard AccessibilityPermission.enabled else {
             AccessibilityPermissionWindow.show()
             return
         }
         cmdBacktickMonitor = CmdBacktickMonitor()
         appMonitor = AppMonitor()
-        registerLoginItem()
+        registerLoginItemIfNeeded()
+        let showMenuBar = UserDefaults.standard.bool(forKey: "showMenuBarIcon")
+        MenuBarManager.shared.showMenuBarIcon(show: showMenuBar)
     }
-    
-    func registerLoginItem() {
-        do {
-            try SMAppService.mainApp.register()
-            print("Registered login item")
-        } catch {
-            print("Failed to register login item: \(error)")
+
+    func registerLoginItemIfNeeded() {
+        let startAtLogin = UserDefaults.standard.bool(forKey: "startAtLogin")
+        if startAtLogin {
+            do {
+                try SMAppService.mainApp.register()
+            } catch {
+                print("Failed to register login item: \(error)")
+            }
+        } else {
+            do {
+                try SMAppService.mainApp.unregister()
+            } catch {
+                print("Failed to unregister login item: \(error)")
+            }
         }
     }
-    
+
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        print("applicationShouldHandleReopen")
         showUI()
         return true
     }
 
-    func showUI() {
+    @objc func showUI() {
         if window == nil {
             let settingsView = SettingsView()
             window = NSWindow(

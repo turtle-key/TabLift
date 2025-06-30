@@ -1,4 +1,5 @@
 import SwiftUI
+import ServiceManagement
 
 struct SettingsView: View {
     var body: some View {
@@ -13,6 +14,84 @@ struct SettingsView: View {
                 }
         }
         .frame(width: 480, height: 560)
+    }
+}
+
+struct GeneralSettingsTab: View {
+    @AppStorage(WindowManager.restoreAllKey) var restoreAllWindows: Bool = true
+    @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
+    @AppStorage("startAtLogin") var startAtLogin: Bool = true
+
+    var body: some View {
+        Form {
+            Section {
+                Toggle(isOn: $showMenuBarIcon) {
+                    Text("Show in menu bar")
+                        .font(.body)
+                    if !showMenuBarIcon {
+                        Text("To show the settings, launch TabLift again.")
+                            .foregroundColor(.secondary)
+                            .font(.caption)
+                            .padding(.top, 2)
+                    }
+                }
+                .help("Show or hide the TabLift icon in your menu bar for quick access.")
+                Toggle(isOn: $startAtLogin) {
+                    Text("Start at login")
+                        .font(.body)
+                }
+                .help("Launch TabLift automatically when you log in to your Mac.")
+            }
+            Section {
+                AccesibilityPermissionCheckView()
+            }
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Behaviour")
+                        .font(.headline)
+                    HStack(spacing: 8) {
+                        Toggle(isOn: $restoreAllWindows) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Restore all minimized windows on app switch")
+                                    .font(.body)
+                                if !restoreAllWindows {
+                                    Text("When disabled, only the most recently minimized window will be restored.")
+                                        .foregroundColor(.secondary)
+                                        .font(.caption)
+                                        .padding(.top, 2)
+                                }
+                            }
+                        }
+                        .help("If enabled, switching to an app will restore all its minimized windows. If disabled, only the last minimized window will be restored.")
+                    }
+                }
+                .padding()
+            }
+            Section {
+                CheckForUpdatesView()
+            }
+            .modifier(SectionViewModifier())
+        }
+        .modifier(FormViewModifier())
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onChange(of: showMenuBarIcon) { value in
+            MenuBarManager.shared.showMenuBarIcon(show: value)
+        }
+        .onChange(of: startAtLogin) { value in
+            if value {
+                do {
+                    try SMAppService.mainApp.register()
+                } catch {
+                    print("Failed to register login item: \(error)")
+                }
+            } else {
+                do {
+                    try SMAppService.mainApp.unregister()
+                } catch {
+                    print("Failed to unregister login item: \(error)")
+                }
+            }
+        }
     }
 }
 
@@ -174,41 +253,5 @@ struct ModernQuitButton: View {
             isHovering = hovering
         }
         .help("Quit TabLift")
-    }
-}
-
-struct GeneralSettingsTab: View {
-    @AppStorage(WindowManager.restoreAllKey) var restoreAllWindows: Bool = true
-    var body: some View {
-        Form {
-            Section {
-                Toggle(isOn: $restoreAllWindows) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Restore all minimized windows on app switch")
-                            .font(.body)
-                        if !restoreAllWindows {
-                            Text("When disabled, only the most recently minimized window will be restored.")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                                .padding(.top, 2)
-                        }
-                    }
-                }
-                .help("If enabled, switching to an app will restore all its minimized windows. If disabled, only the last minimized window will be restored.")
-            }
-            .modifier(SectionViewModifier())
-
-            Section { }
-                .modifier(SectionViewModifier())
-            Section {
-                AccesibilityPermissionCheckView()
-            }
-            Section {
-                CheckForUpdatesView()
-            }
-            .modifier(SectionViewModifier())
-        }
-        .modifier(FormViewModifier())
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
