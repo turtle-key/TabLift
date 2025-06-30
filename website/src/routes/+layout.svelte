@@ -2,26 +2,51 @@
   import { base } from '$app/paths';
   import { page } from '$app/stores';
   import '../app.css';
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   let menuOpen = $state(false);
   function toggleMenu() { menuOpen = !menuOpen; }
   function closeMenu() { menuOpen = false; }
+  type ThemeMode = 'auto' | 'light' | 'dark';
   type Theme = 'light' | 'dark';
+  let themeMode: ThemeMode = $state('auto');
   let theme: Theme = $state('light');
   let darkMode = false;
 
-  function applyTheme(newTheme: Theme) {
+  let mediaQueryList: MediaQueryList | null = null;
+
+  function applyThemeMode(mode: ThemeMode, userInitiated = false) {
+    themeMode = mode;
+    if (mode === 'auto') {
+      localStorage.removeItem('theme');
+      updateAutoTheme();
+    } else {
+      localStorage.theme = mode;
+      setTheme(mode);
+    }
+  }
+
+  function setTheme(newTheme: Theme) {
     theme = newTheme;
     if (theme === 'light') {
       document.documentElement.classList.remove('dark');
-      localStorage.theme = 'light';
       darkMode = false;
     } else if (theme === 'dark') {
       document.documentElement.classList.add('dark');
-      localStorage.theme = 'dark';
       darkMode = true;
     }
   }
+
+  function updateAutoTheme() {
+    const prefersDark = mediaQueryList?.matches ?? false;
+    setTheme(prefersDark ? 'dark' : 'light');
+  }
+
+  function handleSystemThemeChange(e: MediaQueryListEvent) {
+    if (themeMode === 'auto') {
+      setTheme(e.matches ? 'dark' : 'light');
+    }
+  }
+
   function highlightMenuItem(currpage: string) {
     document.querySelectorAll('.mainnav-link').forEach(el => {
       el.classList.remove('menu-active');
@@ -29,26 +54,54 @@
     var elem = document.getElementById(currpage);
     elem?.classList.add('menu-active');
   }
+
   function getMenuIdFromPath(path: string){
     path = path.replace(/\/+$/, '');
     if (path === '' || path === '/' || path === base) return 'home';
     const segments = path.split('/');
     return segments[segments.length - 1] || 'home';
   }
-  function cycleTheme() {
-    if (theme === 'dark') applyTheme('light');
-    else applyTheme('dark');
+
+  function cycleThemeMode() {
+    if (themeMode === 'auto') applyThemeMode('light', true);
+    else if (themeMode === 'light') applyThemeMode('dark', true);
+    else if (themeMode === 'dark') applyThemeMode('auto', true);
   }
 
   onMount(() => {
     if (typeof window !== 'undefined') {
-      if (localStorage.theme === 'dark') applyTheme('dark');
-      else if (localStorage.theme === 'light') applyTheme('light');
+      mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
+      if ('theme' in localStorage) {
+        const stored = localStorage.theme;
+        if (stored === 'light' || stored === 'dark') {
+          applyThemeMode(stored as ThemeMode, false);
+        } else {
+          applyThemeMode('auto', false);
+        }
+      } else {
+        applyThemeMode('auto', false);
+      }
+      if (mediaQueryList.addEventListener) {
+        mediaQueryList.addEventListener('change', handleSystemThemeChange);
+      } else if (mediaQueryList.addListener) {
+        mediaQueryList.addListener(handleSystemThemeChange);
+      }
     }
     const path = window.location.pathname.replace(base, '');
     const menuId = getMenuIdFromPath(path);
     highlightMenuItem(menuId);
   });
+
+  onDestroy(() => {
+    if (mediaQueryList) {
+      if (mediaQueryList.removeEventListener) {
+        mediaQueryList.removeEventListener('change', handleSystemThemeChange);
+      } else if (mediaQueryList.removeListener) {
+        mediaQueryList.removeListener(handleSystemThemeChange);
+      }
+    }
+  });
+
   let currPath = $derived(() =>
     $page.url.pathname.replace(base, '').replace(/\/+$/, '') || '/'
   );
@@ -156,15 +209,23 @@
         <li>
           <button
             class="w-10 h-10 rounded-full flex items-center justify-center p-0 ml-1 hover:bg-slate-200 hover:dark:bg-slate-700"
-            aria-label="Toggle dark mode"
+            aria-label="Toggle theme mode"
             type="button"
-            onclick={cycleTheme}
+            onclick={cycleThemeMode}
           >
-            <span class="material-symbols-rounded text-2xl text-slate-600 dark:text-slate-200 select-none">
-              {theme === 'dark'
-                  ? 'light_mode'
-                  : 'dark_mode'}
-            </span>
+            {#if themeMode === 'auto'}
+              <span class="material-symbols-rounded text-2xl text-slate-600 dark:text-slate-200 select-none" title="Auto mode">
+                brightness_auto
+              </span>
+            {:else if themeMode === 'light'}
+              <span class="material-symbols-rounded text-2xl text-slate-600 dark:text-slate-200 select-none" title="Light mode">
+                light_mode
+              </span>
+            {:else}
+              <span class="material-symbols-rounded text-2xl text-slate-600 dark:text-slate-200 select-none" title="Dark mode">
+                dark_mode
+              </span>
+            {/if}
           </button>
         </li>
       </ul>
@@ -185,15 +246,23 @@
               <a href={base + "/faq"} class="block w-full px-4 py-3 text-black dark:text-white font-semibold text-center" class:menu-active={activeId() === 'faq'} onclick={closeMenu}>F.A.Q.</a>
               <button
                 class="w-10 h-10 rounded-full flex items-center justify-center m-2 hover:bg-slate-200 hover:dark:bg-slate-700 transition-colors"
-                aria-label="Toggle dark mode"
+                aria-label="Toggle theme mode"
                 type="button"
-                onclick={() => { cycleTheme(); closeMenu(); }}
+                onclick={() => { cycleThemeMode(); closeMenu(); }}
               >
-                <span class="material-symbols-rounded text-2xl text-slate-600 dark:text-slate-200 select-none">
-                  {theme === 'dark'
-                      ? 'light_mode'
-                      : 'dark_mode'}
-                </span>
+                {#if themeMode === 'auto'}
+                  <span class="material-symbols-rounded text-2xl text-slate-600 dark:text-slate-200 select-none" title="Auto mode">
+                    brightness_auto
+                  </span>
+                {:else if themeMode === 'light'}
+                  <span class="material-symbols-rounded text-2xl text-slate-600 dark:text-slate-200 select-none" title="Light mode">
+                    light_mode
+                  </span>
+                {:else}
+                  <span class="material-symbols-rounded text-2xl text-slate-600 dark:text-slate-200 select-none" title="Dark mode">
+                    dark_mode
+                  </span>
+                {/if}
               </button>
             </div>
           </div>
