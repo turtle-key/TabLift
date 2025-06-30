@@ -18,7 +18,7 @@ class CmdBacktickMonitor {
                         CmdBacktickMonitor.unminimizeNextMinimizedWindow()
                     }
                 }
-                return Unmanaged.passRetained(event)
+                return Unmanaged.passUnretained(event)
             },
             userInfo: nil
         )
