@@ -21,7 +21,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard AccessibilityPermission.enabled else {
-            AccessibilityPermissionWindow.shared.bringToFront()
+            AccessibilityPermissionWindow.show()
             return
         }
         appMonitor = AppMonitor()
@@ -45,7 +45,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func showUI() {
         if window == nil {
-            // Use the new SettingsView with tabs
             let settingsView = SettingsView()
             window = NSWindow(
                 contentRect: NSMakeRect(0, 0, 500, 450),
