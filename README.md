@@ -26,7 +26,7 @@
 </p>
 
 <p align="center">
-  TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with <code>⌘+Tab</code>.<br>
+  TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with <code>⌘+Tab</code> or <code>⌘+`</code>.<br>
   By default, macOS ignores minimized windows unless you hold the <code>Option</code> key.<br>
   TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.
 </p>
