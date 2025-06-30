@@ -99,6 +99,7 @@
         href={base + "/"}
         aria-label="Go to the homepage"
         class="icon-link mr-4"
+        onclick={closeMenu}
       >
         <img
           src="https://bucket.mihai.sh/app-icon-168.webp"
@@ -178,7 +179,7 @@
           </span>
         </button>
         {#if menuOpen}
-          <div class="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white dark:bg-[#18181c] border border-slate-200 dark:border-slate-800 py-2 z-50 animate-fade-in">
+          <div class="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white dark:bg-[#18181c] border border-slate-200 dark:border-slate-800 z-50 animate-fade-in">
             <div class="flex flex-col items-center justify-center text-center">
               <a href={base + "/privacypolicy"} class="block w-full px-4 py-3 text-black dark:text-white font-semibold rounded-t-xl text-center" class:menu-active={activeId() === 'privacypolicy'} onclick={closeMenu}>Privacy Policy</a>
               <a href={base + "/faq"} class="block w-full px-4 py-3 text-black dark:text-white font-semibold text-center" class:menu-active={activeId() === 'faq'} onclick={closeMenu}>F.A.Q.</a>
