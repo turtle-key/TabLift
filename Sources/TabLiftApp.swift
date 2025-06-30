@@ -16,6 +16,7 @@ struct TabLiftApp: App {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var appMonitor: AppMonitor?
+    var cmdBacktickMonitor: CmdBacktickMonitor?
     var window: NSWindow?
     private let autoUpdateManager = AutoUpdateManager.shared
 
@@ -24,6 +25,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             AccessibilityPermissionWindow.show()
             return
         }
+        cmdBacktickMonitor = CmdBacktickMonitor()
         appMonitor = AppMonitor()
         registerLoginItem()
     }
