@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Images/banner.png" alt="TabLift Banner" width="400"/>
+  <img src="Images/banner-wbg.png" alt="TabLift Banner" width="400"/>
 </p>
 
 <p align="center">
@@ -106,9 +106,9 @@ System Settings → Privacy & Security → Accessibility → Enable TabLift
 ## UI Preview
 
 <p align="center">
-  <img src="Images/app-screenshot.png" alt="App Screenshot" width="320"/>
+  <img src="Images/tablift-shot-light.png" alt="App Screenshot" width="320"/>
+  <img src="Images/tablift-shot-dark.png" alt="App Screenshot" width="320"/>
 </p>
-
 <p align="center">
 TabLift has a simple, modern Settings/About window with helpful links:
 </p>
