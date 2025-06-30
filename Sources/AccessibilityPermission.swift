@@ -1,6 +1,7 @@
 import Foundation
 import os.log
 import SwiftUI
+import ApplicationServices
 
 enum AccessibilityPermission {
     private static let log = OSLog(subsystem: Bundle.main.bundleIdentifier!, category: "AccessibilityPermission")
@@ -11,10 +12,10 @@ enum AccessibilityPermission {
         ] as CFDictionary)
     }
 
+
     static func prompt() {
-        AXIsProcessTrustedWithOptions([
-            kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true
-        ] as CFDictionary)
+        let options = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true] as CFDictionary
+        AXIsProcessTrustedWithOptions(options)
     }
 
     static func pollingUntilEnabled(completion: @escaping () -> Void) {

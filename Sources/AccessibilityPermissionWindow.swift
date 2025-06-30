@@ -2,8 +2,10 @@ import Foundation
 import SwiftUI
 
 class AccessibilityPermissionWindow: NSWindow {
-    static let shared = AccessibilityPermissionWindow()
-
+    static func show() {
+        let window = AccessibilityPermissionWindow()
+        window.bringToFront()
+    }
     init() {
         super.init(
             contentRect: .init(x: 0, y: 0, width: 450, height: 200),
@@ -16,7 +18,7 @@ class AccessibilityPermissionWindow: NSWindow {
 
         isReleasedWhenClosed = true
 
-        contentView = NSHostingView(rootView: AccessibilityPermissionView())
+        contentView = NSHostingView(rootView: AccessibilityPermissionView(window: self))
 
         titleVisibility = .hidden
         titlebarAppearsTransparent = true

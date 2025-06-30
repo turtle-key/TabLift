@@ -185,6 +185,9 @@ struct GeneralSettingsTab: View {
             Section {
                 CheckForUpdatesView()
             }
+            Section {
+                AccesibilityPermissionCheckView()
+            }
             .modifier(SectionViewModifier())
         }
         .modifier(FormViewModifier())
