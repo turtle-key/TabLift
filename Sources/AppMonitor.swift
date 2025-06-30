@@ -6,7 +6,7 @@ class AppMonitor {
     
     init(){
         observer = NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { notification in guard let userInfo = notification.userInfo,let app = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else { return }
-            WindowManager.restoreMinimsizedWindows(for: app)
+            WindowManager.restoreMinimizedWindows(for: app)
         }
     }
     

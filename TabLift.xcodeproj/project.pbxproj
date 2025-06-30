@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BE1AF66A2E1315D600DB8C44 /* CmdBacktickMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE1AF6692E1315D400DB8C44 /* CmdBacktickMonitor.swift */; };
 		BE5209C62E117A010048CC49 /* CheckForUpdates.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5209C52E1179FB0048CC49 /* CheckForUpdates.swift */; };
 		BE5209C92E117B560048CC49 /* Defaults in Frameworks */ = {isa = PBXBuildFile; productRef = BE5209C82E117B560048CC49 /* Defaults */; };
 		BE5209CB2E117B560048CC49 /* DefaultsMacros in Frameworks */ = {isa = PBXBuildFile; productRef = BE5209CA2E117B560048CC49 /* DefaultsMacros */; };
@@ -29,6 +30,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		BE1AF6692E1315D400DB8C44 /* CmdBacktickMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CmdBacktickMonitor.swift; sourceTree = "<group>"; };
 		BE5209C52E1179FB0048CC49 /* CheckForUpdates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckForUpdates.swift; sourceTree = "<group>"; };
 		BE5209D12E117C2A0048CC49 /* AutoUpdateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoUpdateManager.swift; sourceTree = "<group>"; };
 		BE5209D62E1183AF0048CC49 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Config.xcconfig; path = Sources/Config.xcconfig; sourceTree = "<group>"; };
@@ -95,6 +97,7 @@
 				BE5209D82E1185CF0048CC49 /* FormViewModifier.swift */,
 				BEE1EC4A2E062CD500D8CE5F /* TabLiftApp.swift */,
 				BEE1EC4B2E062CD500D8CE5F /* WindowManager.swift */,
+				BE1AF6692E1315D400DB8C44 /* CmdBacktickMonitor.swift */,
 				BE83CD3B2E0EDC2500DF73E8 /* AccessibilityPermission.swift */,
 				BE83CD3D2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift */,
 				BE83CD3F2E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift */,
@@ -195,6 +198,7 @@
 				BE5209E92E1189E80048CC49 /* SettingsView.swift in Sources */,
 				BE83CD422E0EDC8600DF73E8 /* HyperLink.swift in Sources */,
 				BEE1EC4F2E062CD500D8CE5F /* WindowManager.swift in Sources */,
+				BE1AF66A2E1315D600DB8C44 /* CmdBacktickMonitor.swift in Sources */,
 				BE5209C62E117A010048CC49 /* CheckForUpdates.swift in Sources */,
 				BEE1EC502E062CD500D8CE5F /* TabLiftApp.swift in Sources */,
 				BE83CD3C2E0EDC2500DF73E8 /* AccessibilityPermission.swift in Sources */,
@@ -336,7 +340,7 @@
 				"CODE_SIGN_ENTITLEMENTS[sdk=*]" = TabLift.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.4;
+				CURRENT_PROJECT_VERSION = 1.5;
 				DEVELOPMENT_TEAM = 3VR9A5DCST;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -359,7 +363,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.TabLift;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -390,7 +394,7 @@
 				"CODE_SIGN_ENTITLEMENTS[sdk=*]" = TabLift.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.4;
+				CURRENT_PROJECT_VERSION = 1.5;
 				DEVELOPMENT_TEAM = 3VR9A5DCST;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -413,7 +417,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.TabLift;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;

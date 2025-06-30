@@ -178,8 +178,26 @@ struct ModernQuitButton: View {
 }
 
 struct GeneralSettingsTab: View {
+    @AppStorage(WindowManager.restoreAllKey) var restoreAllWindows: Bool = true
     var body: some View {
         Form {
+            Section {
+                Toggle(isOn: $restoreAllWindows) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Restore all minimized windows on app switch")
+                            .font(.body)
+                        if !restoreAllWindows {
+                            Text("When disabled, only the most recently minimized window will be restored.")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                                .padding(.top, 2)
+                        }
+                    }
+                }
+                .help("If enabled, switching to an app will restore all its minimized windows. If disabled, only the last minimized window will be restored.")
+            }
+            .modifier(SectionViewModifier())
+
             Section { }
                 .modifier(SectionViewModifier())
             Section {
