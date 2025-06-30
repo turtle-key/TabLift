@@ -65,7 +65,7 @@ struct PingingCircle: View {
         }
     }
 }
-struct AccesibilityPermissionCheckView: View {
+struct AccessibilityPermissionCheckView: View {
     @State private var isAccessibilityEnabled = AccessibilityPermission.enabled
     
     var body: some View {
