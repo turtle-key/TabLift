@@ -37,7 +37,7 @@ class MenuBarManager: NSObject {
         }
     }
 
-    @objc private func togglePopover(_ sender: Any?) {
+    @objc private func togglePopover(_ sender: AnyObject?) {
         guard let button = statusItem?.button, let popover else { return }
 
         if popover.isShown {
