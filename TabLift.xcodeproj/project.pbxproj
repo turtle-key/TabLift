@@ -24,6 +24,7 @@
 		BE83CD402E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD3F2E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift */; };
 		BE83CD422E0EDC8600DF73E8 /* HyperLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD412E0EDC8600DF73E8 /* HyperLink.swift */; };
 		BE83CD462E0EDD2800DF73E8 /* NSWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD452E0EDD2800DF73E8 /* NSWindow.swift */; };
+		BEB9B6592E2F523E00A7456D /* MenuBarContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB9B6582E2F523E00A7456D /* MenuBarContentView.swift */; };
 		BEE1EC4D2E062CD500D8CE5F /* AppMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC482E062CD500D8CE5F /* AppMonitor.swift */; };
 		BEE1EC4F2E062CD500D8CE5F /* WindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC4B2E062CD500D8CE5F /* WindowManager.swift */; };
 		BEE1EC502E062CD500D8CE5F /* TabLiftApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC4A2E062CD500D8CE5F /* TabLiftApp.swift */; };
@@ -46,6 +47,7 @@
 		BE83CD3F2E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermissionView.swift; sourceTree = "<group>"; };
 		BE83CD412E0EDC8600DF73E8 /* HyperLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HyperLink.swift; sourceTree = "<group>"; };
 		BE83CD452E0EDD2800DF73E8 /* NSWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSWindow.swift; sourceTree = "<group>"; };
+		BEB9B6582E2F523E00A7456D /* MenuBarContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarContentView.swift; sourceTree = "<group>"; };
 		BEBC5E4A2E05826B004B38DB /* TabLift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TabLift.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BEE1EC452E062CD500D8CE5F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BEE1EC462E062CD500D8CE5F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -101,6 +103,7 @@
 				BEE1EC4B2E062CD500D8CE5F /* WindowManager.swift */,
 				BE1AF6692E1315D400DB8C44 /* CmdBacktickMonitor.swift */,
 				BE1AF66B2E131C5F00DB8C44 /* MenuBarManager.swift */,
+				BEB9B6582E2F523E00A7456D /* MenuBarContentView.swift */,
 				BE83CD3B2E0EDC2500DF73E8 /* AccessibilityPermission.swift */,
 				BE83CD3D2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift */,
 				BE83CD3F2E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift */,
@@ -202,6 +205,7 @@
 				BE83CD422E0EDC8600DF73E8 /* HyperLink.swift in Sources */,
 				BE1AF66C2E131C5F00DB8C44 /* MenuBarManager.swift in Sources */,
 				BEE1EC4F2E062CD500D8CE5F /* WindowManager.swift in Sources */,
+				BEB9B6592E2F523E00A7456D /* MenuBarContentView.swift in Sources */,
 				BE1AF66A2E1315D600DB8C44 /* CmdBacktickMonitor.swift in Sources */,
 				BE5209C62E117A010048CC49 /* CheckForUpdates.swift in Sources */,
 				BEE1EC502E062CD500D8CE5F /* TabLiftApp.swift in Sources */,
