@@ -50,7 +50,7 @@ class AppMonitor {
             let now = Date().timeIntervalSince1970
             let delta = now - self.lastAppSwitcherTimestamp
 
-            if delta < 0.5 {
+            if delta < AppMonitor.timeoutThreshold {
                 print("App activated via App Switcher (Cmd+Tab or Cmd+`)")
                 WindowManager.restoreMinimizedWindows(for: app)
             }
