@@ -5,7 +5,7 @@ import AppKit
 class AppMonitor {
     private var observer: NSObjectProtocol?
     private var lastAppSwitcherTimestamp: TimeInterval = 0
-    
+    static let timeoutThreshold: TimeInterval = 0.5
     func setupEventTap() {
             let eventMask = (1 << CGEventType.keyDown.rawValue)
             
