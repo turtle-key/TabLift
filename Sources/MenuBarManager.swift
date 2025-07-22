@@ -3,8 +3,10 @@ import SwiftUI
 
 class MenuBarManager: NSObject {
     static let shared = MenuBarManager()
+
     private var statusItem: NSStatusItem?
     private var popover: NSPopover?
+    private var eventMonitor: Any?
 
     @AppStorage(WindowManager.restoreAllKey) var restoreAllWindows: Bool = true
 
@@ -17,97 +19,59 @@ class MenuBarManager: NSObject {
                     button.action = #selector(togglePopover(_:))
                     button.target = self
                 }
+
                 let popover = NSPopover()
                 popover.contentSize = NSSize(width: 320, height: 180)
                 popover.behavior = .transient
+                popover.animates = false
                 popover.contentViewController = NSHostingController(rootView: MenuBarContentView())
                 self.popover = popover
             }
         } else {
-            if let statusItem = statusItem {
+            if let statusItem {
                 NSStatusBar.system.removeStatusItem(statusItem)
                 self.statusItem = nil
             }
             self.popover = nil
+            removeEventMonitor()
         }
     }
 
-    @objc private func togglePopover(_ sender: AnyObject?) {
-        if let button = statusItem?.button, let popover = popover {
-            if popover.isShown {
-                popover.performClose(sender)
-            } else {
-                popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-                NSApp.activate(ignoringOtherApps: true)
-            }
+    @objc private func togglePopover(_ sender: Any?) {
+        guard let button = statusItem?.button, let popover else { return }
+
+        if popover.isShown {
+            popover.performClose(sender)
+            removeEventMonitor()
+        } else {
+            NSApp.activate(ignoringOtherApps: true) // 🧠 Ensure app is frontmost
+            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            
+            // 🧠 Critical to make popover's window key so transient works
+            popover.contentViewController?.view.window?.makeKey()
+
+            startEventMonitor()
         }
     }
-}
 
-struct MenuBarContentView: View {
-    @AppStorage(WindowManager.restoreAllKey) var restoreAllWindows: Bool = true
+    private func startEventMonitor() {
+        guard eventMonitor == nil else { return }
 
-    var body: some View {
-        VStack(spacing: 16) {
-            Text("TabLift")
-                .font(.headline)
-            Divider()
-            Toggle(isOn: $restoreAllWindows) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Restore all minimized windows")
-                }
-            }
-            .toggleStyle(SwitchToggleStyle())
-            Button("Open Settings") {
-                NSApp.sendAction(#selector(AppDelegate.showUI), to: nil, from: nil)
-            }
-            WavyDivider()
-            HStack {
-                Spacer()
-                Button(action: {
-                    NSApp.terminate(nil)
-                }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "power")
-                            .font(.system(size: 13, weight: .bold))
-                        Text("Quit TabLift")
-                            .font(.footnote)
-                            .fontWeight(.medium)
-                    }
-                    .foregroundColor(.red)
-                    .padding(.vertical, 7)
-                    .padding(.horizontal, 18)
-                }
-                .buttonStyle(PlainButtonStyle())
-                Spacer()
-            }
-            .padding(.bottom, 2)
+        eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            guard let self, let popover = self.popover, popover.isShown else { return }
+            popover.performClose(nil)
+            self.removeEventMonitor()
         }
-        .padding()
-        .frame(width: 300)
     }
-}
 
-struct WavyDivider: View {
-    var amplitude: CGFloat = 4
-    var waveLength: CGFloat = 24
-    var color: Color = .secondary
-    var body: some View {
-        GeometryReader { geo in
-            let width = geo.size.width
-            let height = geo.size.height
-            Path { path in
-                path.move(to: CGPoint(x: 0, y: height/2))
-                var x: CGFloat = 0
-                while x <= width {
-                    let y = height/2 + amplitude * sin((2 * .pi / waveLength) * x)
-                    path.addLine(to: CGPoint(x: x, y: y))
-                    x += 1
-                }
-            }
-            .stroke(color, style: StrokeStyle(lineWidth: 1.4, lineCap: .round))
+    private func removeEventMonitor() {
+        if let monitor = eventMonitor {
+            NSEvent.removeMonitor(monitor)
+            eventMonitor = nil
         }
-        .frame(height: amplitude * 2 + 4)
-        .accessibilityHidden(true)
+    }
+
+    deinit {
+        removeEventMonitor()
     }
 }
