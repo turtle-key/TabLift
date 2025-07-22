@@ -23,7 +23,7 @@ class AppMonitor {
                     }
                 }
 
-                return Unmanaged.passRetained(event)
+                return Unmanaged.passUnretained(event)
             }
 
             let selfPointer = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
