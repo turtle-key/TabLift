@@ -30,24 +30,31 @@ class CmdBacktickMonitor {
             CGEvent.tapEnable(tap: eventTap, enable: true)
         }
     }
-    
+    deinit {
+        if let eventTap = eventTap {
+            CGEvent.tapEnable(tap: eventTap, enable: false)
+            CFMachPortInvalidate(eventTap)
+        }
+    }
     static func unminimizeNextMinimizedWindow() {
-        guard let app = NSWorkspace.shared.frontmostApplication else { return }
-        let appElement = AXUIElementCreateApplication(app.processIdentifier)
-        var value: AnyObject?
-        let result = AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &value)
-        guard result == .success, let windows = value as? [AXUIElement] else { return }
-        
-        for window in windows {
-            var minimized: AnyObject?
-            if AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimized) == .success,
-               let isMinimized = minimized as? Bool,
-               isMinimized
-            {
-                AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
-                AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
-                AXUIElementSetAttributeValue(window, kAXFocusedAttribute as CFString, kCFBooleanTrue)
-                break
+        DispatchQueue.main.async {
+            guard let app = NSWorkspace.shared.frontmostApplication else { return }
+            let appElement = AXUIElementCreateApplication(app.processIdentifier)
+            var value: AnyObject?
+            let result = AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &value)
+            guard result == .success, let windows = value as? [AXUIElement] else { return }
+
+            for window in windows {
+                var minimized: AnyObject?
+                if AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimized) == .success,
+                   let isMinimized = minimized as? Bool,
+                   isMinimized
+                {
+                    AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
+                    AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
+                    AXUIElementSetAttributeValue(window, kAXFocusedAttribute as CFString, kCFBooleanTrue)
+                    break
+                }
             }
         }
     }
