@@ -44,10 +44,9 @@ class MenuBarManager: NSObject {
             popover.performClose(sender)
             removeEventMonitor()
         } else {
-            NSApp.activate(ignoringOtherApps: true) // 🧠 Ensure app is frontmost
+            NSApp.activate(ignoringOtherApps: true)
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             
-            // 🧠 Critical to make popover's window key so transient works
             popover.contentViewController?.view.window?.makeKey()
 
             startEventMonitor()
