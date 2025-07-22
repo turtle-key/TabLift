@@ -24,7 +24,7 @@ struct MenuBarContentView: View {
                 Button(action: {
                     NSApp.terminate(nil)
                 }) {
-                    HStack {
+                    HStack(spacing: 6) {
                         Image(systemName: "power")
                             .font(.system(size: 13, weight: .bold))
                         Text("Quit TabLift")
