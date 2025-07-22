@@ -30,6 +30,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         cmdBacktickMonitor = CmdBacktickMonitor()
         appMonitor = AppMonitor()
+        appMonitor?.setupEventTap()
         registerLoginItemIfNeeded()
         let showMenuBar = UserDefaults.standard.bool(forKey: "showMenuBarIcon")
         MenuBarManager.shared.showMenuBarIcon(show: showMenuBar)
