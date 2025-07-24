@@ -1,9 +1,13 @@
 <script lang="ts">
-  let tonOn = true;
+  import { run } from 'svelte/legacy';
+  
+  let tonOn = $state(true);
   const VIDEO_WITH = "https://bucket.mihai.sh/with.mp4";
   const VIDEO_WITHOUT = "https://bucket.mihai.sh/without.mp4";
-  let videoSrc = VIDEO_WITH;
-  $: videoSrc = tonOn ? VIDEO_WITH : VIDEO_WITHOUT;
+  let videoSrc = $state(VIDEO_WITH);
+  run(() => {
+    videoSrc = tonOn ? VIDEO_WITH : VIDEO_WITHOUT;
+  });
   function toggleTonOn() {
     tonOn = !tonOn;
   }
@@ -36,7 +40,7 @@
     </p>
     <div class="flex flex-col items-center mb-8 w-full">
       <a
-        class="px-8 py-3 rounded-xl font-semibold text-white text-base shadow transition mb-4"
+        class="download-btn px-8 py-3 rounded-xl font-semibold text-white text-base shadow transition-all duration-300 mb-4"
         style="background:#102943;"
         rel="noopener"
         href={`https://github.com/${repoOwner}/${repoName}/releases/latest/download/TabLift.dmg`}
@@ -45,82 +49,85 @@
         Download
       </a>
     </div>
-    <div class="relative flex flex-col items-center mb-20 w-full">
-      <img
-        src="https://bucket.mihai.sh/macbook-380.webp"
-        srcset="https://bucket.mihai.sh/macbook-380.webp 380w, https://bucket.mihai.sh/macbook-760.webp 760w, https://bucket.mihai.sh/macbook-1200.webp 1200w"
-        sizes="(max-width: 600px) 90vw, (max-width: 1200px) 760px, 1200px"
-        alt="macOS screenshot"
-        width="380"
-        height="247"
-        class="z-10 w-full absolute pointer-events-none select-none"
-        style="top: -15.75%;"
-        draggable="false"
-        loading="eager"
-        fetchpriority="high"
-      />
-      <div class="relative w-[76.7%] flex justify-center items-center">
-        <video
-          src={videoSrc}
-          muted
-          playsinline
-          loop
-          autoplay
-          class="w-full h-full object-cover"
-          style="border-radius:7px 7px 0px 0px;"
-        ></video>
+    
+    <!-- Perfectly centered MacBook mockup -->
+    <div class="video-container relative flex justify-center items-center mb-20 w-full">
+      <div class="macbook-mockup relative">
+        <img
+          src="https://bucket.mihai.sh/macbook-380.webp"
+          srcset="https://bucket.mihai.sh/macbook-380.webp 380w, https://bucket.mihai.sh/macbook-760.webp 760w, https://bucket.mihai.sh/macbook-1200.webp 1200w"
+          sizes="(max-width: 600px) 90vw, (max-width: 1200px) 760px, 1200px"
+          alt="macOS screenshot"
+          width="380"
+          height="247"
+          class="laptop-frame z-10 absolute pointer-events-none select-none"
+          draggable="false"
+          loading="eager"
+          fetchpriority="high"
+        />
+        <div class="video-wrapper relative">
+          <video
+            src={videoSrc}
+            muted
+            playsinline
+            loop
+            autoplay
+            class="demo-video w-full h-full object-cover"
+          ></video>
+        </div>
       </div>
     </div>
+    
     <div class="flex justify-center items-center w-full mb-10">
       <button
-          class="switch-ios mx-2"
+          class="switch-ios mx-2 transition-all duration-200"
           role="switch"
           aria-checked={tonOn}
           aria-label={tonOn ? 'Deactivate app' : 'Activate app'}
           type="button"
-          on:click={toggleTonOn}
+          onclick={toggleTonOn}
           tabindex="0"
         > <span class="slider-ios {tonOn ? 'checked' : ''}"></span>
       </button>
-      <span class="text-lg font-semibold select-none ml-4" style="color: {tonOn ? '#34C759' : '#a0aec0'};font-family:inherit;">
+      <span class="text-lg font-semibold select-none ml-4 transition-all duration-200" style="color: {tonOn ? '#34C759' : '#a0aec0'};font-family:inherit;">
         {tonOn ? 'activated' : 'deactivated'}
       </span>
     </div>
     <div class="w-full flex flex-col items-center">
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 justify-center items-stretch w-full max-w-4xl">
-        <div class="flex flex-col items-center text-center bg-blue-50 dark:bg-blue-900 border border-blue-100 dark:border-blue-800 rounded-xl p-5 min-w-[210px] h-full">
+        <div class="feature-card blue-card flex flex-col items-center text-center bg-blue-50 dark:bg-blue-900 border border-blue-100 dark:border-blue-800 rounded-xl p-5 min-w-[210px] h-full transition-all duration-300 cursor-pointer">
           <div class="flex items-center gap-2 mb-1 text-blue-600 dark:text-blue-300">
-            <span class="material-symbols-rounded text-base">window</span>
+            <span class="material-symbols-rounded text-base transition-transform duration-300">window</span>
             <span class="font-semibold text-sm">Windows</span>
           </div>
           <p class="text-xs text-gray-700 dark:text-gray-200">Quickly switch between the minimized apps and their windows.</p>
         </div>
-        <div class="flex flex-col items-center text-center bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-5 min-w-[210px] h-full">
+        <div class="feature-card gray-card flex flex-col items-center text-center bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-5 min-w-[210px] h-full transition-all duration-300 cursor-pointer">
           <div class="flex items-center gap-2 mb-1 text-gray-500 dark:text-gray-300">
-            <span class="material-symbols-rounded text-base">memory</span>
+            <span class="material-symbols-rounded text-base transition-transform duration-300">memory</span>
             <span class="font-semibold text-sm">Minimal Resource Usage</span>
           </div>
           <p class="text-xs text-gray-700 dark:text-gray-200">Optimized to run smoothly while consuming minimal CPU, memory, and battery.</p>
         </div>
-        <div class="flex flex-col items-center text-center bg-rose-50 dark:bg-rose-900 border border-rose-100 dark:border-rose-900 rounded-xl p-5 min-w-[210px] h-full">
+        <div class="feature-card rose-card flex flex-col items-center text-center bg-rose-50 dark:bg-rose-900 border border-rose-100 dark:border-rose-900 rounded-xl p-5 min-w-[210px] h-full transition-all duration-300 cursor-pointer">
           <div class="flex items-center gap-2 mb-1 text-rose-500 dark:text-rose-300">
-            <span class="material-symbols-rounded text-base">space_dashboard</span>
+            <span class="material-symbols-rounded text-base transition-transform duration-300">space_dashboard</span>
             <span class="font-semibold text-sm">Modern UI</span>
           </div>
           <p class="text-xs text-gray-700 dark:text-gray-200">A clean, intuitive, and responsive interface designed for a seamless user experience</p>
         </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 justify-center items-stretch mt-4 w-full max-w-4xl">
-        <div class="flex flex-col items-center text-center bg-yellow-50 dark:bg-yellow-900 border border-yellow-100 dark:border-yellow-800 rounded-xl p-5 min-w-[210px] h-full">
+        <div class="feature-card yellow-card flex flex-col items-center text-center bg-yellow-50 dark:bg-yellow-900 border border-yellow-100 dark:border-yellow-800 rounded-xl p-5 min-w-[210px] h-full transition-all duration-300 cursor-pointer">
           <div class="flex items-center gap-1 mb-1 text-yellow-500 dark:text-yellow-300">
-            <span class="material-symbols-rounded text-base">verified_user</span>
+            <span class="material-symbols-rounded text-base transition-transform duration-300">verified_user</span>
             <span class="font-semibold text-sm">Supported OS</span>
           </div>
           <p class="text-xs text-gray-700 dark:text-gray-200 text-center">macOS 13+</p>
         </div>
-        <div class="flex flex-col items-center text-center bg-green-50 dark:bg-green-900 border border-green-100 dark:border-green-800 rounded-xl p-5 min-w-[210px] h-full">
+        <div class="feature-card green-card flex flex-col items-center text-center bg-green-50 dark:bg-green-900 border border-green-100 dark:border-green-800 rounded-xl p-5 min-w-[210px] h-full transition-all duration-300 cursor-pointer">
           <div class="flex items-center gap-1 mb-1 text-green-600 dark:text-green-300">
-            <span class="material-symbols-rounded text-base">devices</span>
+            <span class="material-symbols-rounded text-base transition-transform duration-300">devices</span>
             <span class="font-semibold text-sm">Supported Devices</span>
           </div>
           <p class="text-xs text-gray-700 dark:text-gray-200 text-center">All Macs supported.</p>
@@ -131,6 +138,83 @@
 </main>
 
 <style>
+.download-btn {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(16, 41, 67, 0.3);
+  transform: translateY(0);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.download-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.download-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(16, 41, 67, 0.4);
+  background: #1a3a5c !important;
+}
+
+.download-btn:hover::before {
+  left: 100%;
+}
+
+.download-btn:active {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 15px rgba(16, 41, 67, 0.3);
+}
+
+/* Perfectly centered MacBook mockup */
+.video-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.macbook-mockup {
+  position: relative;
+  width: 100%;
+  max-width: 48rem;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.laptop-frame {
+  top: -15.75%;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: auto;
+}
+
+.video-wrapper {
+  width: 76.7%;
+  aspect-ratio: 1200 / 780;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.demo-video {
+  border-radius: 7px 7px 0px 0px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  aspect-ratio: 1200 / 780;
+}
+
 .switch-ios {
   position: relative;
   display: inline-block;
@@ -140,20 +224,34 @@
   background: none;
   border: none;
   padding: 0;
+  cursor: pointer;
 }
+
+.switch-ios:hover {
+  transform: scale(1.05);
+}
+
+.switch-ios:active {
+  transform: scale(0.98);
+}
+
 .slider-ios {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   background-color: #e5e7eb;
   border-radius: 9999px;
-  transition: background-color 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 54px;
   height: 32px;
   display: block;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
+
 .slider-ios.checked {
   background-color: #34C759;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 0 10px rgba(52, 199, 89, 0.3);
 }
+
 .slider-ios:before {
   position: absolute;
   content: "";
@@ -163,11 +261,97 @@
   bottom: 4px;
   background-color: white;
   border-radius: 50%;
-  transition: transform 0.2s;
-  box-shadow: 0 1px 4px #0001;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   transform: translateX(0);
 }
+
 .slider-ios.checked:before {
   transform: translateX(22px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.switch-ios:hover .slider-ios:before {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.feature-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left 0.6s;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  border-color: rgba(0,0,0,0.2);
+}
+
+:global(html.dark) .feature-card:hover {
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  border-color: rgba(255,255,255,0.3);
+}
+
+.feature-card:hover::before {
+  left: 100%;
+}
+
+.feature-card:hover .material-symbols-rounded {
+  transform: scale(1.2) rotate(5deg);
+}
+
+.feature-card:active {
+  transform: translateY(-2px) scale(1.01);
+}
+
+/* Correct individual card hover colors matching their base themes */
+.blue-card:hover {
+  background: #dbeafe !important; /* blue-100 */
+}
+
+:global(html.dark) .blue-card:hover {
+  background: #1e3a8a !important; /* blue-800 */
+}
+
+.gray-card:hover {
+  background: #f3f4f6 !important; /* gray-100 */
+}
+
+:global(html.dark) .gray-card:hover {
+  background: #374151 !important; /* gray-700 */
+}
+
+.rose-card:hover {
+  background: #fecdd3 !important; /* rose-100 */
+}
+
+:global(html.dark) .rose-card:hover {
+  background: #881337 !important; /* rose-800 */
+}
+
+.yellow-card:hover {
+  background: #fef3c7 !important; /* yellow-100 */
+}
+
+:global(html.dark) .yellow-card:hover {
+  background: #92400e !important; /* yellow-800 */
+}
+
+.green-card:hover {
+  background: #dcfce7 !important; /* green-100 */
+}
+
+:global(html.dark) .green-card:hover {
+  background: #166534 !important; /* green-800 */
 }
 </style>
