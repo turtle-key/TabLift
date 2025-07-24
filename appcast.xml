@@ -7,8 +7,8 @@
             <pubDate>Tue, 22 Jul 2025 08:37:23 +0300</pubDate>
             <sparkle:version>1.6</sparkle:version>
             <sparkle:shortVersionString>1.6</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/turtle-key/TabLift/releases/download/v1.6/TabLift.dmg" length="3070619" type="application/octet-stream" sparkle:edSignature="Zdo8SwgbhMY+hfl3BHFqu/tVZSaCCQHgMHdM/7WvmEY/RCZwe5r+1QLXX7+dGVL/dxAmR7lzuFunrgCHGdZ3AA=="/>
+            <sparkle:minimumSystemVersion>13.5</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/turtle-key/TabLift/releases/download/v1.6/TabLift.dmg" length="3070570" type="application/octet-stream" sparkle:edSignature="KWUwcdu+lMytgY+gvW9ySAo/aNyF5uyYWaCjWqauAbe4eV3mucbSjD6KQqqHtNCzukQ0TTJTCL665/1OJ6C0Cw=="/>
         </item>
         <item>
             <title>1.5</title>
