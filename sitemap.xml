@@ -2,17 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://tablift.mihai.sh/</loc>
-    <lastmod>2025-06-24</lastmod>
+    <lastmod>2025-07-24</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://tablift.mihai.sh/faq.html</loc>
-    <lastmod>2025-06-24</lastmod>
+    <loc>https://tablift.mihai.sh/faq</loc>
+    <lastmod>2025-07-24</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://tablift.mihai.sh/privacypolicy.html</loc>
-    <lastmod>2025-06-24</lastmod>
+    <loc>https://tablift.mihai.sh/privacypolicy</loc>
+    <lastmod>2025-07-24</lastmod>
+    <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
 </urlset>
