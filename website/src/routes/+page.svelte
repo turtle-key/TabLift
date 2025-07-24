@@ -1,5 +1,6 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
+  
   let tonOn = $state(true);
   const VIDEO_WITH = "https://bucket.mihai.sh/with.mp4";
   const VIDEO_WITHOUT = "https://bucket.mihai.sh/without.mp4";
@@ -48,32 +49,35 @@
         Download
       </a>
     </div>
-    <div class="relative flex flex-col items-center mb-20 w-full">
-      <img
-        src="https://bucket.mihai.sh/macbook-380.webp"
-        srcset="https://bucket.mihai.sh/macbook-380.webp 380w, https://bucket.mihai.sh/macbook-760.webp 760w, https://bucket.mihai.sh/macbook-1200.webp 1200w"
-        sizes="(max-width: 600px) 90vw, (max-width: 1200px) 760px, 1200px"
-        alt="macOS screenshot"
-        width="380"
-        height="247"
-        class="z-10 w-full absolute pointer-events-none select-none"
-        style="top: -15.75%;"
-        draggable="false"
-        loading="eager"
-        fetchpriority="high"
-      />
-      <div class="relative w-[76.7%] flex justify-center items-center">
-        <video
-          src={videoSrc}
-          muted
-          playsinline
-          loop
-          autoplay
-          class="w-full h-full object-cover"
-          style="border-radius:7px 7px 0px 0px;"
-        ></video>
+    
+    <!-- Perfectly centered MacBook mockup -->
+    <div class="video-container relative flex justify-center items-center mb-20 w-full">
+      <div class="macbook-mockup relative">
+        <img
+          src="https://bucket.mihai.sh/macbook-380.webp"
+          srcset="https://bucket.mihai.sh/macbook-380.webp 380w, https://bucket.mihai.sh/macbook-760.webp 760w, https://bucket.mihai.sh/macbook-1200.webp 1200w"
+          sizes="(max-width: 600px) 90vw, (max-width: 1200px) 760px, 1200px"
+          alt="macOS screenshot"
+          width="380"
+          height="247"
+          class="laptop-frame z-10 absolute pointer-events-none select-none"
+          draggable="false"
+          loading="eager"
+          fetchpriority="high"
+        />
+        <div class="video-wrapper relative">
+          <video
+            src={videoSrc}
+            muted
+            playsinline
+            loop
+            autoplay
+            class="demo-video w-full h-full object-cover"
+          ></video>
+        </div>
       </div>
     </div>
+    
     <div class="flex justify-center items-center w-full mb-10">
       <button
           class="switch-ios mx-2 transition-all duration-200"
@@ -91,21 +95,21 @@
     </div>
     <div class="w-full flex flex-col items-center">
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 justify-center items-stretch w-full max-w-4xl">
-        <div class="feature-card flex flex-col items-center text-center bg-blue-50 dark:bg-blue-900 border border-blue-100 dark:border-blue-800 rounded-xl p-5 min-w-[210px] h-full transition-all duration-300 cursor-pointer">
+        <div class="feature-card blue-card flex flex-col items-center text-center bg-blue-50 dark:bg-blue-900 border border-blue-100 dark:border-blue-800 rounded-xl p-5 min-w-[210px] h-full transition-all duration-300 cursor-pointer">
           <div class="flex items-center gap-2 mb-1 text-blue-600 dark:text-blue-300">
             <span class="material-symbols-rounded text-base transition-transform duration-300">window</span>
             <span class="font-semibold text-sm">Windows</span>
           </div>
           <p class="text-xs text-gray-700 dark:text-gray-200">Quickly switch between the minimized apps and their windows.</p>
         </div>
-        <div class="feature-card flex flex-col items-center text-center bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-5 min-w-[210px] h-full transition-all duration-300 cursor-pointer">
+        <div class="feature-card gray-card flex flex-col items-center text-center bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-5 min-w-[210px] h-full transition-all duration-300 cursor-pointer">
           <div class="flex items-center gap-2 mb-1 text-gray-500 dark:text-gray-300">
             <span class="material-symbols-rounded text-base transition-transform duration-300">memory</span>
             <span class="font-semibold text-sm">Minimal Resource Usage</span>
           </div>
           <p class="text-xs text-gray-700 dark:text-gray-200">Optimized to run smoothly while consuming minimal CPU, memory, and battery.</p>
         </div>
-        <div class="feature-card flex flex-col items-center text-center bg-rose-50 dark:bg-rose-900 border border-rose-100 dark:border-rose-900 rounded-xl p-5 min-w-[210px] h-full transition-all duration-300 cursor-pointer">
+        <div class="feature-card rose-card flex flex-col items-center text-center bg-rose-50 dark:bg-rose-900 border border-rose-100 dark:border-rose-900 rounded-xl p-5 min-w-[210px] h-full transition-all duration-300 cursor-pointer">
           <div class="flex items-center gap-2 mb-1 text-rose-500 dark:text-rose-300">
             <span class="material-symbols-rounded text-base transition-transform duration-300">space_dashboard</span>
             <span class="font-semibold text-sm">Modern UI</span>
@@ -114,14 +118,14 @@
         </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 justify-center items-stretch mt-4 w-full max-w-4xl">
-        <div class="feature-card flex flex-col items-center text-center bg-yellow-50 dark:bg-yellow-900 border border-yellow-100 dark:border-yellow-800 rounded-xl p-5 min-w-[210px] h-full transition-all duration-300 cursor-pointer">
+        <div class="feature-card yellow-card flex flex-col items-center text-center bg-yellow-50 dark:bg-yellow-900 border border-yellow-100 dark:border-yellow-800 rounded-xl p-5 min-w-[210px] h-full transition-all duration-300 cursor-pointer">
           <div class="flex items-center gap-1 mb-1 text-yellow-500 dark:text-yellow-300">
             <span class="material-symbols-rounded text-base transition-transform duration-300">verified_user</span>
             <span class="font-semibold text-sm">Supported OS</span>
           </div>
           <p class="text-xs text-gray-700 dark:text-gray-200 text-center">macOS 13+</p>
         </div>
-        <div class="feature-card flex flex-col items-center text-center bg-green-50 dark:bg-green-900 border border-green-100 dark:border-green-800 rounded-xl p-5 min-w-[210px] h-full transition-all duration-300 cursor-pointer">
+        <div class="feature-card green-card flex flex-col items-center text-center bg-green-50 dark:bg-green-900 border border-green-100 dark:border-green-800 rounded-xl p-5 min-w-[210px] h-full transition-all duration-300 cursor-pointer">
           <div class="flex items-center gap-1 mb-1 text-green-600 dark:text-green-300">
             <span class="material-symbols-rounded text-base transition-transform duration-300">devices</span>
             <span class="font-semibold text-sm">Supported Devices</span>
@@ -134,12 +138,6 @@
 </main>
 
 <style>
-.logo-center-container {
-  display: flex;
-  justify-content: center;
-  margin: 3rem auto 2rem auto;
-}
-
 .download-btn {
   position: relative;
   overflow: hidden;
@@ -172,6 +170,49 @@
 .download-btn:active {
   transform: translateY(-1px) scale(1.02);
   box-shadow: 0 4px 15px rgba(16, 41, 67, 0.3);
+}
+
+/* Perfectly centered MacBook mockup */
+.video-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.macbook-mockup {
+  position: relative;
+  width: 100%;
+  max-width: 48rem;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.laptop-frame {
+  top: -15.75%;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: auto;
+}
+
+.video-wrapper {
+  width: 76.7%;
+  aspect-ratio: 1200 / 780;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.demo-video {
+  border-radius: 7px 7px 0px 0px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  aspect-ratio: 1200 / 780;
 }
 
 .switch-ios {
@@ -273,44 +314,44 @@
   transform: translateY(-2px) scale(1.01);
 }
 
-/* Individual card hover colors */
-.feature-card:nth-child(1):hover {
-  background: rgba(59, 130, 246, 0.1);
+/* Correct individual card hover colors matching their base themes */
+.blue-card:hover {
+  background: #dbeafe !important; /* blue-100 */
 }
 
-:global(html.dark) .feature-card:nth-child(1):hover {
-  background: rgba(59, 130, 246, 0.2);
+:global(html.dark) .blue-card:hover {
+  background: #1e3a8a !important; /* blue-800 */
 }
 
-.feature-card:nth-child(2):hover {
-  background: rgba(107, 114, 128, 0.1);
+.gray-card:hover {
+  background: #f3f4f6 !important; /* gray-100 */
 }
 
-:global(html.dark) .feature-card:nth-child(2):hover {
-  background: rgba(107, 114, 128, 0.2);
+:global(html.dark) .gray-card:hover {
+  background: #374151 !important; /* gray-700 */
 }
 
-.feature-card:nth-child(3):hover {
-  background: rgba(244, 63, 94, 0.1);
+.rose-card:hover {
+  background: #fecdd3 !important; /* rose-100 */
 }
 
-:global(html.dark) .feature-card:nth-child(3):hover {
-  background: rgba(244, 63, 94, 0.2);
+:global(html.dark) .rose-card:hover {
+  background: #881337 !important; /* rose-800 */
 }
 
-.feature-card:nth-child(4):hover {
-  background: rgba(245, 158, 11, 0.1);
+.yellow-card:hover {
+  background: #fef3c7 !important; /* yellow-100 */
 }
 
-:global(html.dark) .feature-card:nth-child(4):hover {
-  background: rgba(245, 158, 11, 0.2);
+:global(html.dark) .yellow-card:hover {
+  background: #92400e !important; /* yellow-800 */
 }
 
-.feature-card:nth-child(5):hover {
-  background: rgba(34, 197, 94, 0.1);
+.green-card:hover {
+  background: #dcfce7 !important; /* green-100 */
 }
 
-:global(html.dark) .feature-card:nth-child(5):hover {
-  background: rgba(34, 197, 94, 0.2);
+:global(html.dark) .green-card:hover {
+  background: #166534 !important; /* green-800 */
 }
 </style>
