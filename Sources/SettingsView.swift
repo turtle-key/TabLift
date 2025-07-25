@@ -21,35 +21,41 @@ struct GeneralSettingsTab: View {
     @AppStorage(WindowManager.restoreAllKey) var restoreAllWindows: Bool = true
     @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
     @AppStorage("startAtLogin") var startAtLogin: Bool = true
+    @State private var isHoveringQuit = false
+
+    private let copyright = "AGPL-3.0 © Mihai-Eduard Ghețu"
+    private var licenseURL: URL {
+        URL(string: "https://github.com/turtle-key/TabLift/blob/main/LICENSE")!
+    }
 
     var body: some View {
-        Form {
-            Section {
-                Toggle(isOn: $showMenuBarIcon) {
-                    Text("Show in menu bar")
-                        .font(.body)
-                    if !showMenuBarIcon {
-                        Text("To show the settings, launch TabLift again.")
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                            .padding(.top, 2)
+        VStack(spacing: 0) {
+            Form {
+                Section {
+                    Toggle(isOn: $showMenuBarIcon) {
+                        Text("Show in menu bar")
+                            .font(.body)
+                        if !showMenuBarIcon {
+                            Text("To show the settings, launch TabLift again.")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                                .padding(.top, 2)
+                        }
                     }
+                    .help("Show or hide the TabLift icon in your menu bar for quick access.")
+                    Toggle(isOn: $startAtLogin) {
+                        Text("Start at login")
+                            .font(.body)
+                    }
+                    .help("Launch TabLift automatically when you log in to your Mac.")
                 }
-                .help("Show or hide the TabLift icon in your menu bar for quick access.")
-                Toggle(isOn: $startAtLogin) {
-                    Text("Start at login")
-                        .font(.body)
+                Section {
+                    AccessibilityPermissionCheckView()
                 }
-                .help("Launch TabLift automatically when you log in to your Mac.")
-            }
-            Section {
-                AccessibilityPermissionCheckView()
-            }
-            Section {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Behaviour")
-                        .font(.headline)
-                    HStack(spacing: 8) {
+                Section {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Behaviour")
+                            .font(.headline)
                         Toggle(isOn: $restoreAllWindows) {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Restore all minimized windows on app switch")
@@ -64,42 +70,50 @@ struct GeneralSettingsTab: View {
                         }
                         .help("If enabled, switching to an app will restore all its minimized windows. If disabled, only the last minimized window will be restored.")
                     }
+                    .padding()
                 }
-                .padding()
+                Section {
+                    CheckForUpdatesView()
+                }
+                .modifier(SectionViewModifier())
             }
-            Section {
-                CheckForUpdatesView()
+            .modifier(FormViewModifier())
+            .scrollDisabled(true)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+
+            HStack {
+                Link(destination: licenseURL) {
+                    Text(copyright)
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+                }
+                Spacer()
+                ModernQuitButton(isHovering: $isHoveringQuit)
             }
-            .modifier(SectionViewModifier())
+            .padding(.vertical, 8)
+            .padding(.horizontal, 16)
         }
-        .modifier(FormViewModifier())
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onChange(of: showMenuBarIcon) { value in
             MenuBarManager.shared.showMenuBarIcon(show: value)
         }
         .onChange(of: startAtLogin) { value in
             if value {
-                do {
-                    try SMAppService.mainApp.register()
-                } catch {
-                    print("Failed to register login item: \(error)")
-                }
+                try? SMAppService.mainApp.register()
             } else {
-                do {
-                    try SMAppService.mainApp.unregister()
-                } catch {
-                    print("Failed to unregister login item: \(error)")
-                }
+                try? SMAppService.mainApp.unregister()
             }
         }
     }
 }
 
+// (AboutTab, ModernAboutLink, ModernQuitButton, GeneralSettingsTab unchanged)
+
 struct AboutTab: View {
     private let appName = "TabLift"
     private let appDescription = "Minimized App Restorer"
     private let appVersion = "v" + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")
-    private let copyright = "MIT © Mihai-Eduard Ghețu"
+    private let copyright = "AGPL-3.0 © Mihai-Eduard Ghețu"
     private let appIconName = "AppIcon"
 
     @State private var isHoveringQuit = false
@@ -185,7 +199,7 @@ struct AboutTab: View {
                 Spacer()
                 ModernQuitButton(isHovering: $isHoveringQuit)
             }
-            .padding(.vertical, 12)
+            .padding(.vertical, 8)
             .padding(.horizontal, 16)
         }
         .frame(width: 480, height: 560)
