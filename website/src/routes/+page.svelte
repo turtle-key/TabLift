@@ -48,6 +48,21 @@
       >
         Download
       </a>
+      
+      <!-- Professional Sponsor Button with Apple Curtain Animation -->
+      <a
+        class="sponsor-btn group relative px-8 py-3.5 rounded-xl font-medium text-sm transition-all duration-500 overflow-hidden backdrop-blur-sm"
+        href="https://buymeacoffee.com/turtle.key"
+        target="_blank"
+        rel="noopener"
+      >
+        <span class="sponsor-content relative z-10 flex items-center justify-center gap-2 tracking-wide">
+          <svg class="w-4 h-4 transition-transform duration-300 group-hover:scale-110" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+          </svg>
+          <span class="font-semibold">Sponsor this project</span>
+        </span>
+      </a>
     </div>
     
     <!-- Perfectly centered MacBook mockup -->
@@ -170,6 +185,136 @@
 .download-btn:active {
   transform: translateY(-1px) scale(1.02);
   box-shadow: 0 4px 15px rgba(16, 41, 67, 0.3);
+}
+
+/* Professional Sponsor Button with Apple Curtain Animation */
+.sponsor-btn {
+  background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.8) 100%);
+  color: #1f2937;
+  border: 1px solid rgba(209, 213, 219, 0.6);
+  box-shadow: 
+    0 4px 20px rgba(0,0,0,0.08),
+    0 1px 3px rgba(0,0,0,0.1),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 220px;
+  text-align: center;
+  position: relative;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+}
+
+:global(html.dark) .sponsor-btn {
+  background: linear-gradient(135deg, rgba(31,41,55,0.95) 0%, rgba(17,24,39,0.9) 100%);
+  color: #f9fafb;
+  border-color: rgba(75, 85, 99, 0.6);
+  box-shadow: 
+    0 4px 20px rgba(0,0,0,0.25),
+    0 1px 3px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.sponsor-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    #61BB46 0%,
+    #61BB46 16.66%,
+    #FDB827 16.66%,
+    #FDB827 33.33%,
+    #F5821F 33.33%,
+    #F5821F 50%,
+    #E03A3E 50%,
+    #E03A3E 66.66%,
+    #963D97 66.66%,
+    #963D97 83.33%,
+    #009DDC 83.33%,
+    #009DDC 100%
+  );
+  transform: translateY(-100%);
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 1;
+  border-radius: inherit;
+  opacity: 0.95;
+}
+
+.sponsor-btn:hover::before {
+  transform: translateY(0%);
+}
+
+.sponsor-btn:not(:hover)::before {
+  transform: translateY(100%);
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.sponsor-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 8px 30px rgba(0,0,0,0.12),
+    0 4px 12px rgba(0,0,0,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+  border-color: rgba(209, 213, 219, 0.8);
+}
+
+:global(html.dark) .sponsor-btn:hover {
+  box-shadow: 
+    0 8px 30px rgba(0,0,0,0.4),
+    0 4px 12px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+  border-color: rgba(75, 85, 99, 0.8);
+}
+
+.sponsor-content {
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  z-index: 10;
+}
+
+.sponsor-btn:hover .sponsor-content {
+  color: white;
+  transform: translateY(-0.5px);
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+}
+
+.sponsor-btn:active {
+  transform: translateY(0px);
+  transition: transform 0.1s ease;
+}
+
+/* Subtle glow effect on hover */
+.sponsor-btn::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(
+    45deg,
+    #61BB46,
+    #FDB827,
+    #F5821F,
+    #E03A3E,
+    #963D97,
+    #009DDC
+  );
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  filter: blur(8px);
+  transition: opacity 0.5s ease;
+}
+
+.sponsor-btn:hover::after {
+  opacity: 0.3;
 }
 
 /* Perfectly centered MacBook mockup */
