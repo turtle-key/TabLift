@@ -190,7 +190,7 @@ If you have suggestions, bug reports, or want to help improve TabLift:
 
 ## License
 
-**MIT License**  
+**AGPL-3.0 License**  
 © Mihai-Eduard Ghețu – See [`LICENSE`](LICENSE) for details.
 
 ## Credits
