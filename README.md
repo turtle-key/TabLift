@@ -16,7 +16,7 @@
     <img src="https://img.shields.io/github/downloads/turtle-key/TabLift/total?label=Downloads" alt="Downloads"/>
   </a>
   <a href="https://github.com/turtle-key/TabLift/stargazers">
-    <img src="https://img.shields.io/github/watchers/turtle-key/TabLift?label=Watchers&style=social" alt="Watchers"/>
+    <img src="https://img.shields.io/github/stars/turtle-key/TabLift" alt="Stars"/>
   </a>
 </p>
 <p align="center">
