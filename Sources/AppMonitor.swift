@@ -7,23 +7,33 @@ class AppMonitor {
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private var lastAppSwitcherTimestamp: TimeInterval = 0
+    private var isAppSwitcherActive = false
     static let timeoutThreshold: TimeInterval = 0.5
 
     func setupEventTap() {
-        let eventMask = (1 << CGEventType.keyDown.rawValue)
+        let eventMask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.flagsChanged.rawValue)
 
         let callback: CGEventTapCallBack = { proxy, type, event, userInfo in
             guard let userInfo = userInfo else { return Unmanaged.passRetained(event) }
             let mySelf = Unmanaged<AppMonitor>.fromOpaque(userInfo).takeUnretainedValue()
 
-            if type == .keyDown {
-                let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
-                let flags = event.flags
+            let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
+            let flags = event.flags
 
+            switch type {
+            case .keyDown:
                 if flags.contains(.maskCommand) && (keyCode == 48 || keyCode == 50) {
-                    mySelf.lastAppSwitcherTimestamp = Date().timeIntervalSince1970
-                    print("Cmd + Tab or Cmd + ` detected at \(mySelf.lastAppSwitcherTimestamp)")
+                    mySelf.isAppSwitcherActive = true
+                    print("Cmd + Tab or Cmd + ` pressed")
                 }
+            case .flagsChanged:
+                if !flags.contains(.maskCommand), mySelf.isAppSwitcherActive {
+                    mySelf.isAppSwitcherActive = false
+                    mySelf.lastAppSwitcherTimestamp = Date().timeIntervalSince1970
+                    print("Cmd released after App Switcher at \(mySelf.lastAppSwitcherTimestamp)")
+                }
+            default:
+                break
             }
 
             return Unmanaged.passUnretained(event)
@@ -69,7 +79,8 @@ class AppMonitor {
 
             if delta < AppMonitor.timeoutThreshold {
                 print("App activated via App Switcher (Cmd+Tab or Cmd+`)")
-                WindowManager.restoreMinimizedWindows(for: app)
+                
+                WindowManager.checkForWindows(for: app)
             }
         }
     }
