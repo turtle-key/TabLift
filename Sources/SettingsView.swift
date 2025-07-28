@@ -19,6 +19,7 @@ struct SettingsView: View {
 
 struct GeneralSettingsTab: View {
     @AppStorage(WindowManager.restoreAllKey) var restoreAllWindows: Bool = true
+    @AppStorage(WindowManager.openWindowKey) var openNewWindow: Bool = true
     @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
     @AppStorage("startAtLogin") var startAtLogin: Bool = true
     @State private var isHoveringQuit = false
@@ -61,7 +62,7 @@ struct GeneralSettingsTab: View {
                                 Text("Restore all minimized windows on app switch")
                                     .font(.body)
                                 if !restoreAllWindows {
-                                    Text("When disabled, only the most recently minimized window will be restored.")
+                                    Text("When disabled,only the most recently minimized window will be restored.")
                                         .foregroundColor(.secondary)
                                         .font(.caption)
                                         .padding(.top, 2)
@@ -69,6 +70,19 @@ struct GeneralSettingsTab: View {
                             }
                         }
                         .help("If enabled, switching to an app will restore all its minimized windows. If disabled, only the last minimized window will be restored.")
+                        Toggle(isOn: $openNewWindow) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Automatically open a window when switching to apps without windows")
+                                    .font(.body)
+                                if !openNewWindow {
+                                    Text("When disabled, switching to an app without windows won't open a new window")
+                                        .foregroundColor(.secondary)
+                                        .font(.caption)
+                                        .padding(.top, 2)
+                                }
+                            }
+                        }
+                        .help("If enabled, a new window will be opened when switching to an app that has no visible windows")
                     }
                     .padding()
                 }
@@ -78,7 +92,6 @@ struct GeneralSettingsTab: View {
                 .modifier(SectionViewModifier())
             }
             .modifier(FormViewModifier())
-            .scrollDisabled(true)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
 
