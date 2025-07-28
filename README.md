@@ -12,8 +12,11 @@
   <a href="https://github.com/turtle-key/TabLift/releases">
     <img src="https://img.shields.io/github/v/release/turtle-key/TabLift?color=007aff&label=Release" alt="Latest Release" style="margin-right:4px;"/>
   </a>
+  <a href="https://github.com/turtle-key/TabLift/releases">
+    <img src="https://img.shields.io/github/downloads/turtle-key/TabLift/total?label=Downloads" alt="Downloads"/>
+  </a>
   <a href="https://github.com/turtle-key/TabLift/stargazers">
-    <img src="https://img.shields.io/github/watchers/turtle-key/TabLift?label=Watchers&style=social" alt="Watchers"/>
+    <img src="https://img.shields.io/github/stars/turtle-key/TabLift" alt="Stars"/>
   </a>
 </p>
 <p align="center">
@@ -190,7 +193,7 @@ If you have suggestions, bug reports, or want to help improve TabLift:
 
 ## License
 
-**MIT License**  
+**AGPL-3.0 License**  
 © Mihai-Eduard Ghețu – See [`LICENSE`](LICENSE) for details.
 
 ## Credits
