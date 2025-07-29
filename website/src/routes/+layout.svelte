@@ -211,7 +211,7 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
       {#key currPath}
         <a
           class="header-sponsor-btn group relative rounded-lg font-medium text-sm transition-all duration-500 overflow-hidden backdrop-blur-sm mr-4 hidden sm:flex"
-          href="https://buymeacoffee.com/turtle.key"
+          href="https://github.com/sponsors/turtle-key"
           target="_blank"
           rel="noopener"
         >
@@ -245,6 +245,16 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
             class:menu-active={activeId === 'faq'}
           >
             F.A.Q.
+          </a>
+        </li>
+        <li>
+          <a
+            href={base + "/blog"}
+            class="mainnav-link text-base font-semibold leading-none px-1 text-black dark:text-white"
+            id="blog"
+            class:menu-active={activeId === 'blog'}
+          >
+            Blog
           </a>
         </li>
         <li>
@@ -333,6 +343,16 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
               <span class="material-symbols-rounded text-xl mr-4 opacity-80">help</span>
               F.A.Q.
             </a>
+
+            <a 
+              href={base + "/blog"} 
+              class="mobile-menu-link flex items-center w-full px-4 py-4 text-gray-800 dark:text-gray-200 font-medium rounded-xl transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+              class:menu-active={activeId === 'blog'} 
+              onclick={closeMenu}
+            >
+              <span class="material-symbols-rounded text-xl mr-4 opacity-80">article</span>
+              Blog
+            </a>
           </div>
           
           <!-- External Links -->
@@ -357,7 +377,7 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
             <!-- Mobile Sponsor Button -->
             <a
               class="mobile-sponsor-btn group relative flex items-center w-full px-4 py-4 rounded-xl font-medium text-gray-800 dark:text-gray-200 transition-all duration-500 overflow-hidden"
-              href="https://buymeacoffee.com/turtle.key"
+              href="https://github.com/sponsors/turtle-key"
               target="_blank"
               rel="noopener"
               onclick={closeMenu}
@@ -386,7 +406,7 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
               class:active-theme={themeMode === 'auto'}
             >
               <span class="material-symbols-rounded text-xl text-gray-600 dark:text-gray-400 mb-1">brightness_auto</span>
-              <span class="dark:text-white text-xs">Auto</span>
+              <span class="text-xs">Auto</span>
             </button>
             
             <button
@@ -397,7 +417,7 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
               class:active-theme={themeMode === 'light'}
             >
               <span class="material-symbols-rounded text-xl text-gray-600 dark:text-gray-400 mb-1">light_mode</span>
-              <span class="dark:text-white text-xs">Light</span>
+              <span class="text-xs">Light</span>
             </button>
             
             <button
@@ -408,7 +428,7 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
               class:active-theme={themeMode === 'dark'}
             >
               <span class="material-symbols-rounded text-xl text-gray-600 dark:text-gray-400 mb-1">dark_mode</span>
-              <span class="dark:text-white text-xs">Dark</span>
+              <span class="text-xs">Dark</span>
             </button>
           </div>
         </div>
@@ -416,8 +436,6 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
     </div>
   </div>
 {/if}
-
-
 
 <footer class="w-full py-6 text-center bg-[#f7fafc] dark:bg-[#18181c] text-gray-400 dark:text-gray-500 text-xs" style="font-family:inherit;">
   <div class="w-full max-w-4xl mx-auto px-4">
