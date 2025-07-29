@@ -8,30 +8,40 @@ class AppMonitor {
     private var runLoopSource: CFRunLoopSource?
     private var lastAppSwitcherTimestamp: TimeInterval = 0
     private var isAppSwitcherActive = false
+
+    /// Keep track of the app we switched away from
+    private var previousApp: NSRunningApplication?
+
     static let timeoutThreshold: TimeInterval = 0.5
 
     func setupEventTap() {
-        let eventMask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.flagsChanged.rawValue)
+        let eventMask = (1 << CGEventType.keyDown.rawValue)
+                      | (1 << CGEventType.flagsChanged.rawValue)
 
         let callback: CGEventTapCallBack = { proxy, type, event, userInfo in
-            guard let userInfo = userInfo else { return Unmanaged.passRetained(event) }
-            let mySelf = Unmanaged<AppMonitor>.fromOpaque(userInfo).takeUnretainedValue()
-
+            guard let ptr = userInfo else {
+                return Unmanaged.passRetained(event)
+            }
+            let monitor = Unmanaged<AppMonitor>.fromOpaque(ptr).takeUnretainedValue()
             let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
             let flags = event.flags
 
             switch type {
             case .keyDown:
-                if flags.contains(.maskCommand) && (keyCode == 48 || keyCode == 50) {
-                    mySelf.isAppSwitcherActive = true
-                    print("Cmd + Tab or Cmd + ` pressed")
+                // Cmd+Tab or Cmd+` pressed: mark switcher active and record the current frontmost app
+                if flags.contains(.maskCommand) && (keyCode == 48 || keyCode == 50),
+                   let frontApp = NSWorkspace.shared.frontmostApplication {
+                    monitor.isAppSwitcherActive = true
+                    monitor.previousApp = frontApp
                 }
+
             case .flagsChanged:
-                if !flags.contains(.maskCommand), mySelf.isAppSwitcherActive {
-                    mySelf.isAppSwitcherActive = false
-                    mySelf.lastAppSwitcherTimestamp = Date().timeIntervalSince1970
-                    print("Cmd released after App Switcher at \(mySelf.lastAppSwitcherTimestamp)")
+                // Cmd released after switch: capture timestamp
+                if !flags.contains(.maskCommand), monitor.isAppSwitcherActive {
+                    monitor.isAppSwitcherActive = false
+                    monitor.lastAppSwitcherTimestamp = Date().timeIntervalSince1970
                 }
+
             default:
                 break
             }
@@ -39,64 +49,61 @@ class AppMonitor {
             return Unmanaged.passUnretained(event)
         }
 
-        let selfPointer = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
-
-        guard let eventTap = CGEvent.tapCreate(
+        let pointer = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
+        guard let tap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
             place: .headInsertEventTap,
             options: .defaultTap,
             eventsOfInterest: CGEventMask(eventMask),
             callback: callback,
-            userInfo: selfPointer
+            userInfo: pointer
         ) else {
             print("Failed to create event tap")
             return
         }
 
-        self.eventTap = eventTap
-
-        let runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
-        self.runLoopSource = runLoopSource
-
+        eventTap = tap
+        runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
         CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
-        CGEvent.tapEnable(tap: eventTap, enable: true)
+        CGEvent.tapEnable(tap: tap, enable: true)
     }
 
     init() {
+        setupEventTap()
+
         observer = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification,
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            guard
-                let self = self,
-                let userInfo = notification.userInfo,
-                let app = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+            guard let self = self,
+                  let info = notification.userInfo,
+                  let newApp = info[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
             else { return }
 
             let now = Date().timeIntervalSince1970
             let delta = now - self.lastAppSwitcherTimestamp
 
             if delta < AppMonitor.timeoutThreshold {
-                print("App activated via App Switcher (Cmd+Tab or Cmd+`)")
-                
-                WindowManager.checkForWindows(for: app)
+                // Called shortly after Cmd release: perform minimize/restore
+                WindowManager.checkForWindows(
+                    current: newApp,
+                    previous: self.previousApp
+                )
             }
         }
     }
 
     deinit {
-        if let observer {
-            NSWorkspace.shared.notificationCenter.removeObserver(observer)
+        if let obs = observer {
+            NSWorkspace.shared.notificationCenter.removeObserver(obs)
         }
-
-        if let eventTap = eventTap {
-            CGEvent.tapEnable(tap: eventTap, enable: false)
-            CFMachPortInvalidate(eventTap)
+        if let tap = eventTap {
+            CGEvent.tapEnable(tap: tap, enable: false)
+            CFMachPortInvalidate(tap)
         }
-
-        if let runLoopSource = runLoopSource {
-            CFRunLoopRemoveSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
+        if let src = runLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetCurrent(), src, .commonModes)
         }
     }
 }
