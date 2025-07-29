@@ -23,6 +23,7 @@ struct GeneralSettingsTab: View {
     @AppStorage(WindowManager.minimizePreviousWindowKey) var minimizePreviousWindow: Bool = true
     @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
     @AppStorage("startAtLogin") var startAtLogin: Bool = true
+    @AppStorage("showDockIcon") var showDockIcon: Bool = true
     @State private var isHoveringQuit = false
 
     private let copyright = "AGPL-3.0 © Mihai-Eduard Ghețu"
@@ -50,6 +51,11 @@ struct GeneralSettingsTab: View {
                             .font(.body)
                     }
                     .help("Launch TabLift automatically when you log in to your Mac.")
+                    Toggle(isOn: $showDockIcon) {
+                        Text("Show in Dock")
+                            .font(.body)
+                    }
+                    .help("Display the icon of the app in the Dock. Works just like a normal app.")
                 }
                 Section {
                     AccessibilityPermissionCheckView()

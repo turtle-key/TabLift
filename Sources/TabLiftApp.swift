@@ -13,7 +13,7 @@ struct TabLiftApp: App {
     }
 }
 
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var appMonitor: AppMonitor?
     var cmdBacktickMonitor: CmdBacktickMonitor?
     var window: NSWindow?
@@ -22,16 +22,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         UserDefaults.standard.register(defaults: [
             "showMenuBarIcon": true,
-            "startAtLogin": true
+            "startAtLogin": true,
+            "showDockIcon": true,
         ])
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(userDefaultsDidChange(_:)),
+            name: UserDefaults.didChangeNotification,
+            object: nil
+        )
+
         guard AccessibilityPermission.enabled else {
             AccessibilityPermissionWindow.show()
             return
         }
+
+        updateDockIconPolicy()
+
         cmdBacktickMonitor = CmdBacktickMonitor()
         appMonitor = AppMonitor()
         appMonitor?.setupEventTap()
         registerLoginItemIfNeeded()
+
         let showMenuBar = UserDefaults.standard.bool(forKey: "showMenuBarIcon")
         MenuBarManager.shared.showMenuBarIcon(show: showMenuBar)
     }
@@ -53,6 +66,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    @objc private func userDefaultsDidChange(_ notification: Notification) {
+        updateDockIconPolicy()
+    }
+
+    private func updateDockIconPolicy() {
+        let showDockIcon = UserDefaults.standard.bool(forKey: "showDockIcon")
+        let policy: NSApplication.ActivationPolicy = showDockIcon ? .regular : .accessory
+        NSApp.setActivationPolicy(policy)
+    }
+
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         showUI()
         return true
@@ -64,12 +87,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window = NSWindow(
                 contentRect: NSMakeRect(0, 0, 500, 450),
                 styleMask: [.titled, .closable, .unifiedTitleAndToolbar],
-                backing: .buffered, defer: false)
+                backing: .buffered,
+                defer: false
+            )
             window?.center()
             window?.contentView = NSHostingView(rootView: settingsView)
             window?.isReleasedWhenClosed = false
+
+            window?.delegate = self
         }
+
+        if UserDefaults.standard.bool(forKey: "showDockIcon") {
+            NSApp.setActivationPolicy(.regular)
+        }
+
         window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        NSApp.setActivationPolicy(.accessory)
     }
 }
