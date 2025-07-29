@@ -38,17 +38,13 @@ class MenuBarManager: NSObject {
     }
 
     @objc private func togglePopover(_ sender: AnyObject?) {
-        guard let button = statusItem?.button, let popover else { return }
+        guard let button = statusItem?.button, let popover = popover else { return }
 
         if popover.isShown {
             popover.performClose(sender)
             removeEventMonitor()
         } else {
-            NSApp.activate(ignoringOtherApps: true)
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-            
-            popover.contentViewController?.view.window?.makeKey()
-
             startEventMonitor()
         }
     }
