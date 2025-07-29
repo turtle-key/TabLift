@@ -20,6 +20,7 @@ struct SettingsView: View {
 struct GeneralSettingsTab: View {
     @AppStorage(WindowManager.restoreAllKey) var restoreAllWindows: Bool = true
     @AppStorage(WindowManager.openWindowKey) var openNewWindow: Bool = true
+    @AppStorage(WindowManager.minimizePreviousWindowKey) var minimizePreviousWindow: Bool = true
     @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
     @AppStorage("startAtLogin") var startAtLogin: Bool = true
     @State private var isHoveringQuit = false
@@ -83,6 +84,19 @@ struct GeneralSettingsTab: View {
                             }
                         }
                         .help("If enabled, a new window will be opened when switching to an app that has no visible windows")
+                        Toggle(isOn: $minimizePreviousWindow) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Minimize previous window on app switch")
+                                    .font(.body)
+                                if !minimizePreviousWindow {
+                                    Text("When disabled, switching to another app won't automatically minimize the previous one's window(s)")
+                                        .foregroundColor(.secondary)
+                                        .font(.caption)
+                                        .padding(.top, 2)
+                                }
+                            }
+                        }
+                        .help("When enabled, the currently focused window is minimized when switching apps using Cmd+Tab. This helps keep the workspace clean by showing only one active window at a time.")
                     }
                     .padding()
                 }
