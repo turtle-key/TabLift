@@ -43,7 +43,7 @@ class WindowManager {
         if restoreAll {
             for window in windows {
                 var minimized: AnyObject?
-                if AXUIElementCopyAttributeValue(window, kAXFocusedAttribute as CFString, &minimized) == .success,
+                if AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimized) == .success,
                    let isMinimized = minimized as? Bool,
                    !isMinimized {
                     AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanTrue)
