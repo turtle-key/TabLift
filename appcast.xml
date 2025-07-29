@@ -3,6 +3,14 @@
     <channel>
         <title>TabLift</title>
         <item>
+            <title>1.7</title>
+            <pubDate>Tue, 29 Jul 2025 10:44:00 +0300</pubDate>
+            <sparkle:version>1.7</sparkle:version>
+            <sparkle:shortVersionString>1.7</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.5</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/turtle-key/TabLift/releases/download/v1.7/TabLift.dmg" length="3213302" type="application/octet-stream" sparkle:edSignature="dSM5T+16EwRT55j+zxwwmD5kHMiKo6et2HoSKwTngfkwAD8zQtxGF2ZqlTQN+JcOR8kj+vAHxXZhj4XaOxyNAQ=="/>
+        </item>
+        <item>
             <title>1.6.1</title>
             <pubDate>Fri, 25 Jul 2025 18:13:02 +0300</pubDate>
             <sparkle:version>1.6.1</sparkle:version>
