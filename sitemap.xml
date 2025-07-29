@@ -1,21 +1,72 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://tablift.mihai.sh/</loc>
-    <lastmod>2025-07-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://tablift.mihai.sh/faq</loc>
-    <lastmod>2025-07-24</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tablift.mihai.sh/privacypolicy</loc>
-    <lastmod>2025-07-24</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-</urlset>
+<?xml version="1.0" encoding="UTF-8"?> 
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"> 
+<url>
+  <loc>http://tablift.mihai.sh/./</loc>
+  <changefreq>daily</changefreq>
+  <lastmod>2025-07-29</lastmod>
+</url>
+<url>
+  <loc>http://tablift.mihai.sh/./privacypolicy</loc>
+  <changefreq>daily</changefreq>
+  <lastmod>2025-07-29</lastmod>
+</url>
+<url>
+  <loc>http://tablift.mihai.sh/./faq</loc>
+  <changefreq>daily</changefreq>
+  <lastmod>2025-07-29</lastmod>
+</url>
+<url>
+  <loc>http://tablift.mihai.sh/./blog</loc>
+  <changefreq>daily</changefreq>
+  <lastmod>2025-07-29</lastmod>
+</url>
+<url>
+  <loc>http://tablift.mihai.sh/cdn-cgi/l/email-protection#8deae5e8f9f8e0e4e5ece4e8e9f8ecffe9cdeae0ece4e1a3eee2e0b2fef8efe7e8eef9b0d9ecefc1e4ebf9a8bfbdddffe4fbeceef4a8bfbddde2e1e4eef4</loc>
+  <changefreq>daily</changefreq>
+  <lastmod>2025-07-29</lastmod>
+</url>
+<url>
+  <loc>http://tablift.mihai.sh/cdn-cgi/l/email-protection#fb9c939e8f8e9692939a929e9f8e9a899fbb9c969a9297d5989496</loc>
+  <changefreq>daily</changefreq>
+  <lastmod>2025-07-29</lastmod>
+</url>
+<url>
+  <loc>http://tablift.mihai.sh/./blog/fix-cmd-tab-minimized-windows-macos</loc>
+  <changefreq>daily</changefreq>
+  <lastmod>2025-07-29</lastmod>
+</url>
+<url>
+  <loc>http://tablift.mihai.sh/./blog/macos-minimized-windows-cmd-tab-simple-fix</loc>
+  <changefreq>daily</changefreq>
+  <lastmod>2025-07-29</lastmod>
+</url>
+<url>
+  <loc></loc>
+  <changefreq>daily</changefreq>
+  <lastmod>2025-07-29</lastmod>
+</url>
+<url>
+  <loc>http://tablift.mihai.sh/../blog</loc>
+  <changefreq>daily</changefreq>
+  <lastmod>2025-07-29</lastmod>
+</url>
+<url>
+  <loc>https://tablift.mihai.sh</loc>
+  <changefreq>daily</changefreq>
+  <lastmod>2025-07-29</lastmod>
+</url>
+<url>
+  <loc>http://tablift.mihai.sh/../</loc>
+  <changefreq>daily</changefreq>
+  <lastmod>2025-07-29</lastmod>
+</url>
+<url>
+  <loc>http://tablift.mihai.sh/../privacypolicy</loc>
+  <changefreq>daily</changefreq>
+  <lastmod>2025-07-29</lastmod>
+</url>
+<url>
+  <loc>http://tablift.mihai.sh/../faq</loc>
+  <changefreq>daily</changefreq>
+  <lastmod>2025-07-29</lastmod>
+</url>
