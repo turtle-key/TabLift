@@ -19,7 +19,10 @@
 		BE5209D92E1185CF0048CC49 /* FormViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5209D82E1185CF0048CC49 /* FormViewModifier.swift */; };
 		BE5209E92E1189E80048CC49 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5209E82E1189E80048CC49 /* SettingsView.swift */; };
 		BE5209EB2E11A1270048CC49 /* TabLift.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5209EA2E11A1270048CC49 /* TabLift.swift */; };
-		BE5A39BD2E3A201D00146065 /* DockClickMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5A39BC2E3A201900146065 /* DockClickMonitor.swift */; };
+		BE5A39C12E3A31D100146065 /* DockIconHoverMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5A39C02E3A31C600146065 /* DockIconHoverMonitor.swift */; };
+		BE5A39C32E3A33CA00146065 /* AXUIElement+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5A39C22E3A33C700146065 /* AXUIElement+Helpers.swift */; };
+		BE5A39C52E3A387700146065 /* DockClickMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5A39C42E3A385F00146065 /* DockClickMonitor.swift */; };
+		BE5A39C72E3A409100146065 /* DockPreviewPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5A39C62E3A409000146065 /* DockPreviewPanel.swift */; };
 		BE83CD3C2E0EDC2500DF73E8 /* AccessibilityPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD3B2E0EDC2500DF73E8 /* AccessibilityPermission.swift */; };
 		BE83CD3E2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD3D2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift */; };
 		BE83CD402E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD3F2E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift */; };
@@ -43,7 +46,10 @@
 		BE5209E82E1189E80048CC49 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		BE5209EA2E11A1270048CC49 /* TabLift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabLift.swift; sourceTree = "<group>"; };
 		BE5209EC2E11A2FD0048CC49 /* TabLift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TabLift.entitlements; sourceTree = "<group>"; };
-		BE5A39BC2E3A201900146065 /* DockClickMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockClickMonitor.swift; sourceTree = "<group>"; };
+		BE5A39C02E3A31C600146065 /* DockIconHoverMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockIconHoverMonitor.swift; sourceTree = "<group>"; };
+		BE5A39C22E3A33C700146065 /* AXUIElement+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AXUIElement+Helpers.swift"; sourceTree = "<group>"; };
+		BE5A39C42E3A385F00146065 /* DockClickMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockClickMonitor.swift; sourceTree = "<group>"; };
+		BE5A39C62E3A409000146065 /* DockPreviewPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockPreviewPanel.swift; sourceTree = "<group>"; };
 		BE83CD3B2E0EDC2500DF73E8 /* AccessibilityPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermission.swift; sourceTree = "<group>"; };
 		BE83CD3D2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermissionWindow.swift; sourceTree = "<group>"; };
 		BE83CD3F2E0EDC5B00DF73E8 /* AccessibilityPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermissionView.swift; sourceTree = "<group>"; };
@@ -97,7 +103,10 @@
 		BEE1EC4C2E062CD500D8CE5F /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				BE5A39BC2E3A201900146065 /* DockClickMonitor.swift */,
+				BE5A39C62E3A409000146065 /* DockPreviewPanel.swift */,
+				BE5A39C42E3A385F00146065 /* DockClickMonitor.swift */,
+				BE5A39C22E3A33C700146065 /* AXUIElement+Helpers.swift */,
+				BE5A39C02E3A31C600146065 /* DockIconHoverMonitor.swift */,
 				BE5209C52E1179FB0048CC49 /* CheckForUpdates.swift */,
 				BE5209E82E1189E80048CC49 /* SettingsView.swift */,
 				BEE1EC482E062CD500D8CE5F /* AppMonitor.swift */,
@@ -208,15 +217,18 @@
 				BE83CD422E0EDC8600DF73E8 /* HyperLink.swift in Sources */,
 				BE1AF66C2E131C5F00DB8C44 /* MenuBarManager.swift in Sources */,
 				BEE1EC4F2E062CD500D8CE5F /* WindowManager.swift in Sources */,
+				BE5A39C72E3A409100146065 /* DockPreviewPanel.swift in Sources */,
+				BE5A39C52E3A387700146065 /* DockClickMonitor.swift in Sources */,
 				BEB9B6592E2F523E00A7456D /* MenuBarContentView.swift in Sources */,
 				BE1AF66A2E1315D600DB8C44 /* CmdBacktickMonitor.swift in Sources */,
 				BE5209C62E117A010048CC49 /* CheckForUpdates.swift in Sources */,
 				BEE1EC502E062CD500D8CE5F /* TabLiftApp.swift in Sources */,
-				BE5A39BD2E3A201D00146065 /* DockClickMonitor.swift in Sources */,
 				BE83CD3C2E0EDC2500DF73E8 /* AccessibilityPermission.swift in Sources */,
+				BE5A39C32E3A33CA00146065 /* AXUIElement+Helpers.swift in Sources */,
 				BE5209EB2E11A1270048CC49 /* TabLift.swift in Sources */,
 				BE83CD3E2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift in Sources */,
 				BE5209D92E1185CF0048CC49 /* FormViewModifier.swift in Sources */,
+				BE5A39C12E3A31D100146065 /* DockIconHoverMonitor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
