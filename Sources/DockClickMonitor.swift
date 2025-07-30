@@ -152,27 +152,3 @@ class DockClickMonitor {
     }
 }
 
-// Accessibility helpers
-private extension AXUIElement {
-    func role() throws -> String? {
-        var value: AnyObject?
-        if AXUIElementCopyAttributeValue(self, kAXRoleAttribute as CFString, &value) == .success {
-            return value as? String
-        }
-        return nil
-    }
-    func subrole() throws -> String? {
-        var value: AnyObject?
-        if AXUIElementCopyAttributeValue(self, kAXSubroleAttribute as CFString, &value) == .success {
-            return value as? String
-        }
-        return nil
-    }
-    func title() throws -> String? {
-        var value: AnyObject?
-        if AXUIElementCopyAttributeValue(self, kAXTitleAttribute as CFString, &value) == .success {
-            return value as? String
-        }
-        return nil
-    }
-}
