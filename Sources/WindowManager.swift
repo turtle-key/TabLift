@@ -11,26 +11,26 @@ class WindowManager {
         let minimize  = UserDefaults.standard.bool(forKey: minimizePreviousWindowKey)
         let restoreAll = UserDefaults.standard.bool(forKey: restoreAllKey)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            if openNew && !hasAnyPracticalVisibleWindow(for: current) {
-                openNewWindowApp(for: current)
-                return
-            }
-
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            // 1. Minimize previous window (if any and enabled)
             if minimize, let prev = previous {
                 minimizeFocusedWindow(of: prev)
             }
 
+            // 2. Restore minimized windows per setting
             if restoreAll {
-                // If "restore all minimized windows" is enabled: always restore ALL minimized windows
                 restoreMinimizedWindows(for: current)
             } else {
-                // If "restore all minimized windows" is disabled:
                 if areAllWindowsMinimized(for: current) {
                     restoreMinimizedWindows(for: current)
                 } else {
                     focusLastUnminimizedWindow(for: current)
                 }
+            }
+
+            // 3. Open new window if needed
+            if openNew && !hasAnyPracticalVisibleWindow(for: current) {
+                openNewWindowApp(for: current)
             }
         }
     }
@@ -133,7 +133,7 @@ class WindowManager {
         }
     }
 
-    // Focus only the last unminimized window (do NOT restore minimized ones)
+    /// Focus only the last unminimized window (do NOT restore minimized ones)
     static func focusLastUnminimizedWindow(for app: NSRunningApplication) {
         let appEl = AXUIElementCreateApplication(app.processIdentifier)
         var raw: AnyObject?
@@ -141,7 +141,6 @@ class WindowManager {
             return
         }
         guard let windows = raw as? [AXUIElement] else { return }
-        // Find the last unminimized window (topmost) and focus it
         for window in windows {
             var minRaw: AnyObject?
             if AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minRaw) == .success,

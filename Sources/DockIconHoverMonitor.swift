@@ -170,8 +170,8 @@ class DockIconHoverMonitor {
             return
         }
 
-        let windowTitles = fetchWindowTitles(for: app)
-        if windowTitles.isEmpty {
+        let windowInfos = fetchWindowInfos(for: app)
+        if windowInfos.isEmpty {
             hidePreview()
             lastPanelFrame = nil
             lastIconFrame = nil
@@ -182,7 +182,7 @@ class DockIconHoverMonitor {
         let appIcon = app.icon ?? NSWorkspace.shared.icon(forFileType: NSFileTypeForHFSTypeCode(OSType(kGenericApplicationIcon)))
 
         let panelWidth: CGFloat = 280
-        let panelHeight = CGFloat(82 + max(24, windowTitles.count * 32))
+        let panelHeight = CGFloat(82 + max(24, windowInfos.count * 32))
         let panelRect: CGRect
         if let lastIconFrame = lastIconFrame, let lastPanelFrame = lastPanelFrame {
             if iconFrame.equalTo(lastIconFrame) {
@@ -201,7 +201,7 @@ class DockIconHoverMonitor {
         let newContent = DockPreviewPanel(
             appName: appName,
             appIcon: appIcon,
-            windowTitles: windowTitles,
+            windowInfos: windowInfos,
             onTitleClick: { [weak self] title in
                 self?.focusWindow(of: app, withTitle: title)
             }
@@ -285,21 +285,24 @@ class DockIconHoverMonitor {
         return (frame, bundleID)
     }
 
-    private func fetchWindowTitles(for app: NSRunningApplication?) -> [String] {
+    // Returns [(title, isMinimized)] for all windows
+    private func fetchWindowInfos(for app: NSRunningApplication?) -> [(title: String, isMinimized: Bool)] {
         guard let app = app else { return [] }
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
         var windowsValue: AnyObject?
         guard AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue) == .success,
               let windows = windowsValue as? [AXUIElement] else { return [] }
-        var titles: [String] = []
+        var infos: [(String, Bool)] = []
         for window in windows {
             var titleValue: AnyObject?
-            if AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &titleValue) == .success,
-               let title = titleValue as? String {
-                titles.append(title)
-            }
+            var minimizedValue: AnyObject?
+            let titleSuccess = AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &titleValue) == .success
+            let minSuccess = AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedValue) == .success
+            let title = titleSuccess ? (titleValue as? String ?? "") : ""
+            let minimized = minSuccess ? ((minimizedValue as? Bool) ?? false) : false
+            infos.append((title, minimized))
         }
-        return titles
+        return infos
     }
 
     // Restore minimized window if needed, focus and bring to front, update DockClickMonitor counter
