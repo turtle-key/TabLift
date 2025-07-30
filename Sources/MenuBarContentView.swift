@@ -3,6 +3,9 @@ import SwiftUI
 struct MenuBarContentView: View {
     @AppStorage(WindowManager.restoreAllKey) var restoreAllWindows: Bool = true
 
+    // Add onOpenSettings closure as parameter
+    var onOpenSettings: (() -> Void)? = nil
+
     var body: some View {
         VStack(spacing: 16) {
             Text("TabLift")
@@ -14,7 +17,12 @@ struct MenuBarContentView: View {
             .toggleStyle(SwitchToggleStyle())
 
             Button("Open Settings") {
-                NSApp.sendAction(#selector(AppDelegate.showUI), to: nil, from: nil)
+                // Call the closure if provided, otherwise fallback
+                if let onOpenSettings {
+                    onOpenSettings()
+                } else {
+                    NSApp.sendAction(#selector(AppDelegate.showUI), to: nil, from: nil)
+                }
             }
 
             WavyDivider()

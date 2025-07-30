@@ -24,7 +24,10 @@ class MenuBarManager: NSObject {
                 popover.contentSize = NSSize(width: 320, height: 180)
                 popover.behavior = .transient
                 popover.animates = false
-                popover.contentViewController = NSHostingController(rootView: MenuBarContentView())
+                // Pass a closure to close the popover when settings is opened
+                popover.contentViewController = NSHostingController(rootView: MenuBarContentView(onOpenSettings: { [weak self] in
+                    self?.closePopoverAndOpenSettings()
+                }))
                 self.popover = popover
             }
         } else {
@@ -44,7 +47,12 @@ class MenuBarManager: NSObject {
             popover.performClose(sender)
             removeEventMonitor()
         } else {
+            // Make sure the popover becomes key and fully interactive immediately
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            if let window = popover.contentViewController?.view.window {
+                window.makeKey()
+                window.orderFrontRegardless()
+            }
             startEventMonitor()
         }
     }
@@ -63,6 +71,17 @@ class MenuBarManager: NSObject {
         if let monitor = eventMonitor {
             NSEvent.removeMonitor(monitor)
             eventMonitor = nil
+        }
+    }
+
+    // Helper to close the popover and open settings
+    private func closePopoverAndOpenSettings() {
+        if let popover = self.popover, popover.isShown {
+            popover.performClose(nil)
+            removeEventMonitor()
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            NSApp.sendAction(#selector(AppDelegate.showUI), to: nil, from: nil)
         }
     }
 
