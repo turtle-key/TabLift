@@ -18,12 +18,12 @@ struct SettingsView: View {
 }
 
 struct GeneralSettingsTab: View {
-    @AppStorage(WindowManager.restoreAllKey) var restoreAllWindows: Bool = true
+    @AppStorage(WindowManager.restoreAllKey) var restoreAllWindows: Bool = false
     @AppStorage(WindowManager.openWindowKey) var openNewWindow: Bool = true
-    @AppStorage(WindowManager.minimizePreviousWindowKey) var minimizePreviousWindow: Bool = true
+    @AppStorage(WindowManager.minimizePreviousWindowKey) var minimizePreviousWindow: Bool = false
     @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
     @AppStorage("startAtLogin") var startAtLogin: Bool = true
-    @AppStorage("showDockIcon") var showDockIcon: Bool = true
+    @AppStorage("showDockIcon") var showDockIcon: Bool = false
     @State private var isHoveringQuit = false
 
     private let copyright = "AGPL-3.0 © Mihai-Eduard Ghețu"
