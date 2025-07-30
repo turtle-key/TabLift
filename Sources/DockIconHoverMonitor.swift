@@ -9,8 +9,8 @@ class DockIconHoverMonitor {
     private var hostingView: NSHostingView<DockPreviewPanel>?
     private var lastBundleIdentifier: String?
     private var lastPanelFrame: CGRect?
-    private var mouseMonitor: Any?
     private var clickMonitor: Any?
+    private var mouseTimer: Timer?
     private var dockFrame: CGRect = .zero
     private var lastIconFrame: CGRect?
 
@@ -21,7 +21,6 @@ class DockIconHoverMonitor {
         }
         setupDockObserver()
         updateDockFrame()
-        setupMouseTracking()
         setupClickOutsideMonitor()
         NotificationCenter.default.addObserver(
             self,
@@ -35,13 +34,11 @@ class DockIconHoverMonitor {
         if let observer = axObserver {
             CFRunLoopRemoveSource(CFRunLoopGetCurrent(), AXObserverGetRunLoopSource(observer), .commonModes)
         }
-        if let mouseMonitor = mouseMonitor {
-            NSEvent.removeMonitor(mouseMonitor)
-        }
         if let clickMonitor = clickMonitor {
             NSEvent.removeMonitor(clickMonitor)
         }
         NotificationCenter.default.removeObserver(self)
+        stopMouseTimer()
         hidePreview()
     }
 
@@ -99,36 +96,56 @@ class DockIconHoverMonitor {
         }
     }
 
-    private func setupMouseTracking() {
-        mouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDown, .rightMouseDown, .otherMouseDown]) { [weak self] event in
-            self?.handleMouseAndHideIfNeeded()
-        }
-        // Add a local monitor so we can track mouse exit from popup more responsively
-        NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { [weak self] event in
-            self?.handleMouseAndHideIfNeeded()
-            return event
-        }
-    }
-
     private func setupClickOutsideMonitor() {
         clickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]) { [weak self] event in
             self?.handleMouseAndHideIfNeeded()
         }
     }
 
-    private func handleMouseAndHideIfNeeded() {
+    // --- Begin Mouse Timer for DockDoor-style instant disappearance ---
+    private func startMouseTimer() {
+        stopMouseTimer()
+        mouseTimer = Timer.scheduledTimer(withTimeInterval: 0.045, repeats: true) { [weak self] _ in
+            self?.checkMouseAndDismissIfNeeded()
+        }
+    }
+
+    private func stopMouseTimer() {
+        mouseTimer?.invalidate()
+        mouseTimer = nil
+    }
+
+    private func checkMouseAndDismissIfNeeded() {
         let mouseLocation = NSEvent.mouseLocation
-        if !isPointInsideDockOrPopup(mouseLocation) {
+        let isInPopup = previewPanel?.frame.contains(mouseLocation) ?? false
+        let isOverDockIcon = isMouseOverDockIcon()
+        if !isInPopup && !isOverDockIcon {
             hidePreview()
         }
     }
 
-    private func isPointInsideDockOrPopup(_ point: CGPoint) -> Bool {
-        if dockFrame.contains(point) { return true }
-        if let panel = previewPanel, panel.isVisible {
-            if panel.frame.contains(point) { return true }
+    // Check for hovered dock *icon*, not just dock window
+    private func isMouseOverDockIcon() -> Bool {
+        guard let dockApp = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").first else { return false }
+        let dockElement = AXUIElementCreateApplication(dockApp.processIdentifier)
+        var children: AnyObject?
+        guard AXUIElementCopyAttributeValue(dockElement, kAXChildrenAttribute as CFString, &children) == .success,
+              let dockChildren = children as? [AXUIElement],
+              let axList = dockChildren.first(where: { $0.role() == kAXListRole }) else { return false }
+        var selectedChildren: AnyObject?
+        guard AXUIElementCopyAttributeValue(axList, kAXSelectedChildrenAttribute as CFString, &selectedChildren) == .success,
+              let selectedList = selectedChildren as? [AXUIElement], !selectedList.isEmpty else { return false }
+        // If there is any selected dock icon, we are over a dock icon
+        return true
+    }
+
+    private func handleMouseAndHideIfNeeded() {
+        let mouseLocation = NSEvent.mouseLocation
+        let isInPopup = previewPanel?.frame.contains(mouseLocation) ?? false
+        let isOverDockIcon = isMouseOverDockIcon()
+        if !isInPopup && !isOverDockIcon {
+            hidePreview()
         }
-        return false
     }
 
     func handleDockSelectionChange() {
@@ -165,21 +182,13 @@ class DockIconHoverMonitor {
         let appName = app.localizedName ?? bundleIdentifier
         let appIcon = app.icon ?? NSWorkspace.shared.icon(forFileType: NSFileTypeForHFSTypeCode(OSType(kGenericApplicationIcon)))
 
-        // Dynamically update panel content and frame, but don't move up/down if content changes
-        let newContent = DockPreviewPanel(
-            appName: appName,
-            appIcon: appIcon,
-            windowTitles: windowTitles,
-            onTitleClick: { [weak self] title in
-                self?.focusWindow(of: app, withTitle: title)
-            }
-        )
+        // Consistent location: panel always appears over the same icon, doesn't move if content changes
         let panelWidth: CGFloat = 280
         let panelHeight = CGFloat(82 + max(24, windowTitles.count * 32))
         let panelRect: CGRect
         if let lastIconFrame = lastIconFrame, let lastPanelFrame = lastPanelFrame {
             if iconFrame.equalTo(lastIconFrame) {
-                panelRect = lastPanelFrame
+                panelRect = CGRect(origin: lastPanelFrame.origin, size: CGSize(width: panelWidth, height: panelHeight))
             } else {
                 panelRect = CGRect(x: iconFrame.midX - panelWidth/2, y: iconFrame.maxY + 10, width: panelWidth, height: panelHeight)
                 self.lastIconFrame = iconFrame
@@ -191,9 +200,19 @@ class DockIconHoverMonitor {
             self.lastPanelFrame = panelRect
         }
 
+        let newContent = DockPreviewPanel(
+            appName: appName,
+            appIcon: appIcon,
+            windowTitles: windowTitles,
+            onTitleClick: { [weak self] title in
+                self?.focusWindow(of: app, withTitle: title)
+            }
+        )
+
         if let panel = previewPanel, let hosting = hostingView {
             hosting.rootView = newContent
             panel.setContentSize(panelRect.size)
+            panel.setFrameOrigin(panelRect.origin)
         } else {
             let hosting = NSHostingView(rootView: newContent)
             let panel = NSPanel(contentRect: panelRect,
@@ -216,9 +235,12 @@ class DockIconHoverMonitor {
             self.previewPanel = panel
             self.hostingView = hosting
         }
+        // Start robust mouse monitoring for DockDoor-style disappearance
+        startMouseTimer()
     }
 
     private func hidePreview() {
+        stopMouseTimer()
         if let panel = previewPanel {
             panel.orderOut(nil)
         }
