@@ -1,6 +1,5 @@
 import SwiftUI
 
-// Use this for the popup's background and gray lightning border, exactly as DockDoor does.
 struct BlurView: View {
     var body: some View {
         Rectangle().fill(.ultraThinMaterial)
@@ -65,13 +64,12 @@ struct DockPreviewPanel: View {
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 16)
-        .dockStyle(cornerRadius: 18, highlightColor: nil) // <- the DockDoor look!
+        .dockStyle(cornerRadius: 18, highlightColor: nil)
         .frame(minWidth: 240, maxWidth: 320)
         .animation(.snappy(duration: 0.13), value: hoveredIndex)
     }
 }
 
-// macOS-style minimized indicator rhombus/diamond
 struct MinimizedIndicator: View {
     var body: some View {
         GeometryReader { geo in
@@ -84,7 +82,7 @@ struct MinimizedIndicator: View {
                 path.addLine(to: CGPoint(x: 0, y: mid))
                 path.closeSubpath()
             }
-            .fill(Color.secondary)
+            .stroke(Color.secondary, lineWidth: 1.9)
         }
         .frame(width: 12, height: 12)
         .help("This window is minimized")

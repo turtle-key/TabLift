@@ -19,12 +19,17 @@ struct SettingsView: View {
 
 struct GeneralSettingsTab: View {
     @AppStorage(WindowManager.restoreAllKey) var restoreAllWindows: Bool = false
-    @AppStorage(WindowManager.openWindowKey) var openNewWindow: Bool = true
-    @AppStorage(WindowManager.minimizePreviousWindowKey) var minimizePreviousWindow: Bool = false
+    @AppStorage(WindowManager.openWindowKey) private var openNewWindowStorage: Bool = true
+    @AppStorage(WindowManager.minimizePreviousWindowKey) private var minimizePreviousWindowStorage: Bool = false
     @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
+    @AppStorage("showDockPopups") var showDockPopups: Bool = true
     @AppStorage("startAtLogin") var startAtLogin: Bool = true
     @AppStorage("showDockIcon") var showDockIcon: Bool = false
     @State private var isHoveringQuit = false
+
+    // Local state for mutual exclusion
+    @State private var openNewWindow: Bool = true
+    @State private var minimizePreviousWindow: Bool = false
 
     private let copyright = "AGPL-3.0 © Mihai-Eduard Ghețu"
     private var licenseURL: URL {
@@ -69,7 +74,7 @@ struct GeneralSettingsTab: View {
                                 Text("Restore all minimized windows on app switch")
                                     .font(.body)
                                 if !restoreAllWindows {
-                                    Text("When disabled,only the most recently minimized window will be restored.")
+                                    Text("When disabled, only the most recently minimized window will be restored.")
                                         .foregroundColor(.secondary)
                                         .font(.caption)
                                         .padding(.top, 2)
@@ -89,6 +94,13 @@ struct GeneralSettingsTab: View {
                                 }
                             }
                         }
+                        .onChange(of: openNewWindow) { value in
+                            openNewWindowStorage = value
+                            if value {
+                                minimizePreviousWindow = false
+                                minimizePreviousWindowStorage = false
+                            }
+                        }
                         .help("If enabled, a new window will be opened when switching to an app that has no visible windows")
                         Toggle(isOn: $minimizePreviousWindow) {
                             VStack(alignment: .leading, spacing: 2) {
@@ -102,7 +114,19 @@ struct GeneralSettingsTab: View {
                                 }
                             }
                         }
+                        .onChange(of: minimizePreviousWindow) { value in
+                            minimizePreviousWindowStorage = value
+                            if value {
+                                openNewWindow = false
+                                openNewWindowStorage = false
+                            }
+                        }
                         .help("When enabled, the currently focused window is minimized when switching apps using Cmd+Tab. This helps keep the workspace clean by showing only one active window at a time.")
+                        Toggle(isOn: $showDockPopups) {
+                            Text("Show Window Previews in Dock")
+                                .font(.body)
+                        }
+                        .help("Show popup with app windows when hovering icons in the Dock.")
                     }
                     .padding()
                 }
@@ -113,7 +137,6 @@ struct GeneralSettingsTab: View {
             }
             .modifier(FormViewModifier())
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-
 
             HStack {
                 Link(destination: licenseURL) {
@@ -126,6 +149,10 @@ struct GeneralSettingsTab: View {
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 16)
+        }
+        .onAppear {
+            openNewWindow = openNewWindowStorage
+            minimizePreviousWindow = minimizePreviousWindowStorage
         }
         .onChange(of: showMenuBarIcon) { value in
             MenuBarManager.shared.showMenuBarIcon(show: value)
@@ -140,7 +167,7 @@ struct GeneralSettingsTab: View {
     }
 }
 
-// (AboutTab, ModernAboutLink, ModernQuitButton, GeneralSettingsTab unchanged)
+// ...AboutTab, ModernAboutLink, ModernQuitButton unchanged...
 
 struct AboutTab: View {
     private let appName = "TabLift"

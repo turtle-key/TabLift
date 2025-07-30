@@ -14,9 +14,12 @@ class DockIconHoverMonitor {
     private var dockFrame: CGRect = .zero
     private var lastIconFrame: CGRect?
 
-    // Need access to DockClickMonitor (singleton or pass in)
     private var dockClickMonitor: DockClickMonitor? {
         (NSApplication.shared.delegate as? AppDelegate)?.dockClickMonitor
+    }
+
+    private var showDockPopups: Bool {
+        UserDefaults.standard.bool(forKey: "showDockPopups")
     }
 
     init() {
@@ -149,6 +152,11 @@ class DockIconHoverMonitor {
     }
 
     func handleDockSelectionChange() {
+        if !showDockPopups {
+            hidePreview()
+            return
+        }
+
         guard let hoveredIcon = getCurrentlySelectedDockIcon() else {
             lastBundleIdentifier = nil
             hidePreview()
@@ -285,7 +293,6 @@ class DockIconHoverMonitor {
         return (frame, bundleID)
     }
 
-    // Returns [(title, isMinimized)] for all windows
     private func fetchWindowInfos(for app: NSRunningApplication?) -> [(title: String, isMinimized: Bool)] {
         guard let app = app else { return [] }
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
@@ -305,7 +312,6 @@ class DockIconHoverMonitor {
         return infos
     }
 
-    // Restore minimized window if needed, focus and bring to front, update DockClickMonitor counter
     private func focusWindow(of app: NSRunningApplication?, withTitle title: String) {
         guard let app = app else { return }
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
@@ -316,16 +322,13 @@ class DockIconHoverMonitor {
             var titleValue: AnyObject?
             if AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &titleValue) == .success,
                let t = titleValue as? String, t == title {
-                // Check if minimized
                 var minimizedValue: AnyObject?
                 if AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedValue) == .success,
                    let isMinimized = minimizedValue as? Bool, isMinimized
                 {
                     WindowManager.restoreMinimizedWindows(for: app)
-                    // Always sync counter after restoring a window
                     dockClickMonitor?.syncAppClickCountWithWindowState(pid: app.processIdentifier)
                 }
-                // Focus window as usual
                 AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
                 AXUIElementSetAttributeValue(window, kAXFocusedAttribute as CFString, kCFBooleanTrue)
                 app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
