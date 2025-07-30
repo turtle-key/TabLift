@@ -6,18 +6,19 @@ class DockClickMonitor {
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
 
-    // Track the number of Dock clicks for each app (by pid)
-    private var appClickCounts: [pid_t: Int] = [:]
-    // Remember when we last saw the app become frontmost (for alt-tab etc)
+    // Track number of Dock clicks for each app (by pid)
+    var appClickCounts: [pid_t: Int] = [:]
     private var lastFrontmostAppPID: pid_t?
     private var lastFrontmostAppChange: Date?
+    private var lastMinimizedState: [pid_t: Bool] = [:]
 
-    // Main event observer for app switches (alt-tab, click, etc)
     private var workspaceObserver: NSObjectProtocol?
+    private var minimizedObserver: NSObjectProtocol?
 
     init() {
         setupEventTap()
         setupFrontmostAppObserver()
+        setupMinimizedStateObserver()
     }
 
     deinit {
@@ -29,6 +30,9 @@ class DockClickMonitor {
             CFRunLoopRemoveSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
         }
         if let observer = workspaceObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(observer)
+        }
+        if let observer = minimizedObserver {
             NSWorkspace.shared.notificationCenter.removeObserver(observer)
         }
     }
@@ -73,9 +77,42 @@ class DockClickMonitor {
             let pid = app.processIdentifier
             self.lastFrontmostAppPID = pid
             self.lastFrontmostAppChange = Date()
-            // Reset click count for this app, so a Dock click (if any) will be counted as the first
-            self.appClickCounts[pid] = 1
+            self.syncAppClickCountWithWindowState(pid: pid)
+            self.lastMinimizedState[pid] = WindowManager.areAllWindowsMinimized(for: app)
         }
+    }
+
+    private func setupMinimizedStateObserver() {
+        minimizedObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.activeSpaceDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.syncMinimizedStatesWithRunningApps()
+        }
+    }
+
+    private func syncMinimizedStatesWithRunningApps() {
+        let runningApps = NSWorkspace.shared.runningApplications
+        for app in runningApps {
+            let pid = app.processIdentifier
+            syncAppClickCountWithWindowState(pid: pid)
+            lastMinimizedState[pid] = WindowManager.areAllWindowsMinimized(for: app)
+        }
+    }
+
+    // --- Always call this before using appClickCounts[pid]! ---
+    func syncAppClickCountWithWindowState(pid: pid_t) {
+        guard let app = NSRunningApplication(processIdentifier: pid) else { return }
+        if WindowManager.areAllWindowsMinimized(for: app) {
+            appClickCounts[pid] = 2 // Next dock click restores
+        } else {
+            appClickCounts[pid] = 1 // Next dock click minimizes
+        }
+    }
+
+    func setAppClickCount(_ pid: pid_t, to value: Int) {
+        appClickCounts[pid] = value
     }
 
     private func handleClick(event: CGEvent) {
@@ -87,7 +124,6 @@ class DockClickMonitor {
         if AXUIElementCopyAttributeValue(dockElement, kAXChildrenAttribute as CFString, &children) != .success { return }
         guard let dockChildren = children as? [AXUIElement], !dockChildren.isEmpty else { return }
 
-        // Look for AXList element
         guard let axList = dockChildren.first(where: {
             (try? $0.role() == kAXListRole) ?? false
         }) else { return }
@@ -96,29 +132,21 @@ class DockClickMonitor {
         if AXUIElementCopyAttributeValue(axList, kAXChildrenAttribute as CFString, &dockItems) != .success { return }
         guard let dockIcons = dockItems as? [AXUIElement] else { return }
 
-        // Get the main screen's height (for y flip)
         let screenHeight = NSScreen.screens.first?.frame.height ?? 0
 
         for icon in dockIcons {
             if (try? icon.subrole()) != "AXApplicationDockItem" { continue }
-
             var positionValue: AnyObject?
             var sizeValue: AnyObject?
             if AXUIElementCopyAttributeValue(icon, kAXPositionAttribute as CFString, &positionValue) != .success { continue }
             if AXUIElementCopyAttributeValue(icon, kAXSizeAttribute as CFString, &sizeValue) != .success { continue }
             let position = positionValue as! AXValue
             let size = sizeValue as! AXValue
-
             var pos = CGPoint.zero, sz = CGSize.zero
             AXValueGetValue(position, .cgPoint, &pos)
             AXValueGetValue(size, .cgSize, &sz)
-
-            // --- Correct the coordinate system: ---
-            // AX origin is top-left, NSEvent is bottom-left, so flip y
             let correctedY = screenHeight - pos.y - sz.height
             let correctedFrame = CGRect(x: pos.x, y: correctedY, width: sz.width, height: sz.height)
-            // --------------------------------------
-
             if correctedFrame.contains(mouseLocation) {
                 var bundleURL: AnyObject?
                 if AXUIElementCopyAttributeValue(icon, kAXURLAttribute as CFString, &bundleURL) == .success,
@@ -128,20 +156,21 @@ class DockClickMonitor {
                    let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first
                 {
                     let pid = app.processIdentifier
-
+                    // --- Always sync before using the counter! ---
+                    syncAppClickCountWithWindowState(pid: pid)
                     // If the app is not frontmost, set click count to 1 (simulate first click after switch)
                     if pid != NSWorkspace.shared.frontmostApplication?.processIdentifier {
                         appClickCounts[pid] = 1
                     } else {
                         // Increment click count for this app
-                        let newCount = (appClickCounts[pid] ?? 0) + 1
+                        let newCount = (appClickCounts[pid] ?? 1) + 1
                         appClickCounts[pid] = newCount
 
                         // Only minimize if app is frontmost, with a delay, and the click count is even
                         if newCount % 2 == 0 {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
-                                // Use user preference for all windows or just focused
                                 WindowManager.minimizeFocusedWindow(of: app)
+                                self.syncAppClickCountWithWindowState(pid: pid)
                             }
                         }
                     }
@@ -149,30 +178,5 @@ class DockClickMonitor {
                 break
             }
         }
-    }
-}
-
-// Accessibility helpers
-private extension AXUIElement {
-    func role() throws -> String? {
-        var value: AnyObject?
-        if AXUIElementCopyAttributeValue(self, kAXRoleAttribute as CFString, &value) == .success {
-            return value as? String
-        }
-        return nil
-    }
-    func subrole() throws -> String? {
-        var value: AnyObject?
-        if AXUIElementCopyAttributeValue(self, kAXSubroleAttribute as CFString, &value) == .success {
-            return value as? String
-        }
-        return nil
-    }
-    func title() throws -> String? {
-        var value: AnyObject?
-        if AXUIElementCopyAttributeValue(self, kAXTitleAttribute as CFString, &value) == .success {
-            return value as? String
-        }
-        return nil
     }
 }

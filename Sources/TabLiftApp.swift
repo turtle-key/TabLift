@@ -20,7 +20,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private let autoUpdateManager = AutoUpdateManager.shared
     
     var dockClickMonitor: DockClickMonitor?
-    
+    var dockIconHoverMonitor: DockIconHoverMonitor?  // <-- Add this property
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         UserDefaults.standard.register(defaults: [
             "showMenuBarIcon": true,
@@ -48,6 +49,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         registerLoginItemIfNeeded()
         
         dockClickMonitor = DockClickMonitor()
+        dockIconHoverMonitor = DockIconHoverMonitor() // <-- Initialize here
         
         let showMenuBar = UserDefaults.standard.bool(forKey: "showMenuBarIcon")
         MenuBarManager.shared.showMenuBarIcon(show: showMenuBar)

@@ -23,7 +23,24 @@ class WindowManager {
         }
     }
 
-    private static func hasAnyPracticalVisibleWindow(for app: NSRunningApplication) -> Bool {
+    static func areAllWindowsMinimized(for app: NSRunningApplication) -> Bool {
+        let appEl = AXUIElementCreateApplication(app.processIdentifier)
+        var raw: AnyObject?
+        if AXUIElementCopyAttributeValue(appEl, kAXWindowsAttribute as CFString, &raw) != .success {
+            return false
+        }
+        guard let windows = raw as? [AXUIElement], !windows.isEmpty else { return false }
+        for window in windows {
+            var minRaw: AnyObject?
+            if AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minRaw) == .success,
+               let isMin = minRaw as? Bool, !isMin {
+                return false
+            }
+        }
+        return true
+    }
+
+    static func hasAnyPracticalVisibleWindow(for app: NSRunningApplication) -> Bool {
         if hasAXVisibleWindow(for: app) { return true }
         if hasCGVisibleWindow(for: app) { return true }
         return false
