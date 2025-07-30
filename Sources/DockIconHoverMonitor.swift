@@ -14,6 +14,11 @@ class DockIconHoverMonitor {
     private var dockFrame: CGRect = .zero
     private var lastIconFrame: CGRect?
 
+    // Need access to DockClickMonitor (singleton or pass in)
+    private var dockClickMonitor: DockClickMonitor? {
+        (NSApplication.shared.delegate as? AppDelegate)?.dockClickMonitor
+    }
+
     init() {
         guard AXIsProcessTrusted() else {
             NSLog("Accessibility permissions NOT granted. Dock popups will not work.")
@@ -47,7 +52,6 @@ class DockIconHoverMonitor {
         dockPID = dockApp.processIdentifier
         let dockElement = AXUIElementCreateApplication(dockPID)
 
-        // Find AXList child
         var children: AnyObject?
         guard AXUIElementCopyAttributeValue(dockElement, kAXChildrenAttribute as CFString, &children) == .success,
               let dockChildren = children as? [AXUIElement],
@@ -82,7 +86,6 @@ class DockIconHoverMonitor {
                 return
             }
         }
-        // Fallback: old approximation
         if let screen = NSScreen.screens.first {
             let height: CGFloat = 80
             let visibleFrame = screen.visibleFrame
@@ -102,7 +105,6 @@ class DockIconHoverMonitor {
         }
     }
 
-    // --- Begin Mouse Timer for DockDoor-style instant disappearance ---
     private func startMouseTimer() {
         stopMouseTimer()
         mouseTimer = Timer.scheduledTimer(withTimeInterval: 0.045, repeats: true) { [weak self] _ in
@@ -124,7 +126,6 @@ class DockIconHoverMonitor {
         }
     }
 
-    // Check for hovered dock *icon*, not just dock window
     private func isMouseOverDockIcon() -> Bool {
         guard let dockApp = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").first else { return false }
         let dockElement = AXUIElementCreateApplication(dockApp.processIdentifier)
@@ -135,7 +136,6 @@ class DockIconHoverMonitor {
         var selectedChildren: AnyObject?
         guard AXUIElementCopyAttributeValue(axList, kAXSelectedChildrenAttribute as CFString, &selectedChildren) == .success,
               let selectedList = selectedChildren as? [AXUIElement], !selectedList.isEmpty else { return false }
-        // If there is any selected dock icon, we are over a dock icon
         return true
     }
 
@@ -170,7 +170,6 @@ class DockIconHoverMonitor {
             return
         }
 
-        // Only show if app has windows (disable "new window" for active with no windows)
         let windowTitles = fetchWindowTitles(for: app)
         if windowTitles.isEmpty {
             hidePreview()
@@ -182,7 +181,6 @@ class DockIconHoverMonitor {
         let appName = app.localizedName ?? bundleIdentifier
         let appIcon = app.icon ?? NSWorkspace.shared.icon(forFileType: NSFileTypeForHFSTypeCode(OSType(kGenericApplicationIcon)))
 
-        // Consistent location: panel always appears over the same icon, doesn't move if content changes
         let panelWidth: CGFloat = 280
         let panelHeight = CGFloat(82 + max(24, windowTitles.count * 32))
         let panelRect: CGRect
@@ -222,7 +220,7 @@ class DockIconHoverMonitor {
             panel.isFloatingPanel = true
             panel.level = .statusBar
             panel.backgroundColor = .clear
-            panel.hasShadow = false // Use SwiftUI shadow, not AppKit
+            panel.hasShadow = false
             panel.ignoresMouseEvents = false
             panel.hidesOnDeactivate = false
             panel.becomesKeyOnlyIfNeeded = true
@@ -235,7 +233,6 @@ class DockIconHoverMonitor {
             self.previewPanel = panel
             self.hostingView = hosting
         }
-        // Start robust mouse monitoring for DockDoor-style disappearance
         startMouseTimer()
     }
 
@@ -305,6 +302,7 @@ class DockIconHoverMonitor {
         return titles
     }
 
+    // Restore minimized window if needed, focus and bring to front, update DockClickMonitor counter
     private func focusWindow(of app: NSRunningApplication?, withTitle title: String) {
         guard let app = app else { return }
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
@@ -315,6 +313,16 @@ class DockIconHoverMonitor {
             var titleValue: AnyObject?
             if AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &titleValue) == .success,
                let t = titleValue as? String, t == title {
+                // Check if minimized
+                var minimizedValue: AnyObject?
+                if AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedValue) == .success,
+                   let isMinimized = minimizedValue as? Bool, isMinimized
+                {
+                    WindowManager.restoreMinimizedWindows(for: app)
+                    // Always sync counter after restoring a window
+                    dockClickMonitor?.syncAppClickCountWithWindowState(pid: app.processIdentifier)
+                }
+                // Focus window as usual
                 AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
                 AXUIElementSetAttributeValue(window, kAXFocusedAttribute as CFString, kCFBooleanTrue)
                 app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
