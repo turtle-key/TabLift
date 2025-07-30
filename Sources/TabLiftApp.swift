@@ -18,7 +18,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var cmdBacktickMonitor: CmdBacktickMonitor?
     var window: NSWindow?
     private let autoUpdateManager = AutoUpdateManager.shared
-
+    
+    var dockClickMonitor: DockClickMonitor?
+    
     func applicationDidFinishLaunching(_ notification: Notification) {
         UserDefaults.standard.register(defaults: [
             "showMenuBarIcon": true,
@@ -44,7 +46,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         appMonitor = AppMonitor()
         appMonitor?.setupEventTap()
         registerLoginItemIfNeeded()
-
+        
+        dockClickMonitor = DockClickMonitor()
+        
         let showMenuBar = UserDefaults.standard.bool(forKey: "showMenuBarIcon")
         MenuBarManager.shared.showMenuBarIcon(show: showMenuBar)
     }
