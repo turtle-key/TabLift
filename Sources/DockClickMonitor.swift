@@ -1,5 +1,6 @@
 import Cocoa
 import ApplicationServices
+import SwiftUI
 
 class DockClickMonitor {
     private var eventTap: CFMachPort?
@@ -119,7 +120,6 @@ class DockClickMonitor {
             // --------------------------------------
 
             if correctedFrame.contains(mouseLocation) {
-                // This is the clicked Dock icon!
                 var bundleURL: AnyObject?
                 if AXUIElementCopyAttributeValue(icon, kAXURLAttribute as CFString, &bundleURL) == .success,
                    let url = bundleURL as? NSURL,
@@ -137,16 +137,14 @@ class DockClickMonitor {
                         let newCount = (appClickCounts[pid] ?? 0) + 1
                         appClickCounts[pid] = newCount
 
-
                         // Only minimize if app is frontmost, with a delay, and the click count is even
                         if newCount % 2 == 0 {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+                                // Use user preference for all windows or just focused
                                 WindowManager.minimizeFocusedWindow(of: app)
                             }
                         }
                     }
-                } else if let title = try? icon.title(),
-                          let app = NSWorkspace.shared.runningApplications.first(where: { $0.localizedName == title }) {
                 }
                 break
             }
