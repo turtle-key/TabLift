@@ -3,6 +3,14 @@
     <channel>
         <title>TabLift</title>
         <item>
+            <title>1.8</title>
+            <pubDate>Wed, 30 Jul 2025 18:08:58 +0300</pubDate>
+            <sparkle:version>1.8</sparkle:version>
+            <sparkle:shortVersionString>1.8</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.5</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/turtle-key/TabLift/releases/latest/download/TabLift.dmg" length="3286434" type="application/octet-stream" sparkle:edSignature="j8JyqbdXiMeGCu+Xn6NIdSt1of+CwuSYgNVCeHyCslaFkZJYo8B0je/1GIFZDln2ZbPsYW7zsC1waPa/8/KACQ=="/>
+        </item>
+        <item>
             <title>1.7</title>
             <pubDate>Tue, 29 Jul 2025 10:44:00 +0300</pubDate>
             <sparkle:version>1.7</sparkle:version>
@@ -17,14 +25,6 @@
             <sparkle:shortVersionString>1.6.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>13.5</sparkle:minimumSystemVersion>
             <enclosure url="https://github.com/turtle-key/TabLift/releases/download/v1.6.1/TabLift.dmg" length="3209332" type="application/octet-stream" sparkle:edSignature="fedwba9WNYruse7OYGjerDXfepvC0BIbBj7HFlXydWBO/BKn3G3zyIQ+1TJ8x+pC79bSDULCsxggI4QbhDQoAA=="/>
-        </item>
-        <item>
-            <title>1.6</title>
-            <pubDate>Tue, 22 Jul 2025 08:37:23 +0300</pubDate>
-            <sparkle:version>1.6</sparkle:version>
-            <sparkle:shortVersionString>1.6</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>13.5</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/turtle-key/TabLift/releases/download/v1.6/TabLift.dmg" length="3070570" type="application/octet-stream" sparkle:edSignature="KWUwcdu+lMytgY+gvW9ySAo/aNyF5uyYWaCjWqauAbe4eV3mucbSjD6KQqqHtNCzukQ0TTJTCL665/1OJ6C0Cw=="/>
         </item>
         <item>
             <title>1.5</title>
