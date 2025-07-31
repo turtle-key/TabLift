@@ -35,7 +35,7 @@
   <meta property="og:url" content="https://tablift.mihai.sh/blog" />
   <meta name="twitter:title" content="TabLift Blog – macOS Productivity Tips" />
   <meta name="twitter:description" content="Expert guides on fixing macOS ⌘+Tab behavior and improving productivity." />
-  
+  <link rel="canonical" href="https://tablift.mihai.sh/blog" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",

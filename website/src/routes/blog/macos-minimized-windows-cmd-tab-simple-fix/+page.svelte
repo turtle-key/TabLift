@@ -5,7 +5,7 @@
 <svelte:head>
   <title>TabLift: macOS Skips Minimized Windows in ⌘+Tab – Here's a Simple Fix | TabLift</title>
   <meta name="description" content="macOS excludes minimized apps from the ⌘+Tab switcher by default. Discover how TabLift automatically restores them for a more consistent and productive workflow." />
-  
+  <link rel="canonical" href="https://tablift.mihai.sh/blog/macos-minimized-windows-cmd-tab-simple-fix" />
   <!-- Open Graph -->
   <meta property="og:title" content="macOS Skips Minimized Windows in ⌘+Tab – Simple Fix Available" />
   <meta property="og:description" content="Stop losing track of minimized apps in macOS. This simple solution makes ⌘+Tab work consistently with all your open applications." />

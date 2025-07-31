@@ -15,7 +15,7 @@
   <!-- Twitter -->
   <meta name="twitter:title" content="Fix ⌘+Tab on macOS to Include Minimized Windows" />
   <meta name="twitter:description" content="Stop missing minimized apps when switching with ⌘+Tab. Here's the simple fix that changes everything." />
-  
+  <link rel="canonical" href="https://tablift.mihai.sh/blog/fix-cmd-tab-minimized-windows-macos" />
   <!-- Article Schema -->
   <script type="application/ld+json">
   {

@@ -18,6 +18,7 @@
 <svelte:head>
   <title>TabLift – Fix ⌘+Tab for Minimized Mac Windows | Boost Productivity</title>
   <meta name="description" content="TabLift restores proper ⌘+Tab behavior on macOS, including minimized windows. Improve your Mac workflow and switch apps seamlessly." />
+  <link rel="canonical" href="https://tablift.mihai.sh/" />
 </svelte:head>
 
 <main class="min-h-screen bg-[#f7fafc] dark:bg-[#18181c] flex flex-col items-center font-sans pt-[90px]">
