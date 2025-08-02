@@ -20,8 +20,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private let autoUpdateManager = AutoUpdateManager.shared
     
     var dockClickMonitor: DockClickMonitor?
-    var dockIconHoverMonitor: DockIconHoverMonitor?  // <-- Add this property
-
+    var dockIconHoverMonitor: DockIconHoverMonitor?
+    
+    private var wakeObserver: NSObjectProtocol?
+    
     func applicationDidFinishLaunching(_ notification: Notification) {
         UserDefaults.standard.register(defaults: [
             "showMenuBarIcon": true,
@@ -49,12 +51,36 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         registerLoginItemIfNeeded()
         
         dockClickMonitor = DockClickMonitor()
-        dockIconHoverMonitor = DockIconHoverMonitor() // <-- Initialize here
+        dockIconHoverMonitor = DockIconHoverMonitor()
         
         let showMenuBar = UserDefaults.standard.bool(forKey: "showMenuBarIcon")
         MenuBarManager.shared.showMenuBarIcon(show: showMenuBar)
+        
+        wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
+                    forName: NSWorkspace.didWakeNotification,
+                    object: nil,
+                    queue: .main
+                ) { [weak self] _ in
+                    self?.handleWakeFromSleep()
+                }
     }
-
+    func handleWakeFromSleep() {
+        print("Mac woke from sleep — refreshing TabLift state")
+        appMonitor?.refresh()
+        cmdBacktickMonitor?.refresh()
+        dockClickMonitor?.refresh()
+        dockIconHoverMonitor?.refresh()
+        if !AccessibilityPermission.enabled {
+            AccessibilityPermissionWindow.show()
+        }
+    }
+    
+    deinit {
+        if let wakeObserver = wakeObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(wakeObserver)
+        }
+    }
+    
     func registerLoginItemIfNeeded() {
         let startAtLogin = UserDefaults.standard.bool(forKey: "startAtLogin")
         if startAtLogin {

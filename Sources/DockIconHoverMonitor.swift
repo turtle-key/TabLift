@@ -337,4 +337,26 @@ class DockIconHoverMonitor {
         }
         app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
     }
+    func refresh() {
+        if let observer = axObserver {
+            CFRunLoopRemoveSource(CFRunLoopGetCurrent(), AXObserverGetRunLoopSource(observer), .commonModes)
+            axObserver = nil
+        }
+        if let clickMonitor = clickMonitor {
+            NSEvent.removeMonitor(clickMonitor)
+            self.clickMonitor = nil
+        }
+        NotificationCenter.default.removeObserver(self)
+        stopMouseTimer()
+        hidePreview()
+        setupDockObserver()
+        updateDockFrame()
+        setupClickOutsideMonitor()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(updateDockFrame),
+            name: NSApplication.didChangeScreenParametersNotification,
+            object: nil
+        )
+    }
 }

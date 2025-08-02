@@ -106,4 +106,40 @@ class AppMonitor {
             CFRunLoopRemoveSource(CFRunLoopGetCurrent(), src, .commonModes)
         }
     }
+    func refresh() {
+        if let obs = observer {
+            NSWorkspace.shared.notificationCenter.removeObserver(obs)
+            observer = nil
+        }
+        if let tap = eventTap {
+            CGEvent.tapEnable(tap: tap, enable: false)
+            CFMachPortInvalidate(tap)
+            eventTap = nil
+        }
+        if let src = runLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetCurrent(), src, .commonModes)
+            runLoopSource = nil
+        }
+        setupEventTap()
+        observer = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self = self,
+                  let info = notification.userInfo,
+                  let newApp = info[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+            else { return }
+
+            let now = Date().timeIntervalSince1970
+            let delta = now - self.lastAppSwitcherTimestamp
+
+            if delta < AppMonitor.timeoutThreshold {
+                WindowManager.checkForWindows(
+                    current: newApp,
+                    previous: self.previousApp
+                )
+            }
+        }
+    }
 }

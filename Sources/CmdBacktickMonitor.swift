@@ -3,8 +3,13 @@ import Cocoa
 class CmdBacktickMonitor {
     private var eventTap: CFMachPort?
     private let mask = CGEventMask(1 << CGEventType.keyDown.rawValue)
-    
+    private var runLoopSource: CFRunLoopSource?
+
     init() {
+        createTap()
+    }
+
+    private func createTap() {
         let eventTap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
             place: .headInsertEventTap,
@@ -23,17 +28,34 @@ class CmdBacktickMonitor {
             userInfo: nil
         )
         self.eventTap = eventTap
-        
+
         if let eventTap = eventTap {
-            let runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
+            runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
             CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
             CGEvent.tapEnable(tap: eventTap, enable: true)
         }
     }
+
+    func refresh() {
+        if let eventTap = eventTap {
+            CGEvent.tapEnable(tap: eventTap, enable: false)
+            CFMachPortInvalidate(eventTap)
+            self.eventTap = nil
+        }
+        if let runLoopSource = runLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
+            self.runLoopSource = nil
+        }
+        createTap()
+    }
+
     deinit {
         if let eventTap = eventTap {
             CGEvent.tapEnable(tap: eventTap, enable: false)
             CFMachPortInvalidate(eventTap)
+        }
+        if let runLoopSource = runLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
         }
     }
     static func unminimizeNextMinimizedWindow() {

@@ -101,7 +101,6 @@ class DockClickMonitor {
         }
     }
 
-    // --- Always call this before using appClickCounts[pid]! ---
     func syncAppClickCountWithWindowState(pid: pid_t) {
         guard let app = NSRunningApplication(processIdentifier: pid) else { return }
         if WindowManager.areAllWindowsMinimized(for: app) {
@@ -178,5 +177,29 @@ class DockClickMonitor {
                 break
             }
         }
+    }
+    func refresh() {
+        //remove event tap and observers
+        if let eventTap = eventTap {
+            CGEvent.tapEnable(tap: eventTap, enable: false)
+            CFMachPortInvalidate(eventTap)
+            self.eventTap = nil
+        }
+        if let runLoopSource = runLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
+            self.runLoopSource = nil
+        }
+        if let observer = workspaceObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(observer)
+            workspaceObserver = nil
+        }
+        if let observer = minimizedObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(observer)
+            minimizedObserver = nil
+        }
+        // Re-setup
+        setupEventTap()
+        setupFrontmostAppObserver()
+        setupMinimizedStateObserver()
     }
 }
