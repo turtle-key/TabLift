@@ -299,12 +299,12 @@ class DockIconHoverMonitor {
         var windowsValue: AnyObject?
         guard AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue) == .success,
               let windows = windowsValue as? [AXUIElement] else { return [] }
-        
+
         var focusedWindowValue: AnyObject?
         var focusedWindow: AXUIElement?
         if AXUIElementCopyAttributeValue(appElement, kAXFocusedWindowAttribute as CFString, &focusedWindowValue) == .success,
            let fw = focusedWindowValue {
-            focusedWindow = (fw as! AXUIElement)  // safe CF cast
+            focusedWindow = (fw as! AXUIElement)
         }
 
         let frontmostPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
@@ -312,13 +312,33 @@ class DockIconHoverMonitor {
 
         var infos: [(String, Bool, Bool)] = []
         for window in windows {
+            var roleValue: AnyObject?
+            if AXUIElementCopyAttributeValue(window, kAXRoleAttribute as CFString, &roleValue) != .success {
+                continue
+            }
+            let role = roleValue as? String ?? ""
+            if role != "AXWindow" {
+                continue
+            }
+
             var titleValue: AnyObject?
             var minimizedValue: AnyObject?
             let titleSuccess = AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &titleValue) == .success
             let minSuccess = AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedValue) == .success
-            let title = titleSuccess ? (titleValue as? String ?? "") : ""
+            var title = titleSuccess ? (titleValue as? String ?? "") : ""
             let minimized = minSuccess ? ((minimizedValue as? Bool) ?? false) : false
             let shouldHighlight = isFrontmostApp && (focusedWindow != nil) && CFEqual(window, focusedWindow)
+
+            if title.isEmpty {
+                var documentValue: AnyObject?
+                if AXUIElementCopyAttributeValue(window, kAXDocumentAttribute as CFString, &documentValue) == .success,
+                    let document = documentValue as? String, !document.isEmpty {
+                    title = document
+                } else {
+                    title = "(Untitled)"
+                }
+            }
+
             infos.append((title, minimized, shouldHighlight))
         }
         return infos
