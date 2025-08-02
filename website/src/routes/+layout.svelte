@@ -406,7 +406,7 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
               class:active-theme={themeMode === 'auto'}
             >
               <span class="material-symbols-rounded text-xl text-gray-600 dark:text-gray-400 mb-1">brightness_auto</span>
-              <span class="text-xs">Auto</span>
+              <span class="text-xs dark:text-white">Auto</span>
             </button>
             
             <button
@@ -417,7 +417,7 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
               class:active-theme={themeMode === 'light'}
             >
               <span class="material-symbols-rounded text-xl text-gray-600 dark:text-gray-400 mb-1">light_mode</span>
-              <span class="text-xs">Light</span>
+              <span class="text-xs dark:text-white">Light</span>
             </button>
             
             <button
@@ -428,7 +428,7 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
               class:active-theme={themeMode === 'dark'}
             >
               <span class="material-symbols-rounded text-xl text-gray-600 dark:text-gray-400 mb-1">dark_mode</span>
-              <span class="text-xs">Dark</span>
+              <span class="text-xs dark:text-white">Dark</span>
             </button>
           </div>
         </div>
