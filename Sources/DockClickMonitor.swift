@@ -6,14 +6,14 @@ class DockClickMonitor {
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
 
-    // Track number of Dock clicks for each app (by pid)
-    var appClickCounts: [pid_t: Int] = [:]
-    private var lastFrontmostAppPID: pid_t?
-    private var lastFrontmostAppChange: Date?
-    private var lastMinimizedState: [pid_t: Bool] = [:]
-
+    private var lastAction: [pid_t: DockAction] = [:]
     private var workspaceObserver: NSObjectProtocol?
     private var minimizedObserver: NSObjectProtocol?
+
+    enum DockAction {
+        case minimize
+        case restore
+    }
 
     init() {
         setupEventTap()
@@ -75,10 +75,7 @@ class DockClickMonitor {
                   let app = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
             else { return }
             let pid = app.processIdentifier
-            self.lastFrontmostAppPID = pid
-            self.lastFrontmostAppChange = Date()
-            self.syncAppClickCountWithWindowState(pid: pid)
-            self.lastMinimizedState[pid] = WindowManager.areAllWindowsMinimized(for: app)
+            self.syncDockActionForApp(pid: pid)
         }
     }
 
@@ -88,30 +85,21 @@ class DockClickMonitor {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.syncMinimizedStatesWithRunningApps()
+            self?.syncAllDockActions()
         }
     }
 
-    private func syncMinimizedStatesWithRunningApps() {
-        let runningApps = NSWorkspace.shared.runningApplications
-        for app in runningApps {
-            let pid = app.processIdentifier
-            syncAppClickCountWithWindowState(pid: pid)
-            lastMinimizedState[pid] = WindowManager.areAllWindowsMinimized(for: app)
-        }
-    }
-
-    func syncAppClickCountWithWindowState(pid: pid_t) {
+    private func syncDockActionForApp(pid: pid_t) {
         guard let app = NSRunningApplication(processIdentifier: pid) else { return }
-        if WindowManager.areAllWindowsMinimized(for: app) {
-            appClickCounts[pid] = 2 // Next dock click restores
-        } else {
-            appClickCounts[pid] = 1 // Next dock click minimizes
-        }
+        // Always get the real window state
+        let allMinimized = WindowManager.areAllWindowsMinimized(for: app)
+        lastAction[pid] = allMinimized ? .restore : .minimize
     }
 
-    func setAppClickCount(_ pid: pid_t, to value: Int) {
-        appClickCounts[pid] = value
+    private func syncAllDockActions() {
+        for app in NSWorkspace.shared.runningApplications {
+            syncDockActionForApp(pid: app.processIdentifier)
+        }
     }
 
     private func handleClick(event: CGEvent) {
@@ -155,31 +143,28 @@ class DockClickMonitor {
                    let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first
                 {
                     let pid = app.processIdentifier
-                    // --- Always sync before using the counter! ---
-                    syncAppClickCountWithWindowState(pid: pid)
-                    // If the app is not frontmost, set click count to 1 (simulate first click after switch)
-                    if pid != NSWorkspace.shared.frontmostApplication?.processIdentifier {
-                        appClickCounts[pid] = 1
-                    } else {
-                        // Increment click count for this app
-                        let newCount = (appClickCounts[pid] ?? 1) + 1
-                        appClickCounts[pid] = newCount
+                    // Always sync before acting (fix window close/minimize bugs)
+                    syncDockActionForApp(pid: pid)
+                    let action = lastAction[pid] ?? .minimize
 
-                        // Only minimize if app is frontmost, with a delay, and the click count is even
-                        if newCount % 2 == 0 {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
-                                WindowManager.minimizeFocusedWindow(of: app)
-                                self.syncAppClickCountWithWindowState(pid: pid)
-                            }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+                        // Recheck state right before acting
+                        let allMinimized = WindowManager.areAllWindowsMinimized(for: app)
+                        if action == .minimize && !allMinimized {
+                            WindowManager.minimizeFocusedWindow(of: app)
+                        } else if action == .restore && allMinimized {
+                            WindowManager.restoreMinimizedWindows(for: app)
                         }
+                        // Sync after acting
+                        self.syncDockActionForApp(pid: pid)
                     }
                 }
                 break
             }
         }
     }
+
     func refresh() {
-        //remove event tap and observers
         if let eventTap = eventTap {
             CGEvent.tapEnable(tap: eventTap, enable: false)
             CFMachPortInvalidate(eventTap)
@@ -197,9 +182,8 @@ class DockClickMonitor {
             NSWorkspace.shared.notificationCenter.removeObserver(observer)
             minimizedObserver = nil
         }
-        appClickCounts.removeAll()
-        syncMinimizedStatesWithRunningApps()
-        // Re-setup
+        lastAction.removeAll()
+        syncAllDockActions()
         setupEventTap()
         setupFrontmostAppObserver()
         setupMinimizedStateObserver()

@@ -359,7 +359,6 @@ class DockIconHoverMonitor {
                    let isMinimized = minimizedValue as? Bool, isMinimized
                 {
                     WindowManager.restoreMinimizedWindows(for: app)
-                    dockClickMonitor?.syncAppClickCountWithWindowState(pid: app.processIdentifier)
                 }
                 AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
                 AXUIElementSetAttributeValue(window, kAXFocusedAttribute as CFString, kCFBooleanTrue)
