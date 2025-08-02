@@ -197,6 +197,8 @@ class DockClickMonitor {
             NSWorkspace.shared.notificationCenter.removeObserver(observer)
             minimizedObserver = nil
         }
+        appClickCounts.removeAll()
+        syncMinimizedStatesWithRunningApps()
         // Re-setup
         setupEventTap()
         setupFrontmostAppObserver()
