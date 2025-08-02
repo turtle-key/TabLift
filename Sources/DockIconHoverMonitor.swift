@@ -293,13 +293,24 @@ class DockIconHoverMonitor {
         return (frame, bundleID)
     }
 
-    private func fetchWindowInfos(for app: NSRunningApplication?) -> [(title: String, isMinimized: Bool)] {
+    private func fetchWindowInfos(for app: NSRunningApplication?) -> [(title: String, isMinimized: Bool, shouldHighlight: Bool)] {
         guard let app = app else { return [] }
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
         var windowsValue: AnyObject?
         guard AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue) == .success,
               let windows = windowsValue as? [AXUIElement] else { return [] }
-        var infos: [(String, Bool)] = []
+        
+        var focusedWindowValue: AnyObject?
+        var focusedWindow: AXUIElement?
+        if AXUIElementCopyAttributeValue(appElement, kAXFocusedWindowAttribute as CFString, &focusedWindowValue) == .success,
+           let fw = focusedWindowValue {
+            focusedWindow = (fw as! AXUIElement)  // safe CF cast
+        }
+
+        let frontmostPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
+        let isFrontmostApp = (app.processIdentifier == frontmostPID)
+
+        var infos: [(String, Bool, Bool)] = []
         for window in windows {
             var titleValue: AnyObject?
             var minimizedValue: AnyObject?
@@ -307,7 +318,8 @@ class DockIconHoverMonitor {
             let minSuccess = AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedValue) == .success
             let title = titleSuccess ? (titleValue as? String ?? "") : ""
             let minimized = minSuccess ? ((minimizedValue as? Bool) ?? false) : false
-            infos.append((title, minimized))
+            let shouldHighlight = isFrontmostApp && (focusedWindow != nil) && CFEqual(window, focusedWindow)
+            infos.append((title, minimized, shouldHighlight))
         }
         return infos
     }

@@ -9,11 +9,10 @@ struct BlurView: View {
 struct DockPreviewPanel: View {
     let appName: String
     let appIcon: NSImage
-    let windowInfos: [(title: String, isMinimized: Bool)]
+    let windowInfos: [(title: String, isMinimized: Bool, shouldHighlight: Bool)]
     let onTitleClick: (String) -> Void
-
     @State private var hoveredIndex: Int? = nil
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .center, spacing: 12) {
@@ -33,7 +32,7 @@ struct DockPreviewPanel: View {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(windowInfos.enumerated()), id: \.offset) { idxInfo in
                     let index = idxInfo.offset
-                    let (title, isMinimized) = idxInfo.element
+                    let (title, isMinimized, shouldHiglight) = idxInfo.element
                     Button(action: {
                         onTitleClick(title)
                     }) {
@@ -42,18 +41,32 @@ struct DockPreviewPanel: View {
                                 .font(.system(size: 15, weight: .medium, design: .rounded))
                                 .foregroundColor(Color.primary)
                                 .lineLimit(1)
+                            
                             if isMinimized {
                                 MinimizedIndicator()
                                     .padding(.leading, 5)
+                            
                             }
+                            
                             Spacer()
                         }
                         .padding(.vertical, 7)
                         .padding(.horizontal, 10)
                         .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(hoveredIndex == index ? Color.accentColor.opacity(0.18) : Color.clear)
+                            ZStack {
+                                if shouldHiglight {
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.accentColor.opacity(0.25))
+                                        .shadow(color: .black.opacity(0.12), radius: 6, x: 0, y: 2)
+                                } else if hoveredIndex == index {
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.accentColor.opacity(0.15))
+                                }
+                            }
                         )
+                        .scaleEffect(shouldHiglight ? 1.02 : 1.0)
+                        .animation(.easeOut(duration: 0.15), value: shouldHiglight)
+                        .padding(.bottom, 6)
                     }
                     .buttonStyle(.plain)
                     .onHover { hovering in
