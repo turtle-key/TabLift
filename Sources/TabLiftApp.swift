@@ -123,6 +123,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 backing: .buffered,
                 defer: false
             )
+            window?.title = "TabLift Settings"
             window?.center()
             window?.contentView = NSHostingView(rootView: settingsView)
             window?.isReleasedWhenClosed = false
