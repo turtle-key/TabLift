@@ -74,6 +74,11 @@ class DockClickMonitor {
             var roleValue: AnyObject?
             guard AXUIElementCopyAttributeValue($0, kAXRoleAttribute as CFString, &roleValue) == .success,
                   (roleValue as? String) == "AXWindow" else { return false }
+            var subroleValue: AnyObject?
+            if AXUIElementCopyAttributeValue($0, kAXSubroleAttribute as CFString, &subroleValue) == .success,
+               let subrole = subroleValue as? String, subrole == "AXPictureInPictureWindow" {
+                return false
+            }
             var minRaw: AnyObject?
             if AXUIElementCopyAttributeValue($0, kAXMinimizedAttribute as CFString, &minRaw) == .success,
                let isMin = minRaw as? Bool {

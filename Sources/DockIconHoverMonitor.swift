@@ -320,6 +320,11 @@ class DockIconHoverMonitor {
             if role != "AXWindow" {
                 continue
             }
+            var subroleValue: AnyObject?
+            if AXUIElementCopyAttributeValue(window, kAXSubroleAttribute as CFString, &subroleValue) == .success,
+               let subrole = subroleValue as? String, subrole == "AXPictureInPictureWindow" {
+                continue
+            }
 
             var titleValue: AnyObject?
             var minimizedValue: AnyObject?
