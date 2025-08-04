@@ -122,14 +122,14 @@
   <meta property="og:url" content="https://tablift.dev">
   <meta property="og:type" content="website">
   <meta property="og:title" content="TabLift — Makes Cmd+Tab work the way it should — minimized windows included">
-  <meta property="og:description" content="TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with ⌘+Tab. By default, macOS ignores minimized windows unless you hold the Option key. TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.">
+  <meta property="og:description" content="TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with Cmd+Tab. By default, macOS ignores minimized windows unless you hold the Option key. TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.">
   <meta property="og:image" content="https://bucket.tablift.dev/banner.png">
   <meta property="og:site_name" content="TabLift">
   <meta name="twitter:card" content="summary_large_image">
   <meta property="twitter:domain" content="tablift.dev">
   <meta property="twitter:url" content="https://tablift.dev">
-  <meta name="twitter:title" content="TabLift — Makes ⌘+Tab work the way it should — minimized windows included">
-  <meta name="twitter:description" content="TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with ⌘+Tab. By default, macOS ignores minimized windows unless you hold the Option key. TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.">
+  <meta name="twitter:title" content="TabLift — Makes Cmd+Tab work the way it should — minimized windows included">
+  <meta name="twitter:description" content="TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with Cmd+Tab. By default, macOS ignores minimized windows unless you hold the Option key. TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.">
   <meta name="twitter:image" content="https://bucket.tablift.dev/banner.png">
   <script type="application/ld+json">
   {

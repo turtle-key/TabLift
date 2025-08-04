@@ -3,7 +3,7 @@
 </script>
 <svelte:head>
   <title>TabLift FAQ – Answers to Common Questions</title>
-  <meta name="description" content="Find answers to frequently asked questions about TabLift, the macOS utility that makes switching between apps with ⌘+Tab more intuitive by including minimized windows." />
+  <meta name="description" content="Find answers to frequently asked questions about TabLift, the macOS utility that makes switching between apps with Cmd+Tab more intuitive by including minimized windows." />
   <link rel="canonical" href="https://tablift.dev/faq" />
 </svelte:head>
 <main class="min-h-screen bg-[#f7fafc] dark:bg-[#18181c] flex flex-col items-center font-sans pt-[90px]">
@@ -13,14 +13,14 @@
   <section class="mb-8">
     <h2 class="font-semibold text-lg mb-2">What is TabLift?</h2>
     <p>
-      TabLift is a lightweight, open-source macOS utility that restores minimized app windows when switching with ⌘+Tab. By default, macOS ignores minimized windows unless you hold the Option key. TabLift fixes this, making app switching intuitive and seamless.
+      TabLift is a lightweight, open-source macOS utility that restores minimized app windows when switching with Cmd+Tab. By default, macOS ignores minimized windows unless you hold the Option key. TabLift fixes this, making app switching intuitive and seamless.
     </p>
   </section>
 
   <section class="mb-8">
     <h2 class="font-semibold text-lg mb-2">How does TabLift work?</h2>
     <p>
-      TabLift runs quietly in the background. When you use ⌘+Tab to switch apps, TabLift automatically restores any minimized windows for the selected application, so you never lose track of your open apps.
+      TabLift runs quietly in the background. When you use Cmd+Tab to switch apps, TabLift automatically restores any minimized windows for the selected application, so you never lose track of your open apps.
     </p>
   </section>
 

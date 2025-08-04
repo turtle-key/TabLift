@@ -3,17 +3,17 @@
 </script>
 
 <svelte:head>
-  <title>TabLift: macOS Skips Minimized Windows in ⌘+Tab – Here's a Simple Fix | TabLift</title>
-  <meta name="description" content="macOS excludes minimized apps from the ⌘+Tab switcher by default. Discover how TabLift automatically restores them for a more consistent and productive workflow." />
+  <title>TabLift: macOS Skips Minimized Windows in Cmd+Tab – Here's a Simple Fix | TabLift</title>
+  <meta name="description" content="macOS excludes minimized apps from the Cmd+Tab switcher by default. Discover how TabLift automatically restores them for a more consistent and productive workflow." />
   <link rel="canonical" href="https://tablift.dev/blog/macos-minimized-windows-cmd-tab-simple-fix" />
   <!-- Open Graph -->
-  <meta property="og:title" content="macOS Skips Minimized Windows in ⌘+Tab – Simple Fix Available" />
-  <meta property="og:description" content="Stop losing track of minimized apps in macOS. This simple solution makes ⌘+Tab work consistently with all your open applications." />
+  <meta property="og:title" content="macOS Skips Minimized Windows in Cmd+Tab – Simple Fix Available" />
+  <meta property="og:description" content="Stop losing track of minimized apps in macOS. This simple solution makes Cmd+Tab work consistently with all your open applications." />
   <meta property="og:url" content="https://tablift.dev/blog/macos-minimized-windows-cmd-tab-simple-fix" />
   <meta property="og:type" content="article" />
   
   <!-- Twitter -->
-  <meta name="twitter:title" content="Fix macOS ⌘+Tab to Include Minimized Windows" />
+  <meta name="twitter:title" content="Fix macOS Cmd+Tab to Include Minimized Windows" />
   <meta name="twitter:description" content="Simple solution for macOS app switching that includes minimized windows automatically." />
   
   <!-- Article Schema -->
@@ -21,8 +21,8 @@
   {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "macOS Skips Minimized Windows in ⌘+Tab – Here's a Simple Fix",
-    "description": "macOS excludes minimized apps from the ⌘+Tab switcher by default. Learn how TabLift restores them automatically for a more consistent workflow.",
+    "headline": "macOS Skips Minimized Windows in Cmd+Tab – Here's a Simple Fix",
+    "description": "macOS excludes minimized apps from the Cmd+Tab switcher by default. Learn how TabLift restores them automatically for a more consistent workflow.",
     "author": {
       "@type": "Person",
       "name": "Mihai-Eduard Ghețu"
@@ -32,7 +32,7 @@
       "name": "TabLift",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://bucket.mihai.sh/app-icon-168.webp"
+        "url": "https://bucket.tablift.dev/app-icon-168.webp"
       }
     },
     "datePublished": "2025-07-29",
@@ -56,7 +56,7 @@
       </div>
       
       <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-gray-100 mb-6 leading-tight">
-        macOS Skips Minimized Windows in ⌘+Tab – Here's a Simple Fix
+        macOS Skips Minimized Windows in Cmd+Tab – Here's a Simple Fix
       </h1>
       
       <div class="flex items-center text-gray-600 dark:text-gray-400 mb-8">
@@ -69,7 +69,7 @@
       
       <div class="w-full h-64 md:h-80 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl shadow-lg mb-8 flex items-center justify-center">
         <div class="text-center text-white">
-          <div class="text-6xl mb-4">⌘⇥</div>
+          <div class="text-6xl mb-4">Cmd⇥</div>
           <div class="text-xl font-semibold">App Switcher Fix</div>
         </div>
       </div>
@@ -78,7 +78,7 @@
     <!-- Article Content -->
     <div class="prose-content">
       <p class="text-xl text-gray-700 dark:text-gray-300 mb-8 font-medium leading-relaxed">
-        One of the most frustrating aspects of switching from Windows or Linux to macOS is discovering that <strong class="font-semibold text-gray-900 dark:text-gray-100">⌘+Tab doesn't include minimized windows</strong>. This limitation disrupts workflows and forces users to develop workarounds that shouldn't be necessary.
+        One of the most frustrating aspects of switching from Windows or Linux to macOS is discovering that <strong class="font-semibold text-gray-900 dark:text-gray-100">Cmd+Tab doesn't include minimized windows</strong>. This limitation disrupts workflows and forces users to develop workarounds that shouldn't be necessary.
       </p>
 
       <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-12 mb-6">
@@ -86,7 +86,7 @@
       </h2>
       
       <p class="text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
-        On macOS, using <strong class="font-semibold text-gray-900 dark:text-gray-100">⌘+Tab to switch between open applications</strong> has a significant limitation: minimized windows are excluded from the switcher entirely. If you minimize a window to reduce desktop clutter, ⌘+Tab will skip over it unless you remember to hold the Option key — which is neither intuitive nor practical during fast-paced work sessions.
+        On macOS, using <strong class="font-semibold text-gray-900 dark:text-gray-100">Cmd+Tab to switch between open applications</strong> has a significant limitation: minimized windows are excluded from the switcher entirely. If you minimize a window to reduce desktop clutter, Cmd+Tab will skip over it unless you remember to hold the Option key — which is neither intuitive nor practical during fast-paced work sessions.
       </p>
 
       <p class="text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
@@ -99,7 +99,7 @@
           <li>• Losing track of important applications that were minimized</li>
           <li>• Breaking workflow rhythm to manually restore windows</li>
           <li>• Inconsistent behavior compared to other operating systems</li>
-          <li>• Having to remember the Option+⌘+Tab workaround</li>
+          <li>• Having to remember the Option+Cmd+Tab workaround</li>
         </ul>
       </div>
 
@@ -108,7 +108,7 @@
       </h2>
 
       <p class="text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
-        <strong class="font-semibold text-gray-900 dark:text-gray-100">TabLift</strong> is a purpose-built utility designed to address this specific macOS limitation. When active, it automatically restores minimized apps during ⌘+Tab switching, eliminating the need for workarounds or additional key combinations.
+        <strong class="font-semibold text-gray-900 dark:text-gray-100">TabLift</strong> is a purpose-built utility designed to address this specific macOS limitation. When active, it automatically restores minimized apps during Cmd+Tab switching, eliminating the need for workarounds or additional key combinations.
       </p>
 
       <h3 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-8 mb-4">
@@ -122,7 +122,7 @@
         </li>
         <li class="flex items-start">
           <span class="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-4 mt-1 flex-shrink-0">2</span>
-          <div class="text-gray-700 dark:text-gray-300">When you press ⌘+Tab, it detects the app switching action</div>
+          <div class="text-gray-700 dark:text-gray-300">When you press Cmd+Tab, it detects the app switching action</div>
         </li>
         <li class="flex items-start">
           <span class="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-4 mt-1 flex-shrink-0">3</span>
@@ -137,7 +137,7 @@
       <div class="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-400 p-6 my-8 rounded-r-lg">
         <h3 class="text-green-800 dark:text-green-200 font-semibold mb-2">TabLift Advantages:</h3>
         <ul class="text-green-700 dark:text-green-300 space-y-2">
-          <li>• <strong class="font-semibold">Zero learning curve</strong> – Works with existing ⌘+Tab muscle memory</li>
+          <li>• <strong class="font-semibold">Zero learning curve</strong> – Works with existing Cmd+Tab muscle memory</li>
           <li>• <strong class="font-semibold">No visible interface</strong> – Completely transparent operation</li>
           <li>• <strong class="font-semibold">Minimal system impact</strong> – Lightweight and efficient</li>
           <li>• <strong class="font-semibold">No interference</strong> – Doesn't affect other macOS features</li>
@@ -158,7 +158,7 @@
           <li class="text-gray-700 dark:text-gray-300"><strong class="font-semibold text-gray-900 dark:text-gray-100">1. Download:</strong> Visit <a href="https://tablift.dev" class="text-blue-600 dark:text-blue-400 hover:underline">tablift.dev</a> and download the latest version</li>
           <li class="text-gray-700 dark:text-gray-300"><strong class="font-semibold text-gray-900 dark:text-gray-100">2. Install:</strong> Drag TabLift to your Applications folder</li>
           <li class="text-gray-700 dark:text-gray-300"><strong class="font-semibold text-gray-900 dark:text-gray-100">3. Launch:</strong> Open TabLift and grant accessibility permissions when prompted</li>
-          <li class="text-gray-700 dark:text-gray-300"><strong class="font-semibold text-gray-900 dark:text-gray-100">4. Use:</strong> Start using ⌘+Tab normally – minimized apps will now be included automatically</li>
+          <li class="text-gray-700 dark:text-gray-300"><strong class="font-semibold text-gray-900 dark:text-gray-100">4. Use:</strong> Start using Cmd+Tab normally – minimized apps will now be included automatically</li>
         </ol>
       </div>
 
@@ -167,7 +167,7 @@
           Experience Consistent App Switching
         </h3>
         <p class="text-gray-600 dark:text-gray-400 mb-6">
-          Stop losing track of minimized apps. Make ⌘+Tab work the way it should with TabLift.
+          Stop losing track of minimized apps. Make Cmd+Tab work the way it should with TabLift.
         </p>
         <a
           href="https://github.com/turtle-key/TabLift/releases/latest/download/TabLift.dmg"
@@ -199,7 +199,7 @@
 
       <div class="border-t border-gray-200 dark:border-gray-700 pt-8 mt-12">
         <p class="text-gray-600 dark:text-gray-400 text-sm">
-          <strong class="font-semibold">Keywords:</strong> cmd tab mac minimized fix, mac switcher missing minimized windows, fix ⌘+tab macos minimized windows, mac app switcher not showing minimized apps, how to include minimized apps in command tab mac, macOS productivity, app switching solution
+          <strong class="font-semibold">Keywords:</strong> cmd tab mac minimized fix, mac switcher missing minimized windows, fix Cmd+tab macos minimized windows, mac app switcher not showing minimized apps, how to include minimized apps in command tab mac, macOS productivity, app switching solution
         </p>
       </div>
     </div>
