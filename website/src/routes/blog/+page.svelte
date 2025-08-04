@@ -4,8 +4,8 @@
   const blogPosts = [
     {
       slug: 'fix-cmd-tab-minimized-windows-macos',
-      title: 'How to Fix ⌘+Tab on macOS So It Includes Minimized Windows',
-      description: '⌘+Tab on macOS skips minimized windows by default. Here\'s why it happens and how to fix it permanently using a lightweight utility.',
+      title: 'How to Fix Cmd+Tab on macOS So It Includes Minimized Windows',
+      description: 'Cmd+Tab on macOS skips minimized windows by default. Here\'s why it happens and how to fix it permanently using a lightweight utility.',
       publishDate: '2024-01-29',
       readTime: '4 min read',
       color1: 'blue',
@@ -15,8 +15,8 @@
     },
     {
       slug: 'macos-minimized-windows-cmd-tab-simple-fix',
-      title: 'macOS Skips Minimized Windows in ⌘+Tab – Here\'s a Simple Fix',
-      description: 'macOS excludes minimized apps from the ⌘+Tab switcher by default. Learn how TabLift restores them automatically for a more consistent workflow.',
+      title: 'macOS Skips Minimized Windows in Cmd+Tab – Here\'s a Simple Fix',
+      description: 'macOS excludes minimized apps from the Cmd+Tab switcher by default. Learn how TabLift restores them automatically for a more consistent workflow.',
       publishDate: '2024-01-29',
       readTime: '3 min read',
       color1: 'purple',
@@ -29,12 +29,12 @@
 
 <svelte:head>
   <title>TabLift Blog – macOS Productivity Tips & App Switching Solutions</title>
-  <meta name="description" content="Discover expert tips for improving macOS productivity, fixing ⌘+Tab behavior, and optimizing your Mac workflow with TabLift and other solutions." />
+  <meta name="description" content="Discover expert tips for improving macOS productivity, fixing Cmd+Tab behavior, and optimizing your Mac workflow with TabLift and other solutions." />
   <meta property="og:title" content="TabLift Blog – macOS Productivity Tips & Solutions" />
-  <meta property="og:description" content="Expert guides on fixing macOS ⌘+Tab behavior, improving productivity, and optimizing your Mac workflow." />
+  <meta property="og:description" content="Expert guides on fixing macOS Cmd+Tab behavior, improving productivity, and optimizing your Mac workflow." />
   <meta property="og:url" content="https://tablift.dev/blog" />
   <meta name="twitter:title" content="TabLift Blog – macOS Productivity Tips" />
-  <meta name="twitter:description" content="Expert guides on fixing macOS ⌘+Tab behavior and improving productivity." />
+  <meta name="twitter:description" content="Expert guides on fixing macOS Cmd+Tab behavior and improving productivity." />
   <link rel="canonical" href="https://tablift.dev/blog" />
   <script type="application/ld+json">
   {
@@ -82,7 +82,7 @@
             <div class="relative h-48 overflow-hidden bg-gradient-to-br from-{post.color1}-500 to-{post.color2}-600">
               <div class="absolute inset-0 flex items-center justify-center">
                 <div class="text-center text-white">
-                  <div class="text-4xl mb-2">⌘</div>
+                  <div class="text-4xl mb-2">Cmd</div>
                   <div class="text-sm font-medium">{post.category}</div>
                 </div>
               </div>

@@ -37,7 +37,7 @@
     />
     <h1 class="text-6xl md:text-7xl font-extrabold text-gray-900 dark:text-gray-100 text-center mb-3">TabLift</h1>
     <p class="text-gray-600 dark:text-gray-300 mb-8 text-center text-xl sm:text-2xl max-w-2xl mx-auto">
-      Makes ⌘+Tab work the way it should — minimized windows included.
+      Makes Cmd+Tab work the way it should — minimized windows included.
     </p>
     <div class="flex flex-col items-center mb-8 w-full">
       <a
