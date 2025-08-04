@@ -29,7 +29,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         UserDefaults.standard.register(defaults: [
             "showMenuBarIcon": true,
             "startAtLogin": true,
-            "showDockIcon": false,
+            "showDockIcon": true,
         ])
 
         NotificationCenter.default.addObserver(
