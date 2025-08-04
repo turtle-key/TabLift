@@ -337,13 +337,10 @@ class DockIconHoverMonitor {
 
         var infos: [(String, Bool, Bool)] = []
 
-        print("---- TabLift DEBUG: Window list for app [\(app.localizedName ?? "unknown")] ----")
         for window in windows {
             let role = window.role() ?? "(nil)"
             let subrole = window.subrole() ?? "(nil)"
             let pip = isProbablyPictureInPicture(window: window)
-
-            print("[role: \(role), subrole: \(subrole)] \(pip ? "Picture-in-Picture" : "")")
 
             if role != "AXWindow" { continue }
             if pip { continue }
@@ -368,7 +365,6 @@ class DockIconHoverMonitor {
 
             infos.append((title, minimized, shouldHighlight))
         }
-        print("---- End TabLift DEBUG Window list ----")
         return infos
     }
 
