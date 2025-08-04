@@ -5,20 +5,22 @@ import SwiftUI
 class DockClickMonitor {
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
-
-    private var lastAction: [pid_t: DockAction] = [:]
     private var workspaceObserver: NSObjectProtocol?
     private var minimizedObserver: NSObjectProtocol?
 
-    enum DockAction {
-        case minimize
-        case restore
-    }
-
     init() {
         setupEventTap()
-        setupFrontmostAppObserver()
-        setupMinimizedStateObserver()
+        // Observers for future extensibility, but no-ops for now
+        workspaceObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification,
+            object: nil,
+            queue: .main
+        ) { _ in }
+        minimizedObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.activeSpaceDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { _ in }
     }
 
     deinit {
@@ -39,19 +41,18 @@ class DockClickMonitor {
 
     private func setupEventTap() {
         let eventMask = (1 << CGEventType.leftMouseDown.rawValue)
-        let callback: CGEventTapCallBack = { _, _, event, userInfo in
-            guard let userInfo = userInfo else { return Unmanaged.passUnretained(event) }
-            let monitor = Unmanaged<DockClickMonitor>.fromOpaque(userInfo).takeUnretainedValue()
-            monitor.handleClick(event: event)
-            return Unmanaged.passUnretained(event)
-        }
         let pointer = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
         guard let eventTap = CGEvent.tapCreate(
             tap: .cghidEventTap,
             place: .tailAppendEventTap,
             options: .defaultTap,
             eventsOfInterest: CGEventMask(eventMask),
-            callback: callback,
+            callback: { _, _, event, userInfo in
+                guard let userInfo = userInfo else { return Unmanaged.passUnretained(event) }
+                let monitor = Unmanaged<DockClickMonitor>.fromOpaque(userInfo).takeUnretainedValue()
+                monitor.handleClick(event: event)
+                return Unmanaged.passUnretained(event)
+            },
             userInfo: pointer
         ) else {
             print("Failed to create DockClickMonitor event tap")
@@ -64,99 +65,104 @@ class DockClickMonitor {
         CGEvent.tapEnable(tap: eventTap, enable: true)
     }
 
-    private func setupFrontmostAppObserver() {
-        workspaceObserver = NSWorkspace.shared.notificationCenter.addObserver(
-            forName: NSWorkspace.didActivateApplicationNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] notif in
-            guard let self = self,
-                  let userInfo = notif.userInfo,
-                  let app = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
-            else { return }
-            let pid = app.processIdentifier
-            self.syncDockActionForApp(pid: pid)
+    private func visibleWindows(of app: NSRunningApplication) -> [AXUIElement] {
+        let appEl = AXUIElementCreateApplication(app.processIdentifier)
+        var raw: AnyObject?
+        guard AXUIElementCopyAttributeValue(appEl, kAXWindowsAttribute as CFString, &raw) == .success,
+              let windows = raw as? [AXUIElement], !windows.isEmpty else { return [] }
+        return windows.filter {
+            var roleValue: AnyObject?
+            guard AXUIElementCopyAttributeValue($0, kAXRoleAttribute as CFString, &roleValue) == .success,
+                  (roleValue as? String) == "AXWindow" else { return false }
+            var minRaw: AnyObject?
+            if AXUIElementCopyAttributeValue($0, kAXMinimizedAttribute as CFString, &minRaw) == .success,
+               let isMin = minRaw as? Bool {
+                return !isMin
+            }
+            return false
         }
     }
 
-    private func setupMinimizedStateObserver() {
-        minimizedObserver = NSWorkspace.shared.notificationCenter.addObserver(
-            forName: NSWorkspace.activeSpaceDidChangeNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.syncAllDockActions()
+    private func areAllVisibleWindowsMinimized(for app: NSRunningApplication) -> Bool {
+        let appEl = AXUIElementCreateApplication(app.processIdentifier)
+        var raw: AnyObject?
+        guard AXUIElementCopyAttributeValue(appEl, kAXWindowsAttribute as CFString, &raw) == .success,
+              let windows = raw as? [AXUIElement], !windows.isEmpty else { return false }
+        for window in windows {
+            var roleValue: AnyObject?
+            guard AXUIElementCopyAttributeValue(window, kAXRoleAttribute as CFString, &roleValue) == .success,
+                  (roleValue as? String) == "AXWindow" else { continue }
+            var minRaw: AnyObject?
+            if AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minRaw) == .success,
+               let isMin = minRaw as? Bool, !isMin {
+                return false
+            }
         }
-    }
-
-    private func syncDockActionForApp(pid: pid_t) {
-        guard let app = NSRunningApplication(processIdentifier: pid) else { return }
-        // Always get the real window state
-        let allMinimized = WindowManager.areAllWindowsMinimized(for: app)
-        lastAction[pid] = allMinimized ? .restore : .minimize
-    }
-
-    private func syncAllDockActions() {
-        for app in NSWorkspace.shared.runningApplications {
-            syncDockActionForApp(pid: app.processIdentifier)
-        }
+        return true
     }
 
     private func handleClick(event: CGEvent) {
         let mouseLocation = NSEvent.mouseLocation
         guard let dockApp = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").first else { return }
         let dockElement = AXUIElementCreateApplication(dockApp.processIdentifier)
-
         var children: AnyObject?
-        if AXUIElementCopyAttributeValue(dockElement, kAXChildrenAttribute as CFString, &children) != .success { return }
-        guard let dockChildren = children as? [AXUIElement], !dockChildren.isEmpty else { return }
-
-        guard let axList = dockChildren.first(where: {
-            (try? $0.role() == kAXListRole) ?? false
-        }) else { return }
-
+        guard AXUIElementCopyAttributeValue(dockElement, kAXChildrenAttribute as CFString, &children) == .success,
+              let dockChildren = children as? [AXUIElement], !dockChildren.isEmpty else { return }
+        guard let axList = dockChildren.first(where: { $0.role() == kAXListRole }) else { return }
         var dockItems: AnyObject?
-        if AXUIElementCopyAttributeValue(axList, kAXChildrenAttribute as CFString, &dockItems) != .success { return }
-        guard let dockIcons = dockItems as? [AXUIElement] else { return }
-
+        guard AXUIElementCopyAttributeValue(axList, kAXChildrenAttribute as CFString, &dockItems) == .success,
+              let dockIcons = dockItems as? [AXUIElement] else { return }
         let screenHeight = NSScreen.screens.first?.frame.height ?? 0
 
         for icon in dockIcons {
-            if (try? icon.subrole()) != "AXApplicationDockItem" { continue }
+            guard icon.subrole() == "AXApplicationDockItem" else { continue }
             var positionValue: AnyObject?
             var sizeValue: AnyObject?
-            if AXUIElementCopyAttributeValue(icon, kAXPositionAttribute as CFString, &positionValue) != .success { continue }
-            if AXUIElementCopyAttributeValue(icon, kAXSizeAttribute as CFString, &sizeValue) != .success { continue }
-            let position = positionValue as! AXValue
-            let size = sizeValue as! AXValue
+            guard AXUIElementCopyAttributeValue(icon, kAXPositionAttribute as CFString, &positionValue) == .success,
+                  AXUIElementCopyAttributeValue(icon, kAXSizeAttribute as CFString, &sizeValue) == .success else { continue }
             var pos = CGPoint.zero, sz = CGSize.zero
-            AXValueGetValue(position, .cgPoint, &pos)
-            AXValueGetValue(size, .cgSize, &sz)
+            AXValueGetValue(positionValue as! AXValue, .cgPoint, &pos)
+            AXValueGetValue(sizeValue as! AXValue, .cgSize, &sz)
             let correctedY = screenHeight - pos.y - sz.height
             let correctedFrame = CGRect(x: pos.x, y: correctedY, width: sz.width, height: sz.height)
             if correctedFrame.contains(mouseLocation) {
                 var bundleURL: AnyObject?
-                if AXUIElementCopyAttributeValue(icon, kAXURLAttribute as CFString, &bundleURL) == .success,
-                   let url = bundleURL as? NSURL,
-                   let bundle = Bundle(url: url as URL),
-                   let bundleID = bundle.bundleIdentifier,
-                   let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first
-                {
-                    let pid = app.processIdentifier
-                    // Always sync before acting (fix window close/minimize bugs)
-                    syncDockActionForApp(pid: pid)
-                    let action = lastAction[pid] ?? .minimize
+                guard AXUIElementCopyAttributeValue(icon, kAXURLAttribute as CFString, &bundleURL) == .success,
+                      let url = bundleURL as? NSURL,
+                      let bundle = Bundle(url: url as URL),
+                      let bundleID = bundle.bundleIdentifier,
+                      let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first else { return }
 
+                let pid = app.processIdentifier
+                let frontmostPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
+                let restoreAll = UserDefaults.standard.bool(forKey: WindowManager.restoreAllKey)
+                let minimized = areAllVisibleWindowsMinimized(for: app)
+                let visWindows = visibleWindows(of: app)
+
+                if minimized {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
-                        // Recheck state right before acting
-                        let allMinimized = WindowManager.areAllWindowsMinimized(for: app)
-                        if action == .minimize && !allMinimized {
-                            WindowManager.minimizeFocusedWindow(of: app)
-                        } else if action == .restore && allMinimized {
-                            WindowManager.restoreMinimizedWindows(for: app)
+                        WindowManager.restoreMinimizedWindows(for: app)
+                        app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                    }
+                } else if pid == frontmostPID {
+                    if restoreAll {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+                            for win in visWindows {
+                                AXUIElementSetAttributeValue(win, kAXMinimizedAttribute as CFString, kCFBooleanTrue)
+                            }
                         }
-                        // Sync after acting
-                        self.syncDockActionForApp(pid: pid)
+                    } else if let focused = visWindows.first {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+                            AXUIElementSetAttributeValue(focused, kAXMinimizedAttribute as CFString, kCFBooleanTrue)
+                        }
+                    } else {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+                            app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                        }
+                    }
+                } else {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+                        app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
                     }
                 }
                 break
@@ -182,10 +188,16 @@ class DockClickMonitor {
             NSWorkspace.shared.notificationCenter.removeObserver(observer)
             minimizedObserver = nil
         }
-        lastAction.removeAll()
-        syncAllDockActions()
         setupEventTap()
-        setupFrontmostAppObserver()
-        setupMinimizedStateObserver()
+        workspaceObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification,
+            object: nil,
+            queue: .main
+        ) { _ in }
+        minimizedObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.activeSpaceDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { _ in }
     }
 }
