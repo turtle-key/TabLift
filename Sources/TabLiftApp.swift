@@ -7,9 +7,6 @@ struct TabLiftApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
-        Settings {
-            SettingsView()
-        }
     }
 }
 
@@ -32,7 +29,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         UserDefaults.standard.register(defaults: [
             "showMenuBarIcon": true,
             "startAtLogin": true,
-            "showDockIcon": true,
+            "showDockIcon": false,
         ])
 
         NotificationCenter.default.addObserver(
