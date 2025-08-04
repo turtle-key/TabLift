@@ -9,13 +9,13 @@
   <!-- Open Graph -->
   <meta property="og:title" content="Fix ⌘+Tab on macOS to Include Minimized Windows - Complete Guide" />
   <meta property="og:description" content="Frustrated with macOS ⌘+Tab skipping minimized apps? Here's the definitive solution that makes app switching work like it should." />
-  <meta property="og:url" content="https://tablift.mihai.sh/blog/fix-cmd-tab-minimized-windows-macos" />
+  <meta property="og:url" content="https://tablift.dev/blog/fix-cmd-tab-minimized-windows-macos" />
   <meta property="og:type" content="article" />
   
   <!-- Twitter -->
   <meta name="twitter:title" content="Fix ⌘+Tab on macOS to Include Minimized Windows" />
   <meta name="twitter:description" content="Stop missing minimized apps when switching with ⌘+Tab. Here's the simple fix that changes everything." />
-  <link rel="canonical" href="https://tablift.mihai.sh/blog/fix-cmd-tab-minimized-windows-macos" />
+  <link rel="canonical" href="https://tablift.dev/blog/fix-cmd-tab-minimized-windows-macos" />
   <!-- Article Schema -->
   <script type="application/ld+json">
   {
@@ -39,7 +39,7 @@
     "dateModified": "2025-07-29",
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://tablift.mihai.sh/blog/fix-cmd-tab-minimized-windows-macos"
+      "@id": "https://tablift.dev/blog/fix-cmd-tab-minimized-windows-macos"
     }
   }
   </script>
@@ -146,7 +146,7 @@
         <li class="flex items-start">
           <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-4 mt-1 flex-shrink-0">1</span>
           <div class="text-gray-700 dark:text-gray-300">
-            <strong class="font-semibold text-gray-900 dark:text-gray-100">Download TabLift</strong> from the <a href="https://tablift.mihai.sh" class="text-blue-600 dark:text-blue-400 hover:underline">homepage</a>
+            <strong class="font-semibold text-gray-900 dark:text-gray-100">Download TabLift</strong> from the <a href="https://tablift.dev" class="text-blue-600 dark:text-blue-400 hover:underline">homepage</a>
           </div>
         </li>
         <li class="flex items-start">

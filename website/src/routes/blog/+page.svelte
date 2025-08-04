@@ -32,17 +32,17 @@
   <meta name="description" content="Discover expert tips for improving macOS productivity, fixing ⌘+Tab behavior, and optimizing your Mac workflow with TabLift and other solutions." />
   <meta property="og:title" content="TabLift Blog – macOS Productivity Tips & Solutions" />
   <meta property="og:description" content="Expert guides on fixing macOS ⌘+Tab behavior, improving productivity, and optimizing your Mac workflow." />
-  <meta property="og:url" content="https://tablift.mihai.sh/blog" />
+  <meta property="og:url" content="https://tablift.dev/blog" />
   <meta name="twitter:title" content="TabLift Blog – macOS Productivity Tips" />
   <meta name="twitter:description" content="Expert guides on fixing macOS ⌘+Tab behavior and improving productivity." />
-  <link rel="canonical" href="https://tablift.mihai.sh/blog" />
+  <link rel="canonical" href="https://tablift.dev/blog" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Blog",
     "name": "TabLift Blog",
     "description": "Expert tips and solutions for macOS productivity and app switching",
-    "url": "https://tablift.mihai.sh/blog",
+    "url": "https://tablift.dev/blog",
     "publisher": {
       "@type": "Person",
       "name": "Mihai-Eduard Ghețu"

@@ -2,8 +2,8 @@
   import { run } from 'svelte/legacy';
   
   let tonOn = $state(true);
-  const VIDEO_WITH = "https://bucket.mihai.sh/with.mp4";
-  const VIDEO_WITHOUT = "https://bucket.mihai.sh/without.mp4";
+  const VIDEO_WITH = "https://bucket.tablift.dev/with.mp4";
+  const VIDEO_WITHOUT = "https://bucket.tablift.dev/without.mp4";
   let videoSrc = $state(VIDEO_WITH);
   run(() => {
     videoSrc = tonOn ? VIDEO_WITH : VIDEO_WITHOUT;
@@ -18,14 +18,14 @@
 <svelte:head>
   <title>TabLift – Fix ⌘+Tab for Minimized Mac Windows | Boost Productivity</title>
   <meta name="description" content="TabLift restores proper ⌘+Tab behavior on macOS, including minimized windows. Improve your Mac workflow and switch apps seamlessly." />
-  <link rel="canonical" href="https://tablift.mihai.sh/" />
+  <link rel="canonical" href="https://tablift.dev/" />
 </svelte:head>
 
 <main class="min-h-screen bg-[#f7fafc] dark:bg-[#18181c] flex flex-col items-center font-sans pt-[90px]">
   <div class="w-full max-w-4xl mx-auto px-4">
     <img
-      src="https://bucket.mihai.sh/app-icon-168.webp"
-      srcset="https://bucket.mihai.sh/app-icon-168.webp 168w, https://bucket.mihai.sh/app-icon-336.webp 336w"
+      src="https://bucket.tablift.dev/app-icon-168.webp"
+      srcset="https://bucket.tablift.dev/app-icon-168.webp 168w, https://bucket.tablift.dev/app-icon-336.webp 336w"
       sizes="(max-width: 400px) 50vw, 168px"
       alt="TabLift Icon"
       class="mx-auto mt-12 mb-8 w-[168px] h-[168px] rounded-3xl shadow"
@@ -70,8 +70,8 @@
     <div class="video-container relative flex justify-center items-center mb-20 w-full">
       <div class="macbook-mockup relative">
         <img
-          src="https://bucket.mihai.sh/macbook-380.webp"
-          srcset="https://bucket.mihai.sh/macbook-380.webp 380w, https://bucket.mihai.sh/macbook-760.webp 760w, https://bucket.mihai.sh/macbook-1200.webp 1200w"
+          src="https://bucket.tablift.dev/macbook-380.webp"
+          srcset="https://bucket.tablift.dev/macbook-380.webp 380w, https://bucket.tablift.dev/macbook-760.webp 760w, https://bucket.tablift.dev/macbook-1200.webp 1200w"
           sizes="(max-width: 600px) 90vw, (max-width: 1200px) 760px, 1200px"
           alt="macOS screenshot"
           width="380"

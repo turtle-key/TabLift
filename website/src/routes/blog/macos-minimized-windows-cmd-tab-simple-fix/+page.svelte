@@ -5,11 +5,11 @@
 <svelte:head>
   <title>TabLift: macOS Skips Minimized Windows in ⌘+Tab – Here's a Simple Fix | TabLift</title>
   <meta name="description" content="macOS excludes minimized apps from the ⌘+Tab switcher by default. Discover how TabLift automatically restores them for a more consistent and productive workflow." />
-  <link rel="canonical" href="https://tablift.mihai.sh/blog/macos-minimized-windows-cmd-tab-simple-fix" />
+  <link rel="canonical" href="https://tablift.dev/blog/macos-minimized-windows-cmd-tab-simple-fix" />
   <!-- Open Graph -->
   <meta property="og:title" content="macOS Skips Minimized Windows in ⌘+Tab – Simple Fix Available" />
   <meta property="og:description" content="Stop losing track of minimized apps in macOS. This simple solution makes ⌘+Tab work consistently with all your open applications." />
-  <meta property="og:url" content="https://tablift.mihai.sh/blog/macos-minimized-windows-cmd-tab-simple-fix" />
+  <meta property="og:url" content="https://tablift.dev/blog/macos-minimized-windows-cmd-tab-simple-fix" />
   <meta property="og:type" content="article" />
   
   <!-- Twitter -->
@@ -39,7 +39,7 @@
     "dateModified": "2025-07-29",
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://tablift.mihai.sh/blog/macos-minimized-windows-cmd-tab-simple-fix"
+      "@id": "https://tablift.dev/blog/macos-minimized-windows-cmd-tab-simple-fix"
     }
   }
   </script>
@@ -155,7 +155,7 @@
 
       <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 mb-8">
         <ol class="space-y-4">
-          <li class="text-gray-700 dark:text-gray-300"><strong class="font-semibold text-gray-900 dark:text-gray-100">1. Download:</strong> Visit <a href="https://tablift.mihai.sh" class="text-blue-600 dark:text-blue-400 hover:underline">tablift.mihai.sh</a> and download the latest version</li>
+          <li class="text-gray-700 dark:text-gray-300"><strong class="font-semibold text-gray-900 dark:text-gray-100">1. Download:</strong> Visit <a href="https://tablift.dev" class="text-blue-600 dark:text-blue-400 hover:underline">tablift.dev</a> and download the latest version</li>
           <li class="text-gray-700 dark:text-gray-300"><strong class="font-semibold text-gray-900 dark:text-gray-100">2. Install:</strong> Drag TabLift to your Applications folder</li>
           <li class="text-gray-700 dark:text-gray-300"><strong class="font-semibold text-gray-900 dark:text-gray-100">3. Launch:</strong> Open TabLift and grant accessibility permissions when prompted</li>
           <li class="text-gray-700 dark:text-gray-300"><strong class="font-semibold text-gray-900 dark:text-gray-100">4. Use:</strong> Start using ⌘+Tab normally – minimized apps will now be included automatically</li>
