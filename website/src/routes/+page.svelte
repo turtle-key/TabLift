@@ -16,8 +16,8 @@
 </script>
 
 <svelte:head>
-  <title>TabLift – Fix ⌘+Tab for Minimized Mac Windows | Boost Productivity</title>
-  <meta name="description" content="TabLift restores proper ⌘+Tab behavior on macOS, including minimized windows. Improve your Mac workflow and switch apps seamlessly." />
+  <title>TabLift – Fix Cmd+Tab for Minimized Mac Windows | Boost Productivity</title>
+  <meta name="description" content="TabLift restores proper Cmd+Tab behavior on macOS, including minimized windows. Improve your Mac workflow and switch apps seamlessly." />
   <link rel="canonical" href="https://tablift.dev/" />
 </svelte:head>
 
