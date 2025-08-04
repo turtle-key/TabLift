@@ -110,8 +110,14 @@ class DockIconHoverMonitor {
 
     private func startMouseTimer() {
         stopMouseTimer()
-        mouseTimer = Timer.scheduledTimer(withTimeInterval: 0.045, repeats: true) { [weak self] _ in
-            self?.checkMouseAndDismissIfNeeded()
+        mouseTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            // Only update if popup is visible
+            if self.previewPanel?.isVisible ?? false {
+                self.handleDockSelectionChange()
+            }
+            // Also check mouse position and dismiss if needed
+            self.checkMouseAndDismissIfNeeded()
         }
     }
 
