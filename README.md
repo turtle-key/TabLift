@@ -35,7 +35,7 @@
   </p>
   
   <p align="center">
-    <a href="https://tablift.mihai.sh"><b>🌐 Visit the TabLift website</b></a>
+    <a href="https://tablift.dev"><b>🌐 Visit the TabLift website</b></a>
   </p>
   
   ---
@@ -125,7 +125,7 @@ If a minimized window is found, it is instantly restored for you, either restori
   TabLift has a simple, modern Settings/About window with helpful links:
   </p>
   <p align="center">
-    <a href="https://tablift.mihai.sh">Know more about TabLift</a> •
+    <a href="https://tablift.dev">Know more about TabLift</a> •
     <a href="https://coff.ee/turtle.key">Buy me a coffee</a> •
     <a href="https://github.com/turtle-key/TabLift">Source code on GitHub</a> •
     <a href="mailto:ghetumihaieduard@gmail.com">Email support</a>
