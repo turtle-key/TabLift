@@ -6,6 +6,9 @@ struct MenuBarContentView: View {
     // Add onOpenSettings closure as parameter
     var onOpenSettings: (() -> Void)? = nil
 
+    @State private var isHoveringSettings = false
+    @State private var isHoveringQuit = false
+
     var body: some View {
         VStack(spacing: 16) {
             Text("TabLift")
@@ -16,13 +19,32 @@ struct MenuBarContentView: View {
             }
             .toggleStyle(SwitchToggleStyle())
 
-            Button("Open Settings") {
-                // Call the closure if provided, otherwise fallback
+            Button(action: {
                 if let onOpenSettings {
                     onOpenSettings()
                 } else {
                     NSApp.sendAction(#selector(AppDelegate.showUI), to: nil, from: nil)
                 }
+            }) {
+                HStack(spacing: 6) {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 15, weight: .medium))
+                    Text("Open Settings")
+                        .font(.body)
+                        .fontWeight(.medium)
+                }
+                .foregroundColor(isHoveringSettings ? Color.white : Color.accentColor)
+                .padding(.vertical, 7)
+                .padding(.horizontal, 18)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isHoveringSettings ? Color.accentColor : Color.clear)
+                        .animation(.easeInOut(duration: 0.15), value: isHoveringSettings)
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+            .onHover { hovering in
+                isHoveringSettings = hovering
             }
 
             WavyDivider()
@@ -39,11 +61,19 @@ struct MenuBarContentView: View {
                             .font(.footnote)
                             .fontWeight(.medium)
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(isHoveringQuit ? Color.white : Color.red)
                     .padding(.vertical, 7)
                     .padding(.horizontal, 18)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(isHoveringQuit ? Color.red : Color.clear)
+                            .animation(.easeInOut(duration: 0.15), value: isHoveringQuit)
+                    )
                 }
                 .buttonStyle(PlainButtonStyle())
+                .onHover { hovering in
+                    isHoveringQuit = hovering
+                }
                 Spacer()
             }
         }
