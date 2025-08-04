@@ -186,7 +186,7 @@ struct AboutTab: View {
     }
 
     private enum URLs {
-        static var homepage: URL { URL(string: "https://tablift.mihai.sh")! }
+        static var homepage: URL { URL(string: "https://tablift.dev")! }
         static var donate: URL { URL(string: "https://coff.ee/turtle.key")! }
         static var repo: URL { URL(string: "https://github.com/turtle-key/TabLift")! }
         static var email: URL { URL(string: "mailto:ghetumihaieduard@gmail.com")! }

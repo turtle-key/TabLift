@@ -20,7 +20,7 @@ struct AccessibilityPermissionView: View {
             )
             .padding(.horizontal)
 
-            HyperLink(URL(string: "https://tablift.mihai.sh/faq")!) {
+            HyperLink(URL(string: "https://tablift.dev/faq")!) {
                 Text("Get more help")
             }
             .padding(.horizontal)

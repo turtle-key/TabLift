@@ -9,7 +9,7 @@
 	<key>NSQuitAlwaysKeepsWindows</key>
 	<false/>
 	<key>SUFeedURL</key>
-	<string>https://tablift.mihai.sh/appcast.xml</string>
+	<string>https://tablift.dev/appcast.xml</string>
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
 	<key>SUPublicEDKey</key>
