@@ -113,9 +113,9 @@ class DockIconHoverMonitor {
         stopMouseTimer()
         mouseTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             guard let self = self else { return }
-            // Only update if popup is visible
+            // Only update popup content if visible, do NOT call handleDockSelectionChange
             if self.previewPanel?.isVisible ?? false {
-                self.handleDockSelectionChange()
+                self.updateDockPreviewContent()
             }
             // Also check mouse position and dismiss if needed
             self.checkMouseAndDismissIfNeeded()
@@ -247,8 +247,38 @@ class DockIconHoverMonitor {
             panel.orderFrontRegardless()
             self.previewPanel = panel
             self.hostingView = hosting
+            self.startMouseTimer()
         }
-        startMouseTimer()
+    }
+
+    private func updateDockPreviewContent() {
+        guard let hoveredIcon = getCurrentlySelectedDockIcon(),
+              let (iconFrame, bundleIdentifier) = getDockIconInfo(element: hoveredIcon),
+              let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).first,
+              let panel = previewPanel, let hosting = hostingView else {
+            // If any are missing, do nothing (do NOT close/recreate here!)
+            return
+        }
+        let windowInfos = fetchWindowInfos(for: app)
+        let appName = app.localizedName ?? bundleIdentifier
+        let appIcon = app.icon ?? NSWorkspace.shared.icon(for: .application)
+
+        let panelWidth: CGFloat = 280
+        let panelHeight = CGFloat(82 + max(24, windowInfos.count * 32))
+        let panelRect = CGRect(x: iconFrame.midX - panelWidth/2, y: iconFrame.maxY + 10, width: panelWidth, height: panelHeight)
+
+        let newContent = DockPreviewPanel(
+            appName: appName,
+            appIcon: appIcon,
+            windowInfos: windowInfos,
+            onTitleClick: { [weak self] title in
+                self?.focusWindow(of: app, withTitle: title)
+            }
+        )
+
+        hosting.rootView = newContent
+        panel.setContentSize(panelRect.size)
+        panel.setFrameOrigin(panelRect.origin)
     }
 
     private func hidePreview() {
@@ -346,7 +376,6 @@ class DockIconHoverMonitor {
 
         for window in windows {
             let role = window.role() ?? "(nil)"
-            let subrole = window.subrole() ?? "(nil)"
             let pip = isProbablyPictureInPicture(window: window)
 
             if role != "AXWindow" { continue }
