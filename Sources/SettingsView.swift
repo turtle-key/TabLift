@@ -12,6 +12,10 @@ struct SettingsView: View {
                 .tabItem {
                     Label("General", systemImage: "gearshape")
                 }
+            SupportTab()
+                .tabItem {
+                    Label("Support", systemImage: "lifepreserver")
+                }
         }
         .frame(width: 480, height: 560)
         
@@ -49,6 +53,11 @@ struct GeneralSettingsTab: View {
         VStack(spacing: 0) {
             Form {
                 Section {
+                    Toggle(isOn: $startAtLogin) {
+                        Text("Start at login")
+                            .font(.body)
+                    }
+                    .help("Launch TabLift automatically when you log in to your Mac.")
                     Toggle(isOn: $showMenuBarIcon) {
                         Text("Show in menu bar")
                             .font(.body)
@@ -60,19 +69,11 @@ struct GeneralSettingsTab: View {
                         }
                     }
                     .help("Show or hide the TabLift icon in your menu bar for quick access.")
-                    Toggle(isOn: $startAtLogin) {
-                        Text("Start at login")
-                            .font(.body)
-                    }
-                    .help("Launch TabLift automatically when you log in to your Mac.")
                     Toggle(isOn: $showDockIcon) {
                         Text("Show in Dock")
                             .font(.body)
                     }
                     .help("Display the icon of the app in the Dock. Works just like a normal app.")
-                }
-                Section {
-                    AccessibilityPermissionCheckView()
                 }
                 Section {
                     VStack(alignment: .leading, spacing: 12) {
@@ -139,9 +140,6 @@ struct GeneralSettingsTab: View {
                     }
                     .padding()
                 }
-                Section {
-                    CheckForUpdatesView()
-                }
                 .modifier(SectionViewModifier())
             }
             .modifier(FormViewModifier())
@@ -176,7 +174,6 @@ struct GeneralSettingsTab: View {
     }
 }
 
-// ...AboutTab, ModernAboutLink, ModernQuitButton unchanged...
 
 struct AboutTab: View {
     private let appName = "TabLift"
@@ -195,7 +192,7 @@ struct AboutTab: View {
     }
 
     private enum URLs {
-        static var homepage: URL { URL(string: "https://tablift.dev")! }
+        static var helppage: URL { URL(string: "https://tablift.dev/faq")! }
         static var donate: URL { URL(string: "https://coff.ee/turtle.key")! }
         static var repo: URL { URL(string: "https://github.com/turtle-key/TabLift")! }
         static var email: URL { URL(string: "mailto:ghetumihaieduard@gmail.com")! }
@@ -232,19 +229,19 @@ struct AboutTab: View {
 
             VStack(spacing: 14) {
                 ModernAboutLink(
-                    destination: URLs.repo,
-                    systemImage: "chevron.left.slash.chevron.right",
-                    label: "This app is fully open source"
+                    destination: URLs.helppage,
+                    systemImage: "info.circle",
+                    label: "Tablift Help"
                 )
                 ModernAboutLink(
-                    destination: URLs.homepage,
-                    systemImage: "info.circle",
-                    label: "Know more about TabLift"
+                    destination: URLs.repo,
+                    systemImage: "chevron.left.slash.chevron.right",
+                    label: "Check out the source code"
                 )
                 ModernAboutLink(
                     destination: URLs.donate,
-                    systemImage: "cup.and.saucer",
-                    label: "Buy me a coffee"
+                    systemImage: "heart",
+                    label: "Support this project"
                 )
                 ModernAboutLink(
                     destination: URLs.email,
@@ -336,5 +333,40 @@ struct ModernQuitButton: View {
             isHovering = hovering
         }
         .help("Quit TabLift")
+    }
+}
+struct SupportTab: View {
+    @State private var isHoveringQuit = false
+    private let copyright = "AGPL-3.0 © Mihai-Eduard Ghețu"
+    private var licenseURL: URL {
+        URL(string: "https://github.com/turtle-key/TabLift/blob/main/LICENSE")!
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Form {
+                Section {
+                    AccessibilityPermissionCheckView()
+                }
+                Section {
+                    CheckForUpdatesView()
+                }
+                .modifier(SectionViewModifier())
+            }
+            .modifier(FormViewModifier())
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            HStack {
+                Link(destination: licenseURL) {
+                    Text(copyright)
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+                }
+                Spacer()
+                ModernQuitButton(isHovering: $isHoveringQuit)
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 16)
+        }
     }
 }
