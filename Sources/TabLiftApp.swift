@@ -23,7 +23,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var dockIconHoverMonitor: DockIconHoverMonitor?
     
     private var wakeObserver: NSObjectProtocol?
-    
+    @objc func showHelp(_ sender: Any?) {
+        if let url = URL(string: "https://tablift.dev/faq") {
+            NSWorkspace.shared.open(url)
+        }
+    }
     func applicationDidFinishLaunching(_ notification: Notification) {
         UserDefaults.standard.register(defaults: [
             "showMenuBarIcon": true,
