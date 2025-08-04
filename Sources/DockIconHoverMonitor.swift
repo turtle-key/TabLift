@@ -1,6 +1,7 @@
 import Cocoa
 import SwiftUI
 import ApplicationServices
+import UniformTypeIdentifiers
 
 class DockIconHoverMonitor {
     private var axObserver: AXObserver?
@@ -193,7 +194,7 @@ class DockIconHoverMonitor {
         }
 
         let appName = app.localizedName ?? bundleIdentifier
-        let appIcon = app.icon ?? NSWorkspace.shared.icon(forFileType: NSFileTypeForHFSTypeCode(OSType(kGenericApplicationIcon)))
+        let appIcon = app.icon ?? NSWorkspace.shared.icon(for: .application)
 
         let panelWidth: CGFloat = 280
         let panelHeight = CGFloat(82 + max(24, windowInfos.count * 32))
