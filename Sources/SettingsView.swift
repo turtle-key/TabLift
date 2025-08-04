@@ -14,9 +14,18 @@ struct SettingsView: View {
                 }
         }
         .frame(width: 480, height: 560)
+        
     }
 }
-
+class SettingsWindow: NSWindow {
+    override func keyDown(with event: NSEvent) {
+        if event.modifierFlags.contains(.command) && event.charactersIgnoringModifiers == "w" {
+            self.performClose(nil)
+        } else {
+            super.keyDown(with: event)
+        }
+    }
+}
 struct GeneralSettingsTab: View {
     @AppStorage(WindowManager.restoreAllKey) var restoreAllWindows: Bool = false
     @AppStorage(WindowManager.openWindowKey) private var openNewWindowStorage: Bool = true

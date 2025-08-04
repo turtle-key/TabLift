@@ -117,7 +117,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @objc func showUI() {
         if window == nil {
             let settingsView = SettingsView()
-            window = NSWindow(
+            window = SettingsWindow(
                 contentRect: NSMakeRect(0, 0, 500, 450),
                 styleMask: [.titled, .closable, .unifiedTitleAndToolbar],
                 backing: .buffered,
@@ -127,7 +127,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             window?.center()
             window?.contentView = NSHostingView(rootView: settingsView)
             window?.isReleasedWhenClosed = false
-
+            window?.makeFirstResponder(window?.contentView)
             window?.delegate = self
         }
 
