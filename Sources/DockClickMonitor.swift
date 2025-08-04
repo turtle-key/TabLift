@@ -10,7 +10,6 @@ class DockClickMonitor {
 
     init() {
         setupEventTap()
-        // Observers for future extensibility, but no-ops for now
         workspaceObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification,
             object: nil,
@@ -65,20 +64,39 @@ class DockClickMonitor {
         CGEvent.tapEnable(tap: eventTap, enable: true)
     }
 
+    private func isProbablyPictureInPicture(window: AXUIElement) -> Bool {
+        let subrole = window.subrole() ?? ""
+        if subrole == "AXPictureInPictureWindow" ||
+           subrole == "AXFloatingWindow" ||
+           subrole == "AXPanel" ||
+           subrole == "AXSystemDialog"
+        {
+            return true
+        }
+        var sizeValue: AnyObject?
+        if AXUIElementCopyAttributeValue(window, kAXSizeAttribute as CFString, &sizeValue) == .success {
+            let axSize = sizeValue as! AXValue
+            var sz = CGSize.zero
+            AXValueGetValue(axSize, .cgSize, &sz)
+            if sz.width < 220 || sz.height < 220 {
+                let title = window.title() ?? ""
+                if title.isEmpty {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
     private func visibleWindows(of app: NSRunningApplication) -> [AXUIElement] {
         let appEl = AXUIElementCreateApplication(app.processIdentifier)
         var raw: AnyObject?
         guard AXUIElementCopyAttributeValue(appEl, kAXWindowsAttribute as CFString, &raw) == .success,
               let windows = raw as? [AXUIElement], !windows.isEmpty else { return [] }
         return windows.filter {
-            var roleValue: AnyObject?
-            guard AXUIElementCopyAttributeValue($0, kAXRoleAttribute as CFString, &roleValue) == .success,
-                  (roleValue as? String) == "AXWindow" else { return false }
-            var subroleValue: AnyObject?
-            if AXUIElementCopyAttributeValue($0, kAXSubroleAttribute as CFString, &subroleValue) == .success,
-               let subrole = subroleValue as? String, subrole == "AXPictureInPictureWindow" {
-                return false
-            }
+            let role = $0.role() ?? ""
+            if role != "AXWindow" { return false }
+            if isProbablyPictureInPicture(window: $0) { return false }
             var minRaw: AnyObject?
             if AXUIElementCopyAttributeValue($0, kAXMinimizedAttribute as CFString, &minRaw) == .success,
                let isMin = minRaw as? Bool {
@@ -94,9 +112,9 @@ class DockClickMonitor {
         guard AXUIElementCopyAttributeValue(appEl, kAXWindowsAttribute as CFString, &raw) == .success,
               let windows = raw as? [AXUIElement], !windows.isEmpty else { return false }
         for window in windows {
-            var roleValue: AnyObject?
-            guard AXUIElementCopyAttributeValue(window, kAXRoleAttribute as CFString, &roleValue) == .success,
-                  (roleValue as? String) == "AXWindow" else { continue }
+            let role = window.role() ?? ""
+            if role != "AXWindow" { continue }
+            if isProbablyPictureInPicture(window: window) { continue }
             var minRaw: AnyObject?
             if AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minRaw) == .success,
                let isMin = minRaw as? Bool, !isMin {

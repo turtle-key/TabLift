@@ -293,6 +293,31 @@ class DockIconHoverMonitor {
         return (frame, bundleID)
     }
 
+    private func isProbablyPictureInPicture(window: AXUIElement) -> Bool {
+        let subrole = window.subrole() ?? ""
+        if subrole == "AXPictureInPictureWindow" ||
+           subrole == "AXFloatingWindow" ||
+           subrole == "AXPanel" ||
+           subrole == "AXSystemDialog"
+        {
+            return true
+        }
+        // Heuristic: Small untitled window
+        var sizeValue: AnyObject?
+        if AXUIElementCopyAttributeValue(window, kAXSizeAttribute as CFString, &sizeValue) == .success {
+            let axSize = sizeValue as! AXValue
+            var sz = CGSize.zero
+            AXValueGetValue(axSize, .cgSize, &sz)
+            if sz.width < 220 || sz.height < 220 {
+                let title = window.title() ?? ""
+                if title.isEmpty {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
     private func fetchWindowInfos(for app: NSRunningApplication?) -> [(title: String, isMinimized: Bool, shouldHighlight: Bool)] {
         guard let app = app else { return [] }
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
@@ -311,20 +336,17 @@ class DockIconHoverMonitor {
         let isFrontmostApp = (app.processIdentifier == frontmostPID)
 
         var infos: [(String, Bool, Bool)] = []
+
+        print("---- TabLift DEBUG: Window list for app [\(app.localizedName ?? "unknown")] ----")
         for window in windows {
-            var roleValue: AnyObject?
-            if AXUIElementCopyAttributeValue(window, kAXRoleAttribute as CFString, &roleValue) != .success {
-                continue
-            }
-            let role = roleValue as? String ?? ""
-            if role != "AXWindow" {
-                continue
-            }
-            var subroleValue: AnyObject?
-            if AXUIElementCopyAttributeValue(window, kAXSubroleAttribute as CFString, &subroleValue) == .success,
-               let subrole = subroleValue as? String, subrole == "AXPictureInPictureWindow" {
-                continue
-            }
+            let role = window.role() ?? "(nil)"
+            let subrole = window.subrole() ?? "(nil)"
+            let pip = isProbablyPictureInPicture(window: window)
+
+            print("[role: \(role), subrole: \(subrole)] \(pip ? "Picture-in-Picture" : "")")
+
+            if role != "AXWindow" { continue }
+            if pip { continue }
 
             var titleValue: AnyObject?
             var minimizedValue: AnyObject?
@@ -346,6 +368,7 @@ class DockIconHoverMonitor {
 
             infos.append((title, minimized, shouldHighlight))
         }
+        print("---- End TabLift DEBUG Window list ----")
         return infos
     }
 
