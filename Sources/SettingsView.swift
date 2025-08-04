@@ -18,9 +18,9 @@ struct SettingsView: View {
                 }
         }
         .frame(width: 480, height: 560)
-        
     }
 }
+
 class SettingsWindow: NSWindow {
     override func keyDown(with event: NSEvent) {
         if event.modifierFlags.contains(.command) && event.charactersIgnoringModifiers == "w" {
@@ -30,6 +30,7 @@ class SettingsWindow: NSWindow {
         }
     }
 }
+
 struct GeneralSettingsTab: View {
     @AppStorage(WindowManager.restoreAllKey) var restoreAllWindows: Bool = false
     @AppStorage(WindowManager.openWindowKey) private var openNewWindowStorage: Bool = true
@@ -52,12 +53,13 @@ struct GeneralSettingsTab: View {
     var body: some View {
         VStack(spacing: 0) {
             Form {
-                Section {
+                Section(header: Label("App Launch & Appearance", systemImage: "rectangle.stack").font(.headline)) {
                     Toggle(isOn: $startAtLogin) {
                         Text("Start at login")
                             .font(.body)
                     }
                     .help("Launch TabLift automatically when you log in to your Mac.")
+
                     Toggle(isOn: $showMenuBarIcon) {
                         Text("Show in menu bar")
                             .font(.body)
@@ -69,16 +71,16 @@ struct GeneralSettingsTab: View {
                         }
                     }
                     .help("Show or hide the TabLift icon in your menu bar for quick access.")
+
                     Toggle(isOn: $showDockIcon) {
                         Text("Show in Dock")
                             .font(.body)
                     }
                     .help("Display the icon of the app in the Dock. Works just like a normal app.")
                 }
-                Section {
+
+                Section(header: Label("Window Switching Behavior", systemImage: "arrow.triangle.swap").font(.headline)) {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Behaviour")
-                            .font(.headline)
                         Toggle(isOn: $restoreAllWindows) {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Restore all minimized windows on app switch")
@@ -92,12 +94,14 @@ struct GeneralSettingsTab: View {
                             }
                         }
                         .help("If enabled, switching to an app will restore all its minimized windows. If disabled, only the last minimized window will be restored.")
+
+
                         Toggle(isOn: $openNewWindow) {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Automatically open a window when switching to apps without windows")
+                                Text("Automatically open a window for apps with no windows")
                                     .font(.body)
                                 if !openNewWindow {
-                                    Text("When disabled, switching to an app without windows won't open a new window")
+                                    Text("When disabled, switching to an app without windows won't open a new window.")
                                         .foregroundColor(.secondary)
                                         .font(.caption)
                                         .padding(.top, 2)
@@ -111,14 +115,22 @@ struct GeneralSettingsTab: View {
                                 minimizePreviousWindowStorage = false
                             }
                         }
-                        .help("If enabled, a new window will be opened when switching to an app that has no visible windows")
+                        .help("If enabled, a new window will be opened when switching to an app that has no visible windows.")
+
+
                         Toggle(isOn: $minimizePreviousWindow) {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Minimize previous window on app switch")
                                     .font(.body)
                                 if !minimizePreviousWindow {
-                                    Text("When disabled, switching to another app won't automatically minimize the previous one's window(s)")
+                                    Text("When disabled, switching to another app won't automatically minimize the previous one's window(s).")
                                         .foregroundColor(.secondary)
+                                        .font(.caption)
+                                        .padding(.top, 2)
+                                }
+                                if openNewWindow && minimizePreviousWindow {
+                                    Text("Tip: 'Automatically open a window' and 'Minimize previous window' cannot be enabled at the same time.")
+                                        .foregroundColor(.red)
                                         .font(.caption)
                                         .padding(.top, 2)
                                 }
@@ -132,15 +144,17 @@ struct GeneralSettingsTab: View {
                             }
                         }
                         .help("When enabled, the currently focused window is minimized when switching apps using Cmd+Tab. This helps keep the workspace clean by showing only one active window at a time.")
-                        Toggle(isOn: $showDockPopups) {
-                            Text("Show Window Previews in Dock")
-                                .font(.body)
-                        }
-                        .help("Show popup with app windows when hovering icons in the Dock.")
+
                     }
-                    .padding()
                 }
-                .modifier(SectionViewModifier())
+
+                Section(header: Label("Dock Features", systemImage: "dock.rectangle").font(.headline)) {
+                    Toggle(isOn: $showDockPopups) {
+                        Text("Show Window Previews in Dock")
+                            .font(.body)
+                    }
+                    .help("Show a popup with app windows when hovering over icons in the Dock.")
+                }
             }
             .modifier(FormViewModifier())
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -173,7 +187,6 @@ struct GeneralSettingsTab: View {
         }
     }
 }
-
 
 struct AboutTab: View {
     private let appName = "TabLift"
