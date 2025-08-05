@@ -31,6 +31,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        PFMoveToApplicationsFolderIfNecessary()
         UserDefaults.standard.register(defaults: [
             "restoreAllWindows": true,
             "openNewWindow": true,
@@ -54,7 +55,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             AccessibilityPermissionWindow.show()
             return
         }
-
         updateDockIconPolicy()
 
         cmdBacktickMonitor = CmdBacktickMonitor()
