@@ -56,6 +56,10 @@ struct GeneralSettingsTab: View {
         URL(string: "https://github.com/turtle-key/TabLift/blob/main/LICENSE")!
     }
 
+    // Maximum length of help texts (measured, can be tweaked)
+    private let helpTextMaxWidth: CGFloat = 320
+    private let helpTextMaxHeight: CGFloat = 46 // ~2 lines at caption font
+
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
@@ -107,7 +111,9 @@ struct GeneralSettingsTab: View {
                                 hoveredDemo: $hoveredDemo,
                                 videoName: "restoreall",
                                 helpTextActive: "Enabled: When you switch to an app, all of its minimized windows are instantly restored. The video above shows this effect when the toggle is ON.",
-                                helpTextInactive: "Disabled: Only the last minimized window is restored when switching apps. The video preview demonstrates the result when enabled."
+                                helpTextInactive: "Disabled: Only the last minimized window is restored when switching apps. The video preview demonstrates the result when enabled.",
+                                maxWidth: helpTextMaxWidth,
+                                maxHeight: helpTextMaxHeight
                             )
 
                             // Open New Window Demo
@@ -136,7 +142,9 @@ struct GeneralSettingsTab: View {
                                 hoveredDemo: $hoveredDemo,
                                 videoName: "opennew",
                                 helpTextActive: "Enabled: TabLift automatically opens a new window for an app that doesn't have any open windows. See the video above for how it works when ON.",
-                                helpTextInactive: "Disabled: If you switch to an app with no windows, nothing opens. The video preview illustrates the result when enabled."
+                                helpTextInactive: "Disabled: If you switch to an app with no windows, nothing opens. The video preview illustrates the result when enabled.",
+                                maxWidth: helpTextMaxWidth,
+                                maxHeight: helpTextMaxHeight
                             )
 
                             // Minimize Previous Window Demo
@@ -171,7 +179,9 @@ struct GeneralSettingsTab: View {
                                 hoveredDemo: $hoveredDemo,
                                 videoName: "minimizeprev",
                                 helpTextActive: "Enabled: The previous window is minimized automatically whenever you switch apps. The video above shows the result when ON.",
-                                helpTextInactive: "Disabled: Previous windows are left open when switching apps. The video preview shows what happens when enabled."
+                                helpTextInactive: "Disabled: Previous windows are left open when switching apps. The video preview shows what happens when enabled.",
+                                maxWidth: helpTextMaxWidth,
+                                maxHeight: helpTextMaxHeight
                             )
                         }
                     }
@@ -225,6 +235,8 @@ struct DemoSection<ToggleView: View>: View {
     let videoName: String
     let helpTextActive: String
     let helpTextInactive: String
+    let maxWidth: CGFloat
+    let maxHeight: CGFloat
 
     @State private var delayedPlay = false
     @State private var delayedText = false
@@ -251,8 +263,12 @@ struct DemoSection<ToggleView: View>: View {
                     }
                 }
             }
-            DemoHelpText(text: delayedText ? helpTextActive : helpTextInactive)
-                .animation(.easeInOut(duration: 0.22), value: delayedText)
+            DemoHelpText(
+                text: delayedText ? helpTextActive : helpTextInactive,
+                maxWidth: maxWidth,
+                maxHeight: maxHeight
+            )
+            .animation(.easeInOut(duration: 0.22), value: delayedText)
         }
     }
 }
@@ -349,14 +365,20 @@ class AVPlayerLayerView: NSView {
 // --- Help Text Placement ---
 struct DemoHelpText: View {
     let text: String
+    let maxWidth: CGFloat
+    let maxHeight: CGFloat
     var body: some View {
+        // Fix the help text size so the scroll/height never changes
         Text(text)
             .font(.caption)
             .foregroundColor(.secondary)
-            .frame(width: 320)
+            .frame(width: maxWidth, height: maxHeight, alignment: .topLeading)
+            .fixedSize(horizontal: false, vertical: true)
             .padding(.bottom, 8)
     }
 }
+
+// --- AboutTab, ModernAboutLink, ModernQuitButton, SupportTab unchanged ---
 
 // --- AboutTab, ModernAboutLink, ModernQuitButton, SupportTab unchanged ---
 struct AboutTab: View {
