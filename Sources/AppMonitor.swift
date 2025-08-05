@@ -9,7 +9,6 @@ class AppMonitor {
     private var lastAppSwitcherTimestamp: TimeInterval = 0
     private var isAppSwitcherActive = false
 
-    /// Keep track of the app we switched away from
     private var previousApp: NSRunningApplication?
 
     static let timeoutThreshold: TimeInterval = 0.5

@@ -37,17 +37,12 @@ struct DockPreviewPanel: View {
                         onTitleClick(title)
                     }) {
                         HStack {
-                            Text(title.isEmpty ? "(Untitled)" : title)
-                                .font(.system(size: 15, weight: .medium, design: .rounded))
-                                .foregroundColor(Color.primary)
-                                .lineLimit(1)
-                            
+                            MarqueeText(text: title.isEmpty ? "(Untitled)" : title, maxWidth: 185)
+
                             if isMinimized {
                                 MinimizedIndicator()
                                     .padding(.leading, 5)
-                            
                             }
-                            
                             Spacer()
                         }
                         .padding(.vertical, 7)

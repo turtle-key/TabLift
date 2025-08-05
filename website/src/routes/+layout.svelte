@@ -119,18 +119,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=swap" rel="stylesheet" />
-  <meta property="og:url" content="https://tablift.mihai.sh">
+  <meta property="og:url" content="https://tablift.dev">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="TabLift — Makes ⌘+Tab work the way it should — minimized windows included">
-  <meta property="og:description" content="TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with ⌘+Tab. By default, macOS ignores minimized windows unless you hold the Option key. TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.">
-  <meta property="og:image" content="https://bucket.mihai.sh/banner.png">
+  <meta property="og:title" content="TabLift — Makes Cmd+Tab work the way it should — minimized windows included">
+  <meta property="og:description" content="TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with Cmd+Tab. By default, macOS ignores minimized windows unless you hold the Option key. TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.">
+  <meta property="og:image" content="https://bucket.tablift.dev/banner.png">
   <meta property="og:site_name" content="TabLift">
   <meta name="twitter:card" content="summary_large_image">
-  <meta property="twitter:domain" content="tablift.mihai.sh">
-  <meta property="twitter:url" content="https://tablift.mihai.sh">
-  <meta name="twitter:title" content="TabLift — Makes ⌘+Tab work the way it should — minimized windows included">
-  <meta name="twitter:description" content="TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with ⌘+Tab. By default, macOS ignores minimized windows unless you hold the Option key. TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.">
-  <meta name="twitter:image" content="https://bucket.mihai.sh/banner.png">
+  <meta property="twitter:domain" content="tablift.dev">
+  <meta property="twitter:url" content="https://tablift.dev">
+  <meta name="twitter:title" content="TabLift — Makes Cmd+Tab work the way it should — minimized windows included">
+  <meta name="twitter:description" content="TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with Cmd+Tab. By default, macOS ignores minimized windows unless you hold the Option key. TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.">
+  <meta name="twitter:image" content="https://bucket.tablift.dev/banner.png">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -173,7 +173,7 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
           onclick={closeMenu}
         >
           <img
-            src="https://bucket.mihai.sh/app-icon-168.webp"
+            src="https://bucket.tablift.dev/app-icon-168.webp"
             alt="TabLift icon"
             class="logo-image"
           >

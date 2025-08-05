@@ -7,9 +7,6 @@ struct TabLiftApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
-        Settings {
-            SettingsView()
-        }
     }
 }
 
@@ -18,18 +15,39 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var cmdBacktickMonitor: CmdBacktickMonitor?
     var window: NSWindow?
     private let autoUpdateManager = AutoUpdateManager.shared
-    
+    private var globalHotkeyMonitor: HotkeyMonitor?
+
     var dockClickMonitor: DockClickMonitor?
     var dockIconHoverMonitor: DockIconHoverMonitor?
-    
+
     private var wakeObserver: NSObjectProtocol?
-    
+    private var screenRecordingObserver: NSObjectProtocol?
+    private var displayConfigObserver: NSObjectProtocol?
+    private var accessibilityObserver: NSObjectProtocol?
+
+    @objc func showHelp(_ sender: Any?) {
+        if let url = URL(string: "https://tablift.dev/faq") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
+        PFMoveToApplicationsFolderIfNecessary()
+        guard AccessibilityPermission.enabled else {
+            AccessibilityPermissionWindow.show()
+            return
+        }
         UserDefaults.standard.register(defaults: [
+            "restoreAllWindows": true,
+            "openNewWindow": true,
+            "minimizePreviousWindow": false,
+            "showDockPopups": true,
             "showMenuBarIcon": true,
-            "startAtLogin": true,
             "showDockIcon": true,
+            "startAtLogin": true,
         ])
+
+        applyAllSettings()
 
         NotificationCenter.default.addObserver(
             self,
@@ -38,10 +56,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             object: nil
         )
 
-        guard AccessibilityPermission.enabled else {
-            AccessibilityPermissionWindow.show()
-            return
-        }
 
         updateDockIconPolicy()
 
@@ -49,23 +63,54 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         appMonitor = AppMonitor()
         appMonitor?.setupEventTap()
         registerLoginItemIfNeeded()
-        
+
         dockClickMonitor = DockClickMonitor()
         dockIconHoverMonitor = DockIconHoverMonitor()
-        
+
         let showMenuBar = UserDefaults.standard.bool(forKey: "showMenuBarIcon")
         MenuBarManager.shared.showMenuBarIcon(show: showMenuBar)
-        
+        globalHotkeyMonitor = HotkeyMonitor()
+
+        // Sleep/wake refresh
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
-                    forName: NSWorkspace.didWakeNotification,
-                    object: nil,
-                    queue: .main
-                ) { [weak self] _ in
-                    self?.handleWakeFromSleep()
-                }
+            forName: NSWorkspace.didWakeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.handleGlobalRefresh()
+        }
+
+        // Screen recording start/stop refresh
+        screenRecordingObserver = DistributedNotificationCenter.default().addObserver(
+            forName: NSNotification.Name("com.apple.screencapture.interactive"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.handleGlobalRefresh()
+        }
+
+        // Display config change refresh
+        displayConfigObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSApplication.didChangeScreenParametersNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.handleGlobalRefresh()
+        }
+
+        // Accessibility API permission change refresh
+        accessibilityObserver = DistributedNotificationCenter.default().addObserver(
+            forName: NSNotification.Name("com.apple.accessibility.api"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.handleGlobalRefresh()
+        }
     }
-    func handleWakeFromSleep() {
-        print("Mac woke from sleep — refreshing TabLift state")
+
+    /// This refreshes all event taps/monitors for ALL known problematic system events.
+    func handleGlobalRefresh() {
+        print("Global system event - refreshing TabLift state")
         appMonitor?.refresh()
         cmdBacktickMonitor?.refresh()
         dockClickMonitor?.refresh()
@@ -74,13 +119,50 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             AccessibilityPermissionWindow.show()
         }
     }
-    
+
+    func applyAllSettings() {
+        let showMenuBar = UserDefaults.standard.bool(forKey: "showMenuBarIcon")
+        let showDockIcon = UserDefaults.standard.bool(forKey: "showDockIcon")
+        let startAtLogin = UserDefaults.standard.bool(forKey: "startAtLogin")
+
+        MenuBarManager.shared.showMenuBarIcon(show: showMenuBar)
+        updateDockIconPolicy(showDockIcon)
+        registerLoginItemIfNeeded(startAtLogin)
+
+        appMonitor?.refresh()
+        dockClickMonitor?.refresh()
+        cmdBacktickMonitor?.refresh()
+        dockIconHoverMonitor?.refresh()
+    }
+
+    func updateDockIconPolicy(_ showDockIcon: Bool) {
+        let policy: NSApplication.ActivationPolicy = showDockIcon ? .regular : .accessory
+        NSApp.setActivationPolicy(policy)
+    }
+
+    func registerLoginItemIfNeeded(_ startAtLogin: Bool) {
+        if startAtLogin {
+            try? SMAppService.mainApp.register()
+        } else {
+            try? SMAppService.mainApp.unregister()
+        }
+    }
+
     deinit {
         if let wakeObserver = wakeObserver {
             NSWorkspace.shared.notificationCenter.removeObserver(wakeObserver)
         }
+        if let screenRecordingObserver = screenRecordingObserver {
+            DistributedNotificationCenter.default().removeObserver(screenRecordingObserver)
+        }
+        if let displayConfigObserver = displayConfigObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(displayConfigObserver)
+        }
+        if let accessibilityObserver = accessibilityObserver {
+            DistributedNotificationCenter.default().removeObserver(accessibilityObserver)
+        }
     }
-    
+
     func registerLoginItemIfNeeded() {
         let startAtLogin = UserDefaults.standard.bool(forKey: "startAtLogin")
         if startAtLogin {
@@ -116,16 +198,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @objc func showUI() {
         if window == nil {
             let settingsView = SettingsView()
-            window = NSWindow(
+            window = SettingsWindow(
                 contentRect: NSMakeRect(0, 0, 500, 450),
                 styleMask: [.titled, .closable, .unifiedTitleAndToolbar],
                 backing: .buffered,
                 defer: false
             )
+            window?.title = "TabLift Settings"
             window?.center()
             window?.contentView = NSHostingView(rootView: settingsView)
             window?.isReleasedWhenClosed = false
-
+            window?.makeFirstResponder(window?.contentView)
             window?.delegate = self
         }
 

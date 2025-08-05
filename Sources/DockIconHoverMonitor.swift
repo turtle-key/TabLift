@@ -1,8 +1,12 @@
 import Cocoa
 import SwiftUI
 import ApplicationServices
+import UniformTypeIdentifiers
 
 class DockIconHoverMonitor {
+    private var dockPreviewDelay: Double {
+        UserDefaults.standard.double(forKey: "dockPreviewSpeed")
+    }
     private var axObserver: AXObserver?
     private var dockPID: pid_t = 0
     private var previewPanel: NSPanel?
@@ -110,8 +114,12 @@ class DockIconHoverMonitor {
 
     private func startMouseTimer() {
         stopMouseTimer()
-        mouseTimer = Timer.scheduledTimer(withTimeInterval: 0.045, repeats: true) { [weak self] _ in
-            self?.checkMouseAndDismissIfNeeded()
+        mouseTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            if self.previewPanel?.isVisible ?? false {
+                self.updateDockPreviewContent()
+            }
+            self.checkMouseAndDismissIfNeeded()
         }
     }
 
@@ -156,7 +164,7 @@ class DockIconHoverMonitor {
             hidePreview()
             return
         }
-
+        
         guard let hoveredIcon = getCurrentlySelectedDockIcon() else {
             lastBundleIdentifier = nil
             hidePreview()
@@ -177,7 +185,7 @@ class DockIconHoverMonitor {
             lastIconFrame = nil
             return
         }
-
+        
         let windowInfos = fetchWindowInfos(for: app)
         if windowInfos.isEmpty {
             hidePreview()
@@ -185,26 +193,81 @@ class DockIconHoverMonitor {
             lastIconFrame = nil
             return
         }
-
+        
         let appName = app.localizedName ?? bundleIdentifier
-        let appIcon = app.icon ?? NSWorkspace.shared.icon(forFileType: NSFileTypeForHFSTypeCode(OSType(kGenericApplicationIcon)))
+        let appIcon = app.icon ?? NSWorkspace.shared.icon(for: .application)
+        
+        let panelWidth: CGFloat = 280
+        let panelHeight = CGFloat(82 + max(24, windowInfos.count * 32))
+        let anchorY = iconFrame.maxY + 10
+        let panelRect = CGRect(
+            x: iconFrame.midX - panelWidth/2,
+            y: anchorY + CGFloat((windowInfos.count - 1 ) * 7),
+            width: panelWidth,
+            height: panelHeight
+        )
+        self.lastIconFrame = iconFrame
+        self.lastPanelFrame = panelRect
+        DispatchQueue.main.asyncAfter(deadline: .now() + dockPreviewDelay) {
+            let newContent = DockPreviewPanel(
+                appName: appName,
+                appIcon: appIcon,
+                windowInfos: windowInfos,
+                onTitleClick: { [weak self] title in
+                    self?.focusWindow(of: app, withTitle: title)
+                }
+            )
+            
+            if let panel = self.previewPanel, let hosting = self.hostingView {
+                hosting.rootView = newContent
+                panel.setContentSize(panelRect.size)
+                panel.setFrameOrigin(panelRect.origin)
+            } else {
+                let hosting = NSHostingView(rootView: newContent)
+                let panel = NSPanel(contentRect: panelRect,
+                                    styleMask: [.borderless, .nonactivatingPanel],
+                                    backing: .buffered, defer: false)
+                panel.contentView = hosting
+                panel.isFloatingPanel = true
+                panel.level = .statusBar
+                panel.backgroundColor = .clear
+                panel.hasShadow = false
+                panel.ignoresMouseEvents = false
+                panel.hidesOnDeactivate = false
+                panel.becomesKeyOnlyIfNeeded = true
+                panel.worksWhenModal = true
+                panel.isReleasedWhenClosed = false
+                panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+                panel.setFrameOrigin(panelRect.origin)
+                panel.setContentSize(panelRect.size)
+                panel.orderFrontRegardless()
+                self.previewPanel = panel
+                self.hostingView = hosting
+                self.startMouseTimer()
+            }
+        }
+    }
+
+    private func updateDockPreviewContent() {
+        guard let hoveredIcon = getCurrentlySelectedDockIcon(),
+              let (iconFrame, bundleIdentifier) = getDockIconInfo(element: hoveredIcon),
+              let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).first,
+              let panel = previewPanel, let hosting = hostingView else {
+            return
+        }
+        let windowInfos = fetchWindowInfos(for: app)
+        let appName = app.localizedName ?? bundleIdentifier
+        let appIcon = app.icon ?? NSWorkspace.shared.icon(for: .application)
 
         let panelWidth: CGFloat = 280
         let panelHeight = CGFloat(82 + max(24, windowInfos.count * 32))
-        let panelRect: CGRect
-        if let lastIconFrame = lastIconFrame, let lastPanelFrame = lastPanelFrame {
-            if iconFrame.equalTo(lastIconFrame) {
-                panelRect = CGRect(origin: lastPanelFrame.origin, size: CGSize(width: panelWidth, height: panelHeight))
-            } else {
-                panelRect = CGRect(x: iconFrame.midX - panelWidth/2, y: iconFrame.maxY + 10, width: panelWidth, height: panelHeight)
-                self.lastIconFrame = iconFrame
-                self.lastPanelFrame = panelRect
-            }
-        } else {
-            panelRect = CGRect(x: iconFrame.midX - panelWidth/2, y: iconFrame.maxY + 10, width: panelWidth, height: panelHeight)
-            self.lastIconFrame = iconFrame
-            self.lastPanelFrame = panelRect
-        }
+        let anchorY = iconFrame.maxY + 10
+        let panelRect = CGRect(
+            x: iconFrame.midX - panelWidth/2,
+            y: anchorY + CGFloat((windowInfos.count - 1 ) * 7),
+            width: panelWidth,
+            height: panelHeight
+        )
 
         let newContent = DockPreviewPanel(
             appName: appName,
@@ -215,33 +278,9 @@ class DockIconHoverMonitor {
             }
         )
 
-        if let panel = previewPanel, let hosting = hostingView {
-            hosting.rootView = newContent
-            panel.setContentSize(panelRect.size)
-            panel.setFrameOrigin(panelRect.origin)
-        } else {
-            let hosting = NSHostingView(rootView: newContent)
-            let panel = NSPanel(contentRect: panelRect,
-                                styleMask: [.borderless, .nonactivatingPanel],
-                                backing: .buffered, defer: false)
-            panel.contentView = hosting
-            panel.isFloatingPanel = true
-            panel.level = .statusBar
-            panel.backgroundColor = .clear
-            panel.hasShadow = false
-            panel.ignoresMouseEvents = false
-            panel.hidesOnDeactivate = false
-            panel.becomesKeyOnlyIfNeeded = true
-            panel.worksWhenModal = true
-            panel.isReleasedWhenClosed = false
-            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-            panel.setFrameOrigin(panelRect.origin)
-            panel.setContentSize(panelRect.size)
-            panel.orderFrontRegardless()
-            self.previewPanel = panel
-            self.hostingView = hosting
-        }
-        startMouseTimer()
+        hosting.rootView = newContent
+        panel.setContentSize(panelRect.size)
+        panel.setFrameOrigin(panelRect.origin)
     }
 
     private func hidePreview() {
@@ -293,6 +332,30 @@ class DockIconHoverMonitor {
         return (frame, bundleID)
     }
 
+    private func isProbablyPictureInPicture(window: AXUIElement) -> Bool {
+        let subrole = window.subrole() ?? ""
+        if subrole == "AXPictureInPictureWindow" ||
+           subrole == "AXFloatingWindow" ||
+           subrole == "AXPanel" ||
+           subrole == "AXSystemDialog"
+        {
+            return true
+        }
+        var sizeValue: AnyObject?
+        if AXUIElementCopyAttributeValue(window, kAXSizeAttribute as CFString, &sizeValue) == .success {
+            let axSize = sizeValue as! AXValue
+            var sz = CGSize.zero
+            AXValueGetValue(axSize, .cgSize, &sz)
+            if sz.width < 220 || sz.height < 220 {
+                let title = window.title() ?? ""
+                if title.isEmpty {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
     private func fetchWindowInfos(for app: NSRunningApplication?) -> [(title: String, isMinimized: Bool, shouldHighlight: Bool)] {
         guard let app = app else { return [] }
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
@@ -311,15 +374,12 @@ class DockIconHoverMonitor {
         let isFrontmostApp = (app.processIdentifier == frontmostPID)
 
         var infos: [(String, Bool, Bool)] = []
+
         for window in windows {
-            var roleValue: AnyObject?
-            if AXUIElementCopyAttributeValue(window, kAXRoleAttribute as CFString, &roleValue) != .success {
-                continue
-            }
-            let role = roleValue as? String ?? ""
-            if role != "AXWindow" {
-                continue
-            }
+            let role = window.role() ?? "(nil)"
+            let pip = isProbablyPictureInPicture(window: window)
+            if role != "AXWindow" { continue }
+            if pip { continue }
 
             var titleValue: AnyObject?
             var minimizedValue: AnyObject?
@@ -338,7 +398,6 @@ class DockIconHoverMonitor {
                     title = "(Untitled)"
                 }
             }
-
             infos.append((title, minimized, shouldHighlight))
         }
         return infos
@@ -368,6 +427,7 @@ class DockIconHoverMonitor {
         }
         app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
     }
+
     func refresh() {
         if let observer = axObserver {
             CFRunLoopRemoveSource(CFRunLoopGetCurrent(), AXObserverGetRunLoopSource(observer), .commonModes)

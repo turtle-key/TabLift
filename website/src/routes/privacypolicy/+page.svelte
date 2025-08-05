@@ -1,7 +1,7 @@
 <svelte:head>
   <title>TabLift Privacy Policy – How We Protect Your Data</title>
   <meta name="description" content="Learn how TabLift handles your data and privacy. Read our privacy policy to understand what information is collected, how it is used, and how your privacy is protected." />
-  <link rel="canonical" href="https://tablift.mihai.sh/privacypolicy" />
+  <link rel="canonical" href="https://tablift.dev/privacypolicy" />
 </svelte:head>
 <main class="min-h-screen bg-[#f7fafc] dark:bg-[#18181c] flex flex-col items-center font-sans pt-[90px]">
   <div class="w-full max-w-4xl mx-auto px-4 text-gray-900 dark:text-gray-100">

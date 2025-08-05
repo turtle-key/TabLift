@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BE1405672E423CD400D3397F /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = BE14055D2E423CD400D3397F /* README.md */; };
+		BE14056C2E423CD400D3397F /* PFMoveApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = BE14055C2E423CD400D3397F /* PFMoveApplication.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		BE1AF66A2E1315D600DB8C44 /* CmdBacktickMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE1AF6692E1315D400DB8C44 /* CmdBacktickMonitor.swift */; };
 		BE1AF66C2E131C5F00DB8C44 /* MenuBarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE1AF66B2E131C5F00DB8C44 /* MenuBarManager.swift */; };
 		BE5209C62E117A010048CC49 /* CheckForUpdates.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5209C52E1179FB0048CC49 /* CheckForUpdates.swift */; };
@@ -29,6 +31,8 @@
 		BE83CD422E0EDC8600DF73E8 /* HyperLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD412E0EDC8600DF73E8 /* HyperLink.swift */; };
 		BE83CD462E0EDD2800DF73E8 /* NSWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD452E0EDD2800DF73E8 /* NSWindow.swift */; };
 		BEB9B6592E2F523E00A7456D /* MenuBarContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB9B6582E2F523E00A7456D /* MenuBarContentView.swift */; };
+		BED671AD2E42500900388481 /* HotKeyMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED671AC2E424FFF00388481 /* HotKeyMonitor.swift */; };
+		BED671AF2E42ACB600388481 /* MarqueeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED671AE2E42ACAD00388481 /* MarqueeText.swift */; };
 		BEE1EC4D2E062CD500D8CE5F /* AppMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC482E062CD500D8CE5F /* AppMonitor.swift */; };
 		BEE1EC4F2E062CD500D8CE5F /* WindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC4B2E062CD500D8CE5F /* WindowManager.swift */; };
 		BEE1EC502E062CD500D8CE5F /* TabLiftApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC4A2E062CD500D8CE5F /* TabLiftApp.swift */; };
@@ -36,6 +40,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		BE1405332E423CD400D3397F /* LetsMove.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LetsMove.h; sourceTree = "<group>"; };
+		BE14055B2E423CD400D3397F /* PFMoveApplication.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PFMoveApplication.h; sourceTree = "<group>"; };
+		BE14055C2E423CD400D3397F /* PFMoveApplication.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PFMoveApplication.m; sourceTree = "<group>"; };
+		BE14055D2E423CD400D3397F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		BE1405742E42408E00D3397F /* TabLift-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TabLift-Bridging-Header.h"; sourceTree = "<group>"; };
 		BE1AF6692E1315D400DB8C44 /* CmdBacktickMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CmdBacktickMonitor.swift; sourceTree = "<group>"; };
 		BE1AF66B2E131C5F00DB8C44 /* MenuBarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarManager.swift; sourceTree = "<group>"; };
 		BE5209C52E1179FB0048CC49 /* CheckForUpdates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckForUpdates.swift; sourceTree = "<group>"; };
@@ -57,12 +66,22 @@
 		BE83CD452E0EDD2800DF73E8 /* NSWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSWindow.swift; sourceTree = "<group>"; };
 		BEB9B6582E2F523E00A7456D /* MenuBarContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarContentView.swift; sourceTree = "<group>"; };
 		BEBC5E4A2E05826B004B38DB /* TabLift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TabLift.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BED671AC2E424FFF00388481 /* HotKeyMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyMonitor.swift; sourceTree = "<group>"; };
+		BED671AE2E42ACAD00388481 /* MarqueeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeText.swift; sourceTree = "<group>"; };
 		BEE1EC452E062CD500D8CE5F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BEE1EC462E062CD500D8CE5F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BEE1EC482E062CD500D8CE5F /* AppMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMonitor.swift; sourceTree = "<group>"; };
 		BEE1EC4A2E062CD500D8CE5F /* TabLiftApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabLiftApp.swift; sourceTree = "<group>"; };
 		BEE1EC4B2E062CD500D8CE5F /* WindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		BE14051F2E4208B900D3397F /* Resources */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		BEBC5E472E05826B004B38DB /* Frameworks */ = {
@@ -79,9 +98,31 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BE14055E2E423CD400D3397F /* LetsMove */ = {
+			isa = PBXGroup;
+			children = (
+				BE1405332E423CD400D3397F /* LetsMove.h */,
+				BE14055B2E423CD400D3397F /* PFMoveApplication.h */,
+				BE14055C2E423CD400D3397F /* PFMoveApplication.m */,
+				BE14055D2E423CD400D3397F /* README.md */,
+			);
+			path = LetsMove;
+			sourceTree = "<group>";
+		};
+		BE14055F2E423CD400D3397F /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				BE14055E2E423CD400D3397F /* LetsMove */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		BEBC5E412E05826B004B38DB = {
 			isa = PBXGroup;
 			children = (
+				BE1405742E42408E00D3397F /* TabLift-Bridging-Header.h */,
+				BE14055F2E423CD400D3397F /* Pods */,
+				BE14051F2E4208B900D3397F /* Resources */,
 				BE5209D62E1183AF0048CC49 /* Config.xcconfig */,
 				BEE1EC452E062CD500D8CE5F /* Assets.xcassets */,
 				BEE1EC462E062CD500D8CE5F /* Info.plist */,
@@ -103,6 +144,8 @@
 		BEE1EC4C2E062CD500D8CE5F /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				BED671AE2E42ACAD00388481 /* MarqueeText.swift */,
+				BED671AC2E424FFF00388481 /* HotKeyMonitor.swift */,
 				BE5A39C62E3A409000146065 /* DockPreviewPanel.swift */,
 				BE5A39C42E3A385F00146065 /* DockClickMonitor.swift */,
 				BE5A39C22E3A33C700146065 /* AXUIElement+Helpers.swift */,
@@ -142,6 +185,9 @@
 			);
 			dependencies = (
 			);
+			fileSystemSynchronizedGroups = (
+				BE14051F2E4208B900D3397F /* Resources */,
+			);
 			name = TabLift;
 			packageProductDependencies = (
 				BE5209C82E117B560048CC49 /* Defaults */,
@@ -174,6 +220,31 @@
 			knownRegions = (
 				en,
 				Base,
+				de,
+				el,
+				ja,
+				mk,
+				zh_CN,
+				nb,
+				es,
+				pt_BR,
+				da,
+				it,
+				sk,
+				sr,
+				sv,
+				cs,
+				ko,
+				"vi-VN",
+				hu,
+				tr,
+				pl,
+				zh_TW,
+				ru,
+				fr,
+				nl,
+				pt,
+				ca,
 			);
 			mainGroup = BEBC5E412E05826B004B38DB;
 			minimizedProjectReferenceProxies = 1;
@@ -197,6 +268,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BE1405672E423CD400D3397F /* README.md in Resources */,
 				BE5209D72E1183AF0048CC49 /* Config.xcconfig in Resources */,
 				BEE1EC532E062CD500D8CE5F /* Assets.xcassets in Resources */,
 			);
@@ -219,11 +291,14 @@
 				BEE1EC4F2E062CD500D8CE5F /* WindowManager.swift in Sources */,
 				BE5A39C72E3A409100146065 /* DockPreviewPanel.swift in Sources */,
 				BE5A39C52E3A387700146065 /* DockClickMonitor.swift in Sources */,
+				BED671AF2E42ACB600388481 /* MarqueeText.swift in Sources */,
+				BE14056C2E423CD400D3397F /* PFMoveApplication.m in Sources */,
 				BEB9B6592E2F523E00A7456D /* MenuBarContentView.swift in Sources */,
 				BE1AF66A2E1315D600DB8C44 /* CmdBacktickMonitor.swift in Sources */,
 				BE5209C62E117A010048CC49 /* CheckForUpdates.swift in Sources */,
 				BEE1EC502E062CD500D8CE5F /* TabLiftApp.swift in Sources */,
 				BE83CD3C2E0EDC2500DF73E8 /* AccessibilityPermission.swift in Sources */,
+				BED671AD2E42500900388481 /* HotKeyMonitor.swift in Sources */,
 				BE5A39C32E3A33CA00146065 /* AXUIElement+Helpers.swift in Sources */,
 				BE5209EB2E11A1270048CC49 /* TabLift.swift in Sources */,
 				BE83CD3E2E0EDC2E00DF73E8 /* AccessibilityPermissionWindow.swift in Sources */,
@@ -402,6 +477,7 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "TabLift-Bridging-Header.h";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
@@ -456,6 +532,7 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "TabLift-Bridging-Header.h";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
