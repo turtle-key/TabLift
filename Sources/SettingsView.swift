@@ -32,6 +32,9 @@ class SettingsWindow: NSWindow {
     }
 }
 
+// --- Make sure all footers are the same height and aligned ---
+let footerHeight: CGFloat = 20
+
 struct GeneralSettingsTab: View {
     @AppStorage(WindowManager.restoreAllKey) var restoreAllWindows: Bool = false
     @AppStorage(WindowManager.openWindowKey) private var openNewWindowStorage: Bool = true
@@ -61,154 +64,142 @@ struct GeneralSettingsTab: View {
     private let helpTextMaxHeight: CGFloat = 46 // ~2 lines at caption font
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                Form {
-                    Section(header: Label("App Launch & Appearance", systemImage: "rectangle.stack").font(.headline)) {
-                        Toggle(isOn: $startAtLogin) {
-                            Text("Start at login")
-                                .font(.body)
-                        }
-                        .help("Launch TabLift automatically when you log in to your Mac.")
+        VStack(spacing: 20) {
+            Form {
+                Section(header: Label("App Launch & Appearance", systemImage: "rectangle.stack").font(.headline)) {
+                    Toggle(isOn: $startAtLogin) {
+                        Text("Start at login")
+                            .font(.body)
+                    }
+                    .help("Launch TabLift automatically when you log in to your Mac.")
 
-                        Toggle(isOn: $showMenuBarIcon) {
-                            Text("Show in menu bar")
-                                .font(.body)
-                            if !showMenuBarIcon {
-                                Text("To show the settings, launch TabLift again.")
-                                    .foregroundColor(.secondary)
-                                    .font(.caption)
-                                    .padding(.top, 2)
+                    Toggle(isOn: $showMenuBarIcon) {
+                        Text("Show in menu bar")
+                            .font(.body)
+                        if !showMenuBarIcon {
+                            Text("To show the settings, launch TabLift again.")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                                .padding(.top, 2)
+                        }
+                    }
+                    .help("Show or hide the TabLift icon in your menu bar for quick access.")
+
+                    Toggle(isOn: $showDockIcon) {
+                        Text("Show in Dock")
+                            .font(.body)
+                    }
+                    .help("Display the icon of the app in the Dock. Works just like a normal app.")
+                }
+
+                Section(header: Label("Window Switching Behavior", systemImage: "arrow.triangle.swap").font(.headline)) {
+                    VStack(alignment: .leading, spacing: 24) {
+                        // Restore All Windows Demo
+                        DemoSection(
+                            toggle: Toggle(isOn: $restoreAllWindows) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Restore all minimized windows on app switch")
+                                        .font(.body)
+                                    if !restoreAllWindows {
+                                        Text("When disabled, only the most recently minimized window will be restored.")
+                                            .foregroundColor(.secondary)
+                                            .font(.caption)
+                                            .padding(.top, 2)
+                                    }
+                                }
                             }
-                        }
-                        .help("Show or hide the TabLift icon in your menu bar for quick access.")
+                            .help("If enabled, switching to an app will restore all its minimized windows. If disabled, only the last minimized window will be restored."),
+                            demoType: .restore,
+                            hoveredDemo: $hoveredDemo,
+                            videoName: "restoreall",
+                            helpTextActive: "Enabled: When you switch to an app, all of its minimized windows are instantly restored. The video above shows this effect when the toggle is ON.",
+                            helpTextInactive: "Disabled: Only the last minimized window is restored when switching apps. The video preview demonstrates the result when enabled.",
+                            maxWidth: helpTextMaxWidth,
+                            maxHeight: helpTextMaxHeight
+                        )
 
-                        Toggle(isOn: $showDockIcon) {
-                            Text("Show in Dock")
-                                .font(.body)
-                        }
-                        .help("Display the icon of the app in the Dock. Works just like a normal app.")
-                    }
-
-                    Section(header: Label("Window Switching Behavior", systemImage: "arrow.triangle.swap").font(.headline)) {
-                        VStack(alignment: .leading, spacing: 24) {
-                            // Restore All Windows Demo
-                            DemoSection(
-                                toggle: Toggle(isOn: $restoreAllWindows) {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Restore all minimized windows on app switch")
-                                            .font(.body)
-                                        if !restoreAllWindows {
-                                            Text("When disabled, only the most recently minimized window will be restored.")
-                                                .foregroundColor(.secondary)
-                                                .font(.caption)
-                                                .padding(.top, 2)
-                                        }
+                        // Open New Window Demo
+                        DemoSection(
+                            toggle: Toggle(isOn: $openNewWindow) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Automatically open a window for apps with no windows")
+                                        .font(.body)
+                                    if !openNewWindow {
+                                        Text("When disabled, switching to an app without windows won't open a new window.")
+                                            .foregroundColor(.secondary)
+                                            .font(.caption)
+                                            .padding(.top, 2)
                                     }
                                 }
-                                .help("If enabled, switching to an app will restore all its minimized windows. If disabled, only the last minimized window will be restored."),
-                                demoType: .restore,
-                                hoveredDemo: $hoveredDemo,
-                                videoName: "restoreall",
-                                helpTextActive: "Enabled: When you switch to an app, all of its minimized windows are instantly restored. The video above shows this effect when the toggle is ON.",
-                                helpTextInactive: "Disabled: Only the last minimized window is restored when switching apps. The video preview demonstrates the result when enabled.",
-                                maxWidth: helpTextMaxWidth,
-                                maxHeight: helpTextMaxHeight
-                            )
+                            }
+                            .onChange(of: openNewWindow) { value in
+                                openNewWindowStorage = value
+                                if value {
+                                    minimizePreviousWindow = false
+                                    minimizePreviousWindowStorage = false
+                                }
+                            }
+                            .help("If enabled, a new window will be opened when switching to an app that has no visible windows."),
+                            demoType: .opennew,
+                            hoveredDemo: $hoveredDemo,
+                            videoName: "opennew",
+                            helpTextActive: "Enabled: TabLift automatically opens a new window for an app that doesn't have any open windows. See the video above for how it works when ON.",
+                            helpTextInactive: "Disabled: If you switch to an app with no windows, nothing opens. The video preview illustrates the result when enabled.",
+                            maxWidth: helpTextMaxWidth,
+                            maxHeight: helpTextMaxHeight
+                        )
 
-                            // Open New Window Demo
-                            DemoSection(
-                                toggle: Toggle(isOn: $openNewWindow) {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Automatically open a window for apps with no windows")
-                                            .font(.body)
-                                        if !openNewWindow {
-                                            Text("When disabled, switching to an app without windows won't open a new window.")
-                                                .foregroundColor(.secondary)
-                                                .font(.caption)
-                                                .padding(.top, 2)
-                                        }
+                        // Minimize Previous Window Demo
+                        DemoSection(
+                            toggle: Toggle(isOn: $minimizePreviousWindow) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Minimize previous window on app switch")
+                                        .font(.body)
+                                    if !minimizePreviousWindow {
+                                        Text("When disabled, switching to another app won't automatically minimize the previous one's window(s).")
+                                            .foregroundColor(.secondary)
+                                            .font(.caption)
+                                            .padding(.top, 2)
+                                    }
+                                    if openNewWindow && minimizePreviousWindow {
+                                        Text("Tip: 'Automatically open a window' and 'Minimize previous window' cannot be enabled at the same time.")
+                                            .foregroundColor(.red)
+                                            .font(.caption)
+                                            .padding(.top, 2)
                                     }
                                 }
-                                .onChange(of: openNewWindow) { value in
-                                    openNewWindowStorage = value
-                                    if value {
-                                        minimizePreviousWindow = false
-                                        minimizePreviousWindowStorage = false
-                                    }
+                            }
+                            .onChange(of: minimizePreviousWindow) { value in
+                                minimizePreviousWindowStorage = value
+                                if value {
+                                    openNewWindow = false
+                                    openNewWindowStorage = false
                                 }
-                                .help("If enabled, a new window will be opened when switching to an app that has no visible windows."),
-                                demoType: .opennew,
-                                hoveredDemo: $hoveredDemo,
-                                videoName: "opennew",
-                                helpTextActive: "Enabled: TabLift automatically opens a new window for an app that doesn't have any open windows. See the video above for how it works when ON.",
-                                helpTextInactive: "Disabled: If you switch to an app with no windows, nothing opens. The video preview illustrates the result when enabled.",
-                                maxWidth: helpTextMaxWidth,
-                                maxHeight: helpTextMaxHeight
-                            )
-
-                            // Minimize Previous Window Demo
-                            DemoSection(
-                                toggle: Toggle(isOn: $minimizePreviousWindow) {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Minimize previous window on app switch")
-                                            .font(.body)
-                                        if !minimizePreviousWindow {
-                                            Text("When disabled, switching to another app won't automatically minimize the previous one's window(s).")
-                                                .foregroundColor(.secondary)
-                                                .font(.caption)
-                                                .padding(.top, 2)
-                                        }
-                                        if openNewWindow && minimizePreviousWindow {
-                                            Text("Tip: 'Automatically open a window' and 'Minimize previous window' cannot be enabled at the same time.")
-                                                .foregroundColor(.red)
-                                                .font(.caption)
-                                                .padding(.top, 2)
-                                        }
-                                    }
-                                }
-                                .onChange(of: minimizePreviousWindow) { value in
-                                    minimizePreviousWindowStorage = value
-                                    if value {
-                                        openNewWindow = false
-                                        openNewWindowStorage = false
-                                    }
-                                }
-                                .help("When enabled, the currently focused window is minimized when switching apps using Cmd+Tab. This helps keep the workspace clean by showing only one active window at a time."),
-                                demoType: .minimizeprev,
-                                hoveredDemo: $hoveredDemo,
-                                videoName: "minimizeprev",
-                                helpTextActive: "Enabled: The previous window is minimized automatically whenever you switch apps. The video above shows the result when ON.",
-                                helpTextInactive: "Disabled: Previous windows are left open when switching apps. The video preview shows what happens when enabled.",
-                                maxWidth: helpTextMaxWidth,
-                                maxHeight: helpTextMaxHeight
-                            )
-                        }
-                    }
-
-                    Section(header: Label("Dock Features", systemImage: "dock.rectangle").font(.headline)) {
-                        Toggle(isOn: $showDockPopups) {
-                            Text("Show Window Previews in Dock")
-                                .font(.body)
-                        }
-                        .help("Show a popup with app windows when hovering over icons in the Dock.")
+                            }
+                            .help("When enabled, the currently focused window is minimized when switching apps using Cmd+Tab. This helps keep the workspace clean by showing only one active window at a time."),
+                            demoType: .minimizeprev,
+                            hoveredDemo: $hoveredDemo,
+                            videoName: "minimizeprev",
+                            helpTextActive: "Enabled: The previous window is minimized automatically whenever you switch apps. The video above shows the result when ON.",
+                            helpTextInactive: "Disabled: Previous windows are left open when switching apps. The video preview shows what happens when enabled.",
+                            maxWidth: helpTextMaxWidth,
+                            maxHeight: helpTextMaxHeight
+                        )
                     }
                 }
-                .modifier(FormViewModifier())
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
 
-            HStack {
-                Link(destination: licenseURL) {
-                    Text(copyright)
-                        .font(.footnote)
-                        .foregroundColor(.gray)
+                Section(header: Label("Dock Features", systemImage: "dock.rectangle").font(.headline)) {
+                    Toggle(isOn: $showDockPopups) {
+                        Text("Show Window Previews in Dock")
+                            .font(.body)
+                    }
+                    .help("Show a popup with app windows when hovering over icons in the Dock.")
                 }
-                Spacer()
-                ModernQuitButton(isHovering: $isHoveringQuit)
             }
-            .padding(.vertical, 8)
-            .padding(.horizontal, 16)
+            .modifier(FormViewModifier())
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            FooterView(isHoveringQuit: $isHoveringQuit)
         }
         .onAppear {
             openNewWindow = openNewWindowStorage
@@ -224,6 +215,32 @@ struct GeneralSettingsTab: View {
                 try? SMAppService.mainApp.unregister()
             }
         }
+    }
+}
+
+// Shared Footer component for alignment
+struct FooterView: View {
+    @Binding var isHoveringQuit: Bool
+    private let copyright = "AGPL-3.0 © Mihai-Eduard Ghețu"
+    private var licenseURL: URL {
+        URL(string: "https://github.com/turtle-key/TabLift/blob/main/LICENSE")!
+    }
+
+    var body: some View {
+        HStack {
+            Link(destination: licenseURL) {
+                Text(copyright)
+                    .font(.footnote)
+                    .foregroundColor(.gray)
+            }
+            Spacer()
+            ModernQuitButton(isHovering: $isHoveringQuit)
+        }
+        .padding(.vertical, 4)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 20)
+        .frame(height: footerHeight+5) 
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -377,8 +394,6 @@ struct DemoHelpText: View {
             .padding(.bottom, 8)
     }
 }
-
-// --- AboutTab, ModernAboutLink, ModernQuitButton, SupportTab unchanged ---
 
 // --- AboutTab, ModernAboutLink, ModernQuitButton, SupportTab unchanged ---
 struct AboutTab: View {
