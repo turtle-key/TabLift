@@ -113,11 +113,9 @@ class DockIconHoverMonitor {
         stopMouseTimer()
         mouseTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             guard let self = self else { return }
-            // Only update popup content if visible, do NOT call handleDockSelectionChange
             if self.previewPanel?.isVisible ?? false {
                 self.updateDockPreviewContent()
             }
-            // Also check mouse position and dismiss if needed
             self.checkMouseAndDismissIfNeeded()
         }
     }
@@ -198,20 +196,15 @@ class DockIconHoverMonitor {
 
         let panelWidth: CGFloat = 280
         let panelHeight = CGFloat(82 + max(24, windowInfos.count * 32))
-        let panelRect: CGRect
-        if let lastIconFrame = lastIconFrame, let lastPanelFrame = lastPanelFrame {
-            if iconFrame.equalTo(lastIconFrame) {
-                panelRect = CGRect(origin: lastPanelFrame.origin, size: CGSize(width: panelWidth, height: panelHeight))
-            } else {
-                panelRect = CGRect(x: iconFrame.midX - panelWidth/2, y: iconFrame.maxY + 10, width: panelWidth, height: panelHeight)
-                self.lastIconFrame = iconFrame
-                self.lastPanelFrame = panelRect
-            }
-        } else {
-            panelRect = CGRect(x: iconFrame.midX - panelWidth/2, y: iconFrame.maxY + 10, width: panelWidth, height: panelHeight)
-            self.lastIconFrame = iconFrame
-            self.lastPanelFrame = panelRect
-        }
+        let anchorY = iconFrame.maxY + 10
+        let panelRect = CGRect(
+            x: iconFrame.midX - panelWidth/2,
+            y: anchorY + CGFloat((windowInfos.count - 1 ) * 7),
+            width: panelWidth,
+            height: panelHeight
+        )
+        self.lastIconFrame = iconFrame
+        self.lastPanelFrame = panelRect
 
         let newContent = DockPreviewPanel(
             appName: appName,
@@ -256,7 +249,6 @@ class DockIconHoverMonitor {
               let (iconFrame, bundleIdentifier) = getDockIconInfo(element: hoveredIcon),
               let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).first,
               let panel = previewPanel, let hosting = hostingView else {
-            // If any are missing, do nothing (do NOT close/recreate here!)
             return
         }
         let windowInfos = fetchWindowInfos(for: app)
@@ -265,7 +257,13 @@ class DockIconHoverMonitor {
 
         let panelWidth: CGFloat = 280
         let panelHeight = CGFloat(82 + max(24, windowInfos.count * 32))
-        let panelRect = CGRect(x: iconFrame.midX - panelWidth/2, y: iconFrame.maxY + 10, width: panelWidth, height: panelHeight)
+        let anchorY = iconFrame.maxY + 10
+        let panelRect = CGRect(
+            x: iconFrame.midX - panelWidth/2,
+            y: anchorY + CGFloat((windowInfos.count - 1 ) * 7),
+            width: panelWidth,
+            height: panelHeight
+        )
 
         let newContent = DockPreviewPanel(
             appName: appName,
@@ -339,7 +337,6 @@ class DockIconHoverMonitor {
         {
             return true
         }
-        // Heuristic: Small untitled window
         var sizeValue: AnyObject?
         if AXUIElementCopyAttributeValue(window, kAXSizeAttribute as CFString, &sizeValue) == .success {
             let axSize = sizeValue as! AXValue
@@ -377,7 +374,6 @@ class DockIconHoverMonitor {
         for window in windows {
             let role = window.role() ?? "(nil)"
             let pip = isProbablyPictureInPicture(window: window)
-
             if role != "AXWindow" { continue }
             if pip { continue }
 
@@ -398,7 +394,6 @@ class DockIconHoverMonitor {
                     title = "(Untitled)"
                 }
             }
-
             infos.append((title, minimized, shouldHighlight))
         }
         return infos
@@ -428,6 +423,7 @@ class DockIconHoverMonitor {
         }
         app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
     }
+
     func refresh() {
         if let observer = axObserver {
             CFRunLoopRemoveSource(CFRunLoopGetCurrent(), AXObserverGetRunLoopSource(observer), .commonModes)
