@@ -64,6 +64,14 @@
 		BEE1EC4B2E062CD500D8CE5F /* WindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		BE14051F2E4208B900D3397F /* Resources */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		BEBC5E472E05826B004B38DB /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -82,6 +90,7 @@
 		BEBC5E412E05826B004B38DB = {
 			isa = PBXGroup;
 			children = (
+				BE14051F2E4208B900D3397F /* Resources */,
 				BE5209D62E1183AF0048CC49 /* Config.xcconfig */,
 				BEE1EC452E062CD500D8CE5F /* Assets.xcassets */,
 				BEE1EC462E062CD500D8CE5F /* Info.plist */,
@@ -141,6 +150,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				BE14051F2E4208B900D3397F /* Resources */,
 			);
 			name = TabLift;
 			packageProductDependencies = (
