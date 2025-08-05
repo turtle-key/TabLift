@@ -32,6 +32,7 @@
 		BE83CD462E0EDD2800DF73E8 /* NSWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE83CD452E0EDD2800DF73E8 /* NSWindow.swift */; };
 		BEB9B6592E2F523E00A7456D /* MenuBarContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB9B6582E2F523E00A7456D /* MenuBarContentView.swift */; };
 		BED671AD2E42500900388481 /* HotKeyMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED671AC2E424FFF00388481 /* HotKeyMonitor.swift */; };
+		BED671AF2E42ACB600388481 /* MarqueeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED671AE2E42ACAD00388481 /* MarqueeText.swift */; };
 		BEE1EC4D2E062CD500D8CE5F /* AppMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC482E062CD500D8CE5F /* AppMonitor.swift */; };
 		BEE1EC4F2E062CD500D8CE5F /* WindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC4B2E062CD500D8CE5F /* WindowManager.swift */; };
 		BEE1EC502E062CD500D8CE5F /* TabLiftApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE1EC4A2E062CD500D8CE5F /* TabLiftApp.swift */; };
@@ -66,6 +67,7 @@
 		BEB9B6582E2F523E00A7456D /* MenuBarContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarContentView.swift; sourceTree = "<group>"; };
 		BEBC5E4A2E05826B004B38DB /* TabLift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TabLift.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BED671AC2E424FFF00388481 /* HotKeyMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyMonitor.swift; sourceTree = "<group>"; };
+		BED671AE2E42ACAD00388481 /* MarqueeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeText.swift; sourceTree = "<group>"; };
 		BEE1EC452E062CD500D8CE5F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BEE1EC462E062CD500D8CE5F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BEE1EC482E062CD500D8CE5F /* AppMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMonitor.swift; sourceTree = "<group>"; };
@@ -142,6 +144,7 @@
 		BEE1EC4C2E062CD500D8CE5F /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				BED671AE2E42ACAD00388481 /* MarqueeText.swift */,
 				BED671AC2E424FFF00388481 /* HotKeyMonitor.swift */,
 				BE5A39C62E3A409000146065 /* DockPreviewPanel.swift */,
 				BE5A39C42E3A385F00146065 /* DockClickMonitor.swift */,
@@ -288,6 +291,7 @@
 				BEE1EC4F2E062CD500D8CE5F /* WindowManager.swift in Sources */,
 				BE5A39C72E3A409100146065 /* DockPreviewPanel.swift in Sources */,
 				BE5A39C52E3A387700146065 /* DockClickMonitor.swift in Sources */,
+				BED671AF2E42ACB600388481 /* MarqueeText.swift in Sources */,
 				BE14056C2E423CD400D3397F /* PFMoveApplication.m in Sources */,
 				BEB9B6592E2F523E00A7456D /* MenuBarContentView.swift in Sources */,
 				BE1AF66A2E1315D600DB8C44 /* CmdBacktickMonitor.swift in Sources */,
