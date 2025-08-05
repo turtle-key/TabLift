@@ -43,7 +43,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             "minimizePreviousWindow": false,
             "showDockPopups": true,
             "showMenuBarIcon": true,
-            "showDockIcon": true,
+            "showDockIcon": false,
             "startAtLogin": true,
         ])
 

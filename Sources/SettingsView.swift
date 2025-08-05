@@ -61,7 +61,7 @@ struct GeneralSettingsTab: View {
     @AppStorage("showMenuBarIcon") var showMenuBarIcon: Bool = true
     @AppStorage("showDockPopups") var showDockPopups: Bool = true
     @AppStorage("startAtLogin") var startAtLogin: Bool = true
-    @AppStorage("showDockIcon") var showDockIcon: Bool = true
+    @AppStorage("showDockIcon") var showDockIcon: Bool = false
     @State private var isHoveringQuit = false
 
     // Local state for mutual exclusion
