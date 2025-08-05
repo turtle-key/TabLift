@@ -558,38 +558,254 @@ struct ModernQuitButton: View {
     }
 }
 
+
 struct SupportTab: View {
     @State private var isHoveringQuit = false
-    private let copyright = "AGPL-3.0 © Mihai-Eduard Ghețu"
-    private var licenseURL: URL {
-        URL(string: "https://github.com/turtle-key/TabLift/blob/main/LICENSE")!
-    }
-
     var body: some View {
         VStack(spacing: 0) {
-            Form {
-                Section {
-                    AccessibilityPermissionCheckView()
+            ScrollView(.vertical) {
+                VStack(spacing: 0) {
+                    TabliftCheatSheetView()
+                        .padding(.top, 14)
+                        .padding(.horizontal, 12)
+                        .frame(maxWidth: 420)
+                    Form {
+                        Section {
+                            AccessibilityPermissionCheckView()
+                        }
+                        Section {
+                            CheckForUpdatesView()
+                        }
+                        .modifier(SectionViewModifier())
+                    }
+                    .modifier(FormViewModifier())
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                Section {
-                    CheckForUpdatesView()
-                }
-                .modifier(SectionViewModifier())
+                .frame(maxWidth: .infinity)
             }
-            .modifier(FormViewModifier())
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.bottom, 20)
+            FooterView(isHoveringQuit: $isHoveringQuit)
+        }
+    }
+}
 
-            HStack {
-                Link(destination: licenseURL) {
-                    Text(copyright)
-                        .font(.footnote)
-                        .foregroundColor(.gray)
+struct TabliftCheatSheetView: View {
+    var body: some View {
+        VStack(spacing: 15) {
+            HStack(alignment: .center, spacing: 18) {
+                KeyboardFaceView()
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("TabLift Cheat Sheet")
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundColor(Color.accentColor)
+                        .shadow(color: Color.accentColor.opacity(0.09), radius: 1, x: 0, y: 1)
+                    Text("Essential shortcuts for smooth window switching.")
+                        .font(.callout)
+                        .foregroundColor(.secondary)
                 }
                 Spacer()
-                ModernQuitButton(isHovering: $isHoveringQuit)
+            }
+            VStack(spacing: 8) {
+                CheatSheetRow(
+                    keys: ["⌘", "⇧", "M"],
+                    description: "Minimize all windows of the frontmost app"
+                )
+                CheatSheetRowMouseDock(
+                    description: "Restore or minimize windows by clicking the Dock icon"
+                )
+                CheatSheetRow(
+                    keys: ["⌘", "`"],
+                    description: "Restore next minimized window in the frontmost app"
+                )
+                CheatSheetRow(
+                    keys: ["⌘", "Tab"],
+                    description: "Switch between running apps"
+                )
+            }
+            .padding(.top, 4)
+        }
+        .padding(.vertical, 16)
+        .padding(.horizontal, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 15, style: .continuous)
+                .fill(Color(NSColor.controlBackgroundColor).opacity(0.85))
+                .shadow(color: Color.accentColor.opacity(0.10), radius: 7, x: 0, y: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 15, style: .continuous)
+                .stroke(Color.accentColor.opacity(0.19), lineWidth: 1)
+        )
+    }
+}
+
+struct KeyboardFaceView: View {
+    var body: some View {
+        HStack(spacing: 7) {
+            KeyCap(symbol: "⌘")
+            KeyCapKeyboardFace()
+        }
+    }
+}
+
+struct KeyCap: View {
+    let symbol: String
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(
+                    LinearGradient(gradient: Gradient(colors: [
+                        Color.white,
+                        Color(NSColor.systemGray).opacity(0.18)
+                    ]), startPoint: .top, endPoint: .bottom)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(Color.accentColor.opacity(0.75), lineWidth: 2)
+                )
+                .shadow(color: Color.accentColor.opacity(0.13), radius: 3, x: 0, y: 1)
+            Text(symbol)
+                .font(.system(size: 20, weight: .medium, design: .rounded))
+                .foregroundColor(Color.accentColor)
+        }
+        .frame(width: 40, height: 40)
+    }
+}
+
+struct KeyCapKeyboardFace: View {
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(
+                    LinearGradient(gradient: Gradient(colors: [
+                        Color.white,
+                        Color(NSColor.systemGray).opacity(0.18)
+                    ]), startPoint: .top, endPoint: .bottom)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(Color.accentColor.opacity(0.75), lineWidth: 2)
+                )
+                .shadow(color: Color.accentColor.opacity(0.13), radius: 3, x: 0, y: 1)
+            VStack(spacing: 0) {
+                HStack(spacing: 8) {
+                    Circle()
+                        .fill(Color.accentColor.opacity(0.85))
+                        .frame(width: 5, height: 5)
+                    Circle()
+                        .fill(Color.accentColor.opacity(0.85))
+                        .frame(width: 5, height: 5)
+                }
+                .padding(.top, 8)
+                SmileShape()
+                    .stroke(Color.accentColor.opacity(0.8), lineWidth: 2)
+                    .frame(width: 18, height: 10)
+                    .offset(y: -2)
+            }
+        }
+        .frame(width: 40, height: 40)
+    }
+}
+
+struct SmileShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.addArc(center: CGPoint(x: rect.midX, y: rect.minY + 4),
+                    radius: rect.width * 0.33,
+                    startAngle: .degrees(33),
+                    endAngle: .degrees(147),
+                    clockwise: false)
+        return path
+    }
+}
+
+struct CheatSheetRow: View {
+    let keys: [String]
+    let description: String
+
+    var body: some View {
+        GeometryReader { geometry in
+            HStack(alignment: .center, spacing: 0) {
+                HStack(spacing: 4) {
+                    ForEach(keys, id: \.self) { key in
+                        KeyCap(symbol: key)
+                    }
+                }
+                Text(description)
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .foregroundColor(.primary)
+                    .frame(width: geometry.size.width - 40 * CGFloat(keys.count) - 12, alignment: .leading)
+                    .padding(.leading, 12)
             }
             .padding(.vertical, 8)
-            .padding(.horizontal, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color(NSColor.controlBackgroundColor).opacity(0.19))
+            )
         }
+        .frame(height: 56)
+    }
+}
+
+struct CheatSheetRowMouseDock: View {
+    let description: String
+    var body: some View {
+        GeometryReader { geometry in
+            HStack(alignment: .center, spacing: 0) {
+                HStack(spacing: 4) {
+                    MouseIcon()
+                    DockKeyCap()
+                }
+                Text(description)
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .foregroundColor(.primary)
+                    .frame(width: geometry.size.width - 40 * 2 - 12, alignment: .leading)
+                    .padding(.leading, 12)
+            }
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color(NSColor.controlBackgroundColor).opacity(0.19))
+            )
+        }
+        .frame(height: 56)
+    }
+}
+
+struct MouseIcon: View {
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(NSColor.systemGray))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.accentColor.opacity(0.4), lineWidth: 1)
+                )
+            VStack(spacing: 0) {
+                Rectangle()
+                    .fill(Color.accentColor.opacity(0.85))
+                    .frame(width: 4, height: 12)
+                    .cornerRadius(2)
+                    .offset(y:-8)
+            }
+        }
+        .frame(width: 40, height: 40)
+    }
+}
+
+struct DockKeyCap: View {
+    var body: some View {
+        RoundedRectangle(cornerRadius: 10, style: .continuous)
+            .fill(
+                LinearGradient(gradient: Gradient(colors: [
+                    Color.white,
+                    Color(NSColor.systemGray).opacity(0.18)
+                ]), startPoint: .top, endPoint: .bottom)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(Color.accentColor.opacity(0.3), lineWidth: 1.2)
+            )
+            .shadow(color: Color.accentColor.opacity(0.09), radius: 1, x: 0, y: 1)
+            .frame(width: 40, height: 40)
     }
 }

@@ -15,6 +15,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var cmdBacktickMonitor: CmdBacktickMonitor?
     var window: NSWindow?
     private let autoUpdateManager = AutoUpdateManager.shared
+    private var globalHotkeyMonitor: HotkeyMonitor?
 
     var dockClickMonitor: DockClickMonitor?
     var dockIconHoverMonitor: DockIconHoverMonitor?
@@ -68,6 +69,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         let showMenuBar = UserDefaults.standard.bool(forKey: "showMenuBarIcon")
         MenuBarManager.shared.showMenuBarIcon(show: showMenuBar)
+        globalHotkeyMonitor = HotkeyMonitor()
 
         // Sleep/wake refresh
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
