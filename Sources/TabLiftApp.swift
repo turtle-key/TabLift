@@ -27,10 +27,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
     func applicationDidFinishLaunching(_ notification: Notification) {
         UserDefaults.standard.register(defaults: [
+            "restoreAllWindows": true,
+            "openNewWindow": true,
+            "minimizePreviousWindow": false,
+            "showDockPopups": true,
             "showMenuBarIcon": true,
-            "startAtLogin": true,
             "showDockIcon": true,
+            "startAtLogin": true,
         ])
+
+        applyAllSettings()
 
         NotificationCenter.default.addObserver(
             self,
@@ -64,6 +70,33 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 ) { [weak self] _ in
                     self?.handleWakeFromSleep()
                 }
+    }
+    
+    func applyAllSettings() {
+        let showMenuBar = UserDefaults.standard.bool(forKey: "showMenuBarIcon")
+        let showDockIcon = UserDefaults.standard.bool(forKey: "showDockIcon")
+        let startAtLogin = UserDefaults.standard.bool(forKey: "startAtLogin")
+
+        MenuBarManager.shared.showMenuBarIcon(show: showMenuBar)
+        updateDockIconPolicy(showDockIcon)
+        registerLoginItemIfNeeded(startAtLogin)
+
+        appMonitor?.refresh()
+        dockClickMonitor?.refresh()
+        cmdBacktickMonitor?.refresh()
+    }
+
+    func updateDockIconPolicy(_ showDockIcon: Bool) {
+        let policy: NSApplication.ActivationPolicy = showDockIcon ? .regular : .accessory
+        NSApp.setActivationPolicy(policy)
+    }
+
+    func registerLoginItemIfNeeded(_ startAtLogin: Bool) {
+        if startAtLogin {
+            try? SMAppService.mainApp.register()
+        } else {
+            try? SMAppService.mainApp.unregister()
+        }
     }
     func handleWakeFromSleep() {
         print("Mac woke from sleep — refreshing TabLift state")
