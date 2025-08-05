@@ -4,6 +4,9 @@ import ApplicationServices
 import UniformTypeIdentifiers
 
 class DockIconHoverMonitor {
+    private var dockPreviewDelay: Double {
+        UserDefaults.standard.double(forKey: "dockPreviewSpeed")
+    }
     private var axObserver: AXObserver?
     private var dockPID: pid_t = 0
     private var previewPanel: NSPanel?
@@ -161,7 +164,7 @@ class DockIconHoverMonitor {
             hidePreview()
             return
         }
-
+        
         guard let hoveredIcon = getCurrentlySelectedDockIcon() else {
             lastBundleIdentifier = nil
             hidePreview()
@@ -182,7 +185,7 @@ class DockIconHoverMonitor {
             lastIconFrame = nil
             return
         }
-
+        
         let windowInfos = fetchWindowInfos(for: app)
         if windowInfos.isEmpty {
             hidePreview()
@@ -190,10 +193,10 @@ class DockIconHoverMonitor {
             lastIconFrame = nil
             return
         }
-
+        
         let appName = app.localizedName ?? bundleIdentifier
         let appIcon = app.icon ?? NSWorkspace.shared.icon(for: .application)
-
+        
         let panelWidth: CGFloat = 280
         let panelHeight = CGFloat(82 + max(24, windowInfos.count * 32))
         let anchorY = iconFrame.maxY + 10
@@ -205,42 +208,43 @@ class DockIconHoverMonitor {
         )
         self.lastIconFrame = iconFrame
         self.lastPanelFrame = panelRect
-
-        let newContent = DockPreviewPanel(
-            appName: appName,
-            appIcon: appIcon,
-            windowInfos: windowInfos,
-            onTitleClick: { [weak self] title in
-                self?.focusWindow(of: app, withTitle: title)
+        DispatchQueue.main.asyncAfter(deadline: .now() + dockPreviewDelay) {
+            let newContent = DockPreviewPanel(
+                appName: appName,
+                appIcon: appIcon,
+                windowInfos: windowInfos,
+                onTitleClick: { [weak self] title in
+                    self?.focusWindow(of: app, withTitle: title)
+                }
+            )
+            
+            if let panel = self.previewPanel, let hosting = self.hostingView {
+                hosting.rootView = newContent
+                panel.setContentSize(panelRect.size)
+                panel.setFrameOrigin(panelRect.origin)
+            } else {
+                let hosting = NSHostingView(rootView: newContent)
+                let panel = NSPanel(contentRect: panelRect,
+                                    styleMask: [.borderless, .nonactivatingPanel],
+                                    backing: .buffered, defer: false)
+                panel.contentView = hosting
+                panel.isFloatingPanel = true
+                panel.level = .statusBar
+                panel.backgroundColor = .clear
+                panel.hasShadow = false
+                panel.ignoresMouseEvents = false
+                panel.hidesOnDeactivate = false
+                panel.becomesKeyOnlyIfNeeded = true
+                panel.worksWhenModal = true
+                panel.isReleasedWhenClosed = false
+                panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+                panel.setFrameOrigin(panelRect.origin)
+                panel.setContentSize(panelRect.size)
+                panel.orderFrontRegardless()
+                self.previewPanel = panel
+                self.hostingView = hosting
+                self.startMouseTimer()
             }
-        )
-
-        if let panel = previewPanel, let hosting = hostingView {
-            hosting.rootView = newContent
-            panel.setContentSize(panelRect.size)
-            panel.setFrameOrigin(panelRect.origin)
-        } else {
-            let hosting = NSHostingView(rootView: newContent)
-            let panel = NSPanel(contentRect: panelRect,
-                                styleMask: [.borderless, .nonactivatingPanel],
-                                backing: .buffered, defer: false)
-            panel.contentView = hosting
-            panel.isFloatingPanel = true
-            panel.level = .statusBar
-            panel.backgroundColor = .clear
-            panel.hasShadow = false
-            panel.ignoresMouseEvents = false
-            panel.hidesOnDeactivate = false
-            panel.becomesKeyOnlyIfNeeded = true
-            panel.worksWhenModal = true
-            panel.isReleasedWhenClosed = false
-            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-            panel.setFrameOrigin(panelRect.origin)
-            panel.setContentSize(panelRect.size)
-            panel.orderFrontRegardless()
-            self.previewPanel = panel
-            self.hostingView = hosting
-            self.startMouseTimer()
         }
     }
 

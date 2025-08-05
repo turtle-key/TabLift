@@ -1,7 +1,27 @@
 import SwiftUI
 import ServiceManagement
 import AVKit
+enum PerformanceProfile: String, CaseIterable, Identifiable {
+    case detailed = "Relaxed"
+    case balanced = "Default"
+    case fast = "Speedy"
+    var id: String { rawValue }
 
+    var hoverDelay: Double {
+        switch self {
+        case .detailed: return 0.40
+        case .balanced: return 0.20
+        case .fast: return 0.08
+        }
+    }
+    var fadeOutDuration: Double {
+        switch self {
+        case .detailed: return 0.40
+        case .balanced: return 0.25
+        case .fast: return 0.10
+        }
+    }
+}
 struct SettingsView: View {
     var body: some View {
         TabView {
@@ -32,7 +52,6 @@ class SettingsWindow: NSWindow {
     }
 }
 
-// --- Make sure all footers are the same height and aligned ---
 let footerHeight: CGFloat = 20
 
 struct GeneralSettingsTab: View {
@@ -58,7 +77,14 @@ struct GeneralSettingsTab: View {
     private var licenseURL: URL {
         URL(string: "https://github.com/turtle-key/TabLift/blob/main/LICENSE")!
     }
+    // performance profiles
+    @AppStorage("performanceProfile") var performanceProfileRaw: String = PerformanceProfile.balanced.rawValue
+    @AppStorage("dockPreviewSpeed") var dockPreviewSpeed: Double = PerformanceProfile.balanced.hoverDelay
+    @AppStorage("dockPreviewFade") var dockPreviewFade: Double = PerformanceProfile.balanced.fadeOutDuration
 
+    var selectedProfile: PerformanceProfile {
+        PerformanceProfile(rawValue: performanceProfileRaw) ?? .balanced
+    }
     // Maximum length of help texts (measured, can be tweaked)
     private let helpTextMaxWidth: CGFloat = 320
     private let helpTextMaxHeight: CGFloat = 46 // ~2 lines at caption font
@@ -98,6 +124,32 @@ struct GeneralSettingsTab: View {
                             .font(.body)
                     }
                     .help("Show a popup with app windows when hovering over icons in the Dock.")
+                }
+                Section(header: Label("Performance", systemImage: "speedometer").font(.headline)) {
+                    Picker("Dock preview speed", selection: $performanceProfileRaw) {
+                        ForEach(PerformanceProfile.allCases) { profile in
+                            Text(profile.rawValue)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .onChange(of: performanceProfileRaw) { newRaw in
+                        let newProfile = PerformanceProfile(rawValue: newRaw) ?? .balanced
+                        dockPreviewSpeed = newProfile.hoverDelay
+                        dockPreviewFade = newProfile.fadeOutDuration
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Profile: \(selectedProfile.rawValue)")
+                            .font(.headline)
+                        Text("How quickly the Dock preview appears and fades out when you hover.\n")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        HStack {
+                            Text("Preview delay: \(String(format: "%.2f", selectedProfile.hoverDelay))s")
+                            Text("Fade out: \(String(format: "%.2f", selectedProfile.fadeOutDuration))s")
+                        }
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    }
                 }
                 
                 Section(header: Label("Window Switching Behavior", systemImage: "arrow.triangle.swap").font(.headline)) {
@@ -195,7 +247,6 @@ struct GeneralSettingsTab: View {
                         )
                     }
                 }
-
             }
             .modifier(FormViewModifier())
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -245,7 +296,6 @@ struct FooterView: View {
     }
 }
 
-// --- DemoSection: toggle, video, and help text together, with delayed animation ---
 struct DemoSection<ToggleView: View>: View {
     let toggle: ToggleView
     let demoType: GeneralSettingsTab.DemoType
@@ -291,7 +341,6 @@ struct DemoSection<ToggleView: View>: View {
     }
 }
 
-// --- Demo macOS screen for video animation: NO controls, aspect fill, rounded, PREVIEW AT STARTUP ---
 struct DemoVideoScreen: View {
     let fileName: String
     let play: Bool
@@ -339,7 +388,6 @@ struct DemoVideoScreen: View {
     }
 }
 
-// --- VideoFill: NSViewRepresentable for macOS, aspect fill, NO controls ---
 struct VideoFill: NSViewRepresentable {
     let player: AVPlayer
 
@@ -355,7 +403,6 @@ struct VideoFill: NSViewRepresentable {
     }
 }
 
-// --- AVPlayerLayerView for macOS ---
 class AVPlayerLayerView: NSView {
     var player: AVPlayer? {
         didSet { playerLayer.player = player }
@@ -380,7 +427,6 @@ class AVPlayerLayerView: NSView {
     }
 }
 
-// --- Help Text Placement ---
 struct DemoHelpText: View {
     let text: String
     let maxWidth: CGFloat
@@ -396,7 +442,6 @@ struct DemoHelpText: View {
     }
 }
 
-// --- AboutTab, ModernAboutLink, ModernQuitButton, SupportTab unchanged ---
 struct AboutTab: View {
     private let appName = "TabLift"
     private let appDescription = "Minimized App Restorer"
