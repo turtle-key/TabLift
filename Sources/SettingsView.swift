@@ -91,7 +91,15 @@ struct GeneralSettingsTab: View {
                     }
                     .help("Display the icon of the app in the Dock. Works just like a normal app.")
                 }
-
+                
+                Section(header: Label("Dock Features", systemImage: "dock.rectangle").font(.headline)) {
+                    Toggle(isOn: $showDockPopups) {
+                        Text("Show Window Previews in Dock")
+                            .font(.body)
+                    }
+                    .help("Show a popup with app windows when hovering over icons in the Dock.")
+                }
+                
                 Section(header: Label("Window Switching Behavior", systemImage: "arrow.triangle.swap").font(.headline)) {
                     VStack(alignment: .leading, spacing: 24) {
                         // Restore All Windows Demo
@@ -188,13 +196,6 @@ struct GeneralSettingsTab: View {
                     }
                 }
 
-                Section(header: Label("Dock Features", systemImage: "dock.rectangle").font(.headline)) {
-                    Toggle(isOn: $showDockPopups) {
-                        Text("Show Window Previews in Dock")
-                            .font(.body)
-                    }
-                    .help("Show a popup with app windows when hovering over icons in the Dock.")
-                }
             }
             .modifier(FormViewModifier())
             .frame(maxWidth: .infinity, maxHeight: .infinity)
