@@ -115,6 +115,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         cmdBacktickMonitor?.refresh()
         dockClickMonitor?.refresh()
         dockIconHoverMonitor?.refresh()
+        globalHotkeyMonitor?.refresh()
         if !AccessibilityPermission.enabled {
             AccessibilityPermissionWindow.show()
         }
