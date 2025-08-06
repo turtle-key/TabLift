@@ -6,13 +6,39 @@ struct BlurView: View {
     }
 }
 
+// Helper struct for robust identity and equatability
+fileprivate struct WindowRow: Identifiable, Equatable {
+    let id: String
+    let title: String
+    let isMinimized: Bool
+    let shouldHighlight: Bool
+    let index: Int
+
+    init(index: Int, tuple: (title: String, isMinimized: Bool, shouldHighlight: Bool)) {
+        // Composite ID for stability; ideal would be a window pointer or identifier
+        self.id = "\(index)-\(tuple.title)-\(tuple.isMinimized)-\(tuple.shouldHighlight)"
+        self.title = tuple.title
+        self.isMinimized = tuple.isMinimized
+        self.shouldHighlight = tuple.shouldHighlight
+        self.index = index
+    }
+
+    static func == (lhs: WindowRow, rhs: WindowRow) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
 struct DockPreviewPanel: View {
     let appName: String
     let appIcon: NSImage
     let windowInfos: [(title: String, isMinimized: Bool, shouldHighlight: Bool)]
     let onTitleClick: (String) -> Void
-    @State private var hoveredIndex: Int? = nil
-    
+    @State private var hoveredID: String? = nil
+
+    private var windowRows: [WindowRow] {
+        windowInfos.enumerated().map { WindowRow(index: $0.offset, tuple: $0.element) }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .center, spacing: 12) {
@@ -30,16 +56,14 @@ struct DockPreviewPanel: View {
             }
             .padding(.bottom, 4)
             VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(windowInfos.enumerated()), id: \.offset) { idxInfo in
-                    let index = idxInfo.offset
-                    let (title, isMinimized, shouldHiglight) = idxInfo.element
+                ForEach(windowRows) { row in
                     Button(action: {
-                        onTitleClick(title)
+                        onTitleClick(row.title)
                     }) {
                         HStack {
-                            MarqueeText(text: title.isEmpty ? "(Untitled)" : title, maxWidth: 185)
-
-                            if isMinimized {
+                            MarqueeText(text: row.title.isEmpty ? "(Untitled)" : row.title, maxWidth: 185)
+                                .id(row.id)
+                            if row.isMinimized {
                                 MinimizedIndicator()
                                     .padding(.leading, 5)
                             }
@@ -49,23 +73,23 @@ struct DockPreviewPanel: View {
                         .padding(.horizontal, 10)
                         .background(
                             ZStack {
-                                if shouldHiglight {
+                                if row.shouldHighlight {
                                     RoundedRectangle(cornerRadius: 10)
                                         .fill(Color.accentColor.opacity(0.25))
                                         .shadow(color: .black.opacity(0.12), radius: 6, x: 0, y: 2)
-                                } else if hoveredIndex == index {
+                                } else if hoveredID == row.id {
                                     RoundedRectangle(cornerRadius: 10)
                                         .fill(Color.accentColor.opacity(0.15))
                                 }
                             }
                         )
-                        .scaleEffect(shouldHiglight ? 1.02 : 1.0)
-                        .animation(.easeOut(duration: 0.15), value: shouldHiglight)
+                        .scaleEffect(row.shouldHighlight ? 1.02 : 1.0)
+                        .animation(.easeOut(duration: 0.15), value: row.shouldHighlight)
                         .padding(.bottom, 6)
                     }
                     .buttonStyle(.plain)
                     .onHover { hovering in
-                        hoveredIndex = hovering ? index : nil
+                        hoveredID = hovering ? row.id : nil
                     }
                 }
             }
@@ -74,7 +98,7 @@ struct DockPreviewPanel: View {
         .padding(.vertical, 16)
         .dockStyle(cornerRadius: 18, highlightColor: nil)
         .frame(minWidth: 240, maxWidth: 320)
-        .animation(.snappy(duration: 0.13), value: hoveredIndex)
+        .animation(.snappy(duration: 0.13), value: hoveredID)
     }
 }
 
