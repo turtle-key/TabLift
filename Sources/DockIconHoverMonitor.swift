@@ -209,42 +209,57 @@ class DockIconHoverMonitor {
         self.lastIconFrame = iconFrame
         self.lastPanelFrame = panelRect
         DispatchQueue.main.asyncAfter(deadline: .now() + dockPreviewDelay) {
-            let newContent = DockPreviewPanel(
+            self.showOrUpdatePreviewPanel(
                 appName: appName,
                 appIcon: appIcon,
                 windowInfos: windowInfos,
-                onTitleClick: { [weak self] title in
-                    self?.focusWindow(of: app, withTitle: title)
-                }
+                panelRect: panelRect,
+                app: app
             )
-            
-            if let panel = self.previewPanel, let hosting = self.hostingView {
-                hosting.rootView = newContent
-                panel.setContentSize(panelRect.size)
-                panel.setFrameOrigin(panelRect.origin)
-            } else {
-                let hosting = NSHostingView(rootView: newContent)
-                let panel = NSPanel(contentRect: panelRect,
-                                    styleMask: [.borderless, .nonactivatingPanel],
-                                    backing: .buffered, defer: false)
-                panel.contentView = hosting
-                panel.isFloatingPanel = true
-                panel.level = .statusBar
-                panel.backgroundColor = .clear
-                panel.hasShadow = false
-                panel.ignoresMouseEvents = false
-                panel.hidesOnDeactivate = false
-                panel.becomesKeyOnlyIfNeeded = true
-                panel.worksWhenModal = true
-                panel.isReleasedWhenClosed = false
-                panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-                panel.setFrameOrigin(panelRect.origin)
-                panel.setContentSize(panelRect.size)
-                panel.orderFrontRegardless()
-                self.previewPanel = panel
-                self.hostingView = hosting
-                self.startMouseTimer()
+        }
+    }
+
+    private func showOrUpdatePreviewPanel(
+        appName: String,
+        appIcon: NSImage,
+        windowInfos: [(title: String, isMinimized: Bool, shouldHighlight: Bool)],
+        panelRect: CGRect,
+        app: NSRunningApplication
+    ) {
+        let newContent = DockPreviewPanel(
+            appName: appName,
+            appIcon: appIcon,
+            windowInfos: windowInfos,
+            onTitleClick: { [weak self] title in
+                self?.focusWindow(of: app, withTitle: title)
             }
+        )
+        if let panel = self.previewPanel, let hosting = self.hostingView {
+            hosting.rootView = newContent
+            panel.setContentSize(panelRect.size)
+            panel.setFrameOrigin(panelRect.origin)
+        } else {
+            let hosting = NSHostingView(rootView: newContent)
+            let panel = NSPanel(contentRect: panelRect,
+                                styleMask: [.borderless, .nonactivatingPanel],
+                                backing: .buffered, defer: false)
+            panel.contentView = hosting
+            panel.isFloatingPanel = true
+            panel.level = .statusBar
+            panel.backgroundColor = .clear
+            panel.hasShadow = false
+            panel.ignoresMouseEvents = false
+            panel.hidesOnDeactivate = false
+            panel.becomesKeyOnlyIfNeeded = true
+            panel.worksWhenModal = true
+            panel.isReleasedWhenClosed = false
+            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            panel.setFrameOrigin(panelRect.origin)
+            panel.setContentSize(panelRect.size)
+            panel.orderFrontRegardless()
+            self.previewPanel = panel
+            self.hostingView = hosting
+            self.startMouseTimer()
         }
     }
 
@@ -269,7 +284,7 @@ class DockIconHoverMonitor {
             height: panelHeight
         )
 
-        let newContent = DockPreviewPanel(
+        hosting.rootView = DockPreviewPanel(
             appName: appName,
             appIcon: appIcon,
             windowInfos: windowInfos,
@@ -277,8 +292,6 @@ class DockIconHoverMonitor {
                 self?.focusWindow(of: app, withTitle: title)
             }
         )
-
-        hosting.rootView = newContent
         panel.setContentSize(panelRect.size)
         panel.setFrameOrigin(panelRect.origin)
     }

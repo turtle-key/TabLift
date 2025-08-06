@@ -6,7 +6,6 @@ struct BlurView: View {
     }
 }
 
-// Helper struct for robust identity and equatability
 fileprivate struct WindowRow: Identifiable, Equatable {
     let id: String
     let title: String
@@ -15,7 +14,7 @@ fileprivate struct WindowRow: Identifiable, Equatable {
     let index: Int
 
     init(index: Int, tuple: (title: String, isMinimized: Bool, shouldHighlight: Bool)) {
-        // Composite ID for stability; ideal would be a window pointer or identifier
+        // If you can, use a unique identifier for the AXUIElement instead of index
         self.id = "\(index)-\(tuple.title)-\(tuple.isMinimized)-\(tuple.shouldHighlight)"
         self.title = tuple.title
         self.isMinimized = tuple.isMinimized
@@ -84,7 +83,7 @@ struct DockPreviewPanel: View {
                             }
                         )
                         .scaleEffect(row.shouldHighlight ? 1.02 : 1.0)
-                        .animation(.easeOut(duration: 0.15), value: row.shouldHighlight)
+                        // NO .animation here!
                         .padding(.bottom, 6)
                     }
                     .buttonStyle(.plain)
@@ -98,7 +97,10 @@ struct DockPreviewPanel: View {
         .padding(.vertical, 16)
         .dockStyle(cornerRadius: 18, highlightColor: nil)
         .frame(minWidth: 240, maxWidth: 320)
-        .animation(.snappy(duration: 0.13), value: hoveredID)
+        .id(windowRows.map(\.id).joined(separator: "|"))
+        .onChange(of: windowRows.map(\.id)) { _ in
+            hoveredID = nil // Reset hover on any row data change
+        }
     }
 }
 
