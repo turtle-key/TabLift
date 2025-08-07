@@ -33,7 +33,6 @@ struct WindowInfo: Identifiable, Equatable {
         }
 
         self.shouldHighlight = isFrontmostApp && (focusedWindow != nil) && (CFEqual(axElement, focusedWindow))
-
         self.id = "\(app.processIdentifier)-\(Unmanaged.passUnretained(axElement).toOpaque())-\(index)"
     }
 
@@ -53,12 +52,9 @@ class WindowManager {
         let restoreAll = UserDefaults.standard.bool(forKey: restoreAllKey)
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            // 1. Minimize previous window (if any and enabled)
             if minimize, let prev = previous {
                 minimizeFocusedWindow(of: prev)
             }
-
-            // 2. Restore minimized windows per setting
             if restoreAll {
                 restoreMinimizedWindows(for: current)
             } else {
@@ -68,8 +64,6 @@ class WindowManager {
                     focusLastUnminimizedWindow(for: current)
                 }
             }
-
-            // 3. Open new window if needed
             if openNew && !hasAnyPracticalVisibleWindow(for: current) {
                 openNewWindowApp(for: current)
             }
@@ -174,7 +168,6 @@ class WindowManager {
         }
     }
 
-    /// Focus only the last unminimized window (do NOT restore minimized ones)
     static func focusLastUnminimizedWindow(for app: NSRunningApplication) {
         let appEl = AXUIElementCreateApplication(app.processIdentifier)
         var raw: AnyObject?
@@ -222,8 +215,6 @@ class WindowManager {
         down.post(tap: .cghidEventTap)
         up.post(tap: .cghidEventTap)
     }
-
-    // --- TRAFFIC LIGHT BUTTONS SUPPORT ---
 
     static func windowInfos(for app: NSRunningApplication) -> [WindowInfo] {
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
@@ -275,5 +266,4 @@ class WindowManager {
         }
         return false
     }
-
 }

@@ -8,7 +8,6 @@ class AppMonitor {
     private var runLoopSource: CFRunLoopSource?
     private var lastAppSwitcherTimestamp: TimeInterval = 0
     private var isAppSwitcherActive = false
-
     private var previousApp: NSRunningApplication?
 
     static let timeoutThreshold: TimeInterval = 0.5
@@ -27,24 +26,18 @@ class AppMonitor {
 
             switch type {
             case .keyDown:
-                // Cmd+Tab or Cmd+` pressed: mark switcher active and record the current frontmost app
                 if flags.contains(.maskCommand) && (keyCode == 48 || keyCode == 50),
                    let frontApp = NSWorkspace.shared.frontmostApplication {
                     monitor.isAppSwitcherActive = true
                     monitor.previousApp = frontApp
                 }
-
             case .flagsChanged:
-                // Cmd released after switch: capture timestamp
                 if !flags.contains(.maskCommand), monitor.isAppSwitcherActive {
                     monitor.isAppSwitcherActive = false
                     monitor.lastAppSwitcherTimestamp = Date().timeIntervalSince1970
                 }
-
-            default:
-                break
+            default: break
             }
-
             return Unmanaged.passUnretained(event)
         }
 
@@ -69,7 +62,6 @@ class AppMonitor {
 
     init() {
         setupEventTap()
-
         observer = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification,
             object: nil,
@@ -79,12 +71,9 @@ class AppMonitor {
                   let info = notification.userInfo,
                   let newApp = info[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
             else { return }
-
             let now = Date().timeIntervalSince1970
             let delta = now - self.lastAppSwitcherTimestamp
-
             if delta < AppMonitor.timeoutThreshold {
-                // Called shortly after Cmd release: perform minimize/restore
                 WindowManager.checkForWindows(
                     current: newApp,
                     previous: self.previousApp
@@ -105,6 +94,7 @@ class AppMonitor {
             CFRunLoopRemoveSource(CFRunLoopGetCurrent(), src, .commonModes)
         }
     }
+
     func refresh() {
         if let obs = observer {
             NSWorkspace.shared.notificationCenter.removeObserver(obs)
@@ -129,10 +119,8 @@ class AppMonitor {
                   let info = notification.userInfo,
                   let newApp = info[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
             else { return }
-
             let now = Date().timeIntervalSince1970
             let delta = now - self.lastAppSwitcherTimestamp
-
             if delta < AppMonitor.timeoutThreshold {
                 WindowManager.checkForWindows(
                     current: newApp,

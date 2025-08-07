@@ -70,11 +70,9 @@ struct GeneralSettingsTab: View {
     var maximizeBehavior: MaximizeBehavior {
         MaximizeBehavior(rawValue: maximizeBehaviorRaw) ?? .fullscreen
     }
-    // Local state for mutual exclusion
+
     @State private var openNewWindow: Bool = true
     @State private var minimizePreviousWindow: Bool = false
-
-    // Hover state for demo videos & help text
     @State private var hoveredDemo: DemoType? = nil
 
     enum DemoType { case restore, opennew, minimizeprev }
@@ -83,7 +81,7 @@ struct GeneralSettingsTab: View {
     private var licenseURL: URL {
         URL(string: "https://github.com/turtle-key/TabLift/blob/main/LICENSE")!
     }
-    // performance profiles
+
     @AppStorage("performanceProfile") var performanceProfileRaw: String = PerformanceProfile.balanced.rawValue
     @AppStorage("dockPreviewSpeed") var dockPreviewSpeed: Double = PerformanceProfile.balanced.hoverDelay
     @AppStorage("dockPreviewFade") var dockPreviewFade: Double = PerformanceProfile.balanced.fadeOutDuration
@@ -91,23 +89,21 @@ struct GeneralSettingsTab: View {
     var selectedProfile: PerformanceProfile {
         PerformanceProfile(rawValue: performanceProfileRaw) ?? .balanced
     }
-    // Maximum length of help texts (measured, can be tweaked)
+
     private let helpTextMaxWidth: CGFloat = 320
-    private let helpTextMaxHeight: CGFloat = 46 // ~2 lines at caption font
+    private let helpTextMaxHeight: CGFloat = 46
 
     var body: some View {
         VStack(spacing: 20) {
             Form {
                 Section(header: Label("App Launch & Appearance", systemImage: "rectangle.stack").font(.headline)) {
                     Toggle(isOn: $startAtLogin) {
-                        Text("Start at login")
-                            .font(.body)
+                        Text("Start at login").font(.body)
                     }
                     .help("Launch TabLift automatically when you log in to your Mac.")
 
                     Toggle(isOn: $showMenuBarIcon) {
-                        Text("Show in menu bar")
-                            .font(.body)
+                        Text("Show in menu bar").font(.body)
                         if !showMenuBarIcon {
                             Text("To show the settings, launch TabLift again.")
                                 .foregroundColor(.secondary)
@@ -118,16 +114,14 @@ struct GeneralSettingsTab: View {
                     .help("Show or hide the TabLift icon in your menu bar for quick access.")
 
                     Toggle(isOn: $showDockIcon) {
-                        Text("Show in Dock")
-                            .font(.body)
+                        Text("Show in Dock").font(.body)
                     }
                     .help("Display the icon of the app in the Dock. Works just like a normal app.")
                 }
                 
                 Section(header: Label("Dock Features", systemImage: "dock.rectangle").font(.headline)) {
                     Toggle(isOn: $showDockPopups) {
-                        Text("Show Window Previews in Dock")
-                            .font(.body)
+                        Text("Show Window Previews in Dock").font(.body)
                     }
                     .help("Show a popup with app windows when hovering over icons in the Dock.")
                     VStack(alignment: .leading, spacing: 8) {
@@ -161,8 +155,7 @@ struct GeneralSettingsTab: View {
                             dockPreviewFade = newProfile.fadeOutDuration
                         }
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Profile: \(selectedProfile.rawValue)")
-                                .font(.headline)
+                            Text("Profile: \(selectedProfile.rawValue)").font(.headline)
                             Text("How quickly the Dock preview appears and fades out when you hover.\n")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
@@ -179,12 +172,10 @@ struct GeneralSettingsTab: View {
                
                 Section(header: Label("Window Switching Behavior", systemImage: "arrow.triangle.swap").font(.headline)) {
                     VStack(alignment: .leading, spacing: 24) {
-                        // Restore All Windows Demo
                         DemoSection(
                             toggle: Toggle(isOn: $restoreAllWindows) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Restore all minimized windows on app switch")
-                                        .font(.body)
+                                    Text("Restore all minimized windows on app switch").font(.body)
                                     if !restoreAllWindows {
                                         Text("When disabled, only the most recently minimized window will be restored.")
                                             .foregroundColor(.secondary)
@@ -202,13 +193,10 @@ struct GeneralSettingsTab: View {
                             maxWidth: helpTextMaxWidth,
                             maxHeight: helpTextMaxHeight
                         )
-
-                        // Open New Window Demo
                         DemoSection(
                             toggle: Toggle(isOn: $openNewWindow) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Automatically open a window for apps with no windows")
-                                        .font(.body)
+                                    Text("Automatically open a window for apps with no windows").font(.body)
                                     if !openNewWindow {
                                         Text("When disabled, switching to an app without windows won't open a new window.")
                                             .foregroundColor(.secondary)
@@ -233,13 +221,10 @@ struct GeneralSettingsTab: View {
                             maxWidth: helpTextMaxWidth,
                             maxHeight: helpTextMaxHeight
                         )
-
-                        // Minimize Previous Window Demo
                         DemoSection(
                             toggle: Toggle(isOn: $minimizePreviousWindow) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Minimize previous window on app switch")
-                                        .font(.body)
+                                    Text("Minimize previous window on app switch").font(.body)
                                     if !minimizePreviousWindow {
                                         Text("When disabled, switching to another app won't automatically minimize the previous one's window(s).")
                                             .foregroundColor(.secondary)
@@ -275,7 +260,6 @@ struct GeneralSettingsTab: View {
             }
             .modifier(FormViewModifier())
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-
             FooterView(isHoveringQuit: $isHoveringQuit)
         }
         .onAppear {
