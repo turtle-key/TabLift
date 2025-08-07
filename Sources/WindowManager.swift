@@ -1,6 +1,51 @@
 import Cocoa
 import ApplicationServices
 
+struct WindowInfo: Identifiable, Equatable {
+    let id: String
+    let title: String
+    let isMinimized: Bool
+    let shouldHighlight: Bool
+    let axElement: AXUIElement
+    let app: NSRunningApplication
+
+    init(axElement: AXUIElement, app: NSRunningApplication, index: Int, focusedWindow: AXUIElement?, isFrontmostApp: Bool) {
+        self.axElement = axElement
+        self.app = app
+
+        // Title
+        var t: AnyObject?
+        if AXUIElementCopyAttributeValue(axElement, kAXTitleAttribute as CFString, &t) == .success, let ti = t as? String {
+            self.title = ti
+        } else {
+            var doc: AnyObject?
+            if AXUIElementCopyAttributeValue(axElement, kAXDocumentAttribute as CFString, &doc) == .success, let docstr = doc as? String, !docstr.isEmpty {
+                self.title = docstr
+            } else {
+                self.title = "(Untitled)"
+            }
+        }
+
+        // Minimized
+        var minRaw: AnyObject?
+        if AXUIElementCopyAttributeValue(axElement, kAXMinimizedAttribute as CFString, &minRaw) == .success, let isMin = minRaw as? Bool {
+            self.isMinimized = isMin
+        } else {
+            self.isMinimized = false
+        }
+
+        // Highlight (focused)
+        self.shouldHighlight = isFrontmostApp && (focusedWindow != nil) && (CFEqual(axElement, focusedWindow))
+
+        // Use memory address + pid + index for id
+        self.id = "\(app.processIdentifier)-\(Unmanaged.passUnretained(axElement).toOpaque())-\(index)"
+    }
+
+    static func == (lhs: WindowInfo, rhs: WindowInfo) -> Bool {
+        return lhs.id == rhs.id
+    }
+}
+
 class WindowManager {
     static let restoreAllKey             = "restoreAllWindows"
     static let openWindowKey             = "openNewWindow"
@@ -180,5 +225,79 @@ class WindowManager {
         up.flags = .maskCommand
         down.post(tap: .cghidEventTap)
         up.post(tap: .cghidEventTap)
+    }
+
+    // --- TRAFFIC LIGHT BUTTONS SUPPORT ---
+
+    static func windowInfos(for app: NSRunningApplication) -> [WindowInfo] {
+        let appElement = AXUIElementCreateApplication(app.processIdentifier)
+        var windowsValue: AnyObject?
+        guard AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue) == .success,
+              let windows = windowsValue as? [AXUIElement] else { return [] }
+
+        var focusedWindowValue: AnyObject?
+        var focusedWindow: AXUIElement?
+        if AXUIElementCopyAttributeValue(appElement, kAXFocusedWindowAttribute as CFString, &focusedWindowValue) == .success,
+           focusedWindowValue != nil {
+            focusedWindow = focusedWindowValue as! AXUIElement
+        }
+
+        let frontmostPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
+        let isFrontmostApp = (app.processIdentifier == frontmostPID)
+
+        var infos: [WindowInfo] = []
+
+        for (idx, window) in windows.enumerated() {
+            let role = window.role() ?? "(nil)"
+            if role != "AXWindow" { continue }
+            if isProbablyPictureInPicture(window: window) { continue }
+            infos.append(WindowInfo(axElement: window, app: app, index: idx, focusedWindow: focusedWindow, isFrontmostApp: isFrontmostApp))
+        }
+        return infos
+    }
+
+    private static func isProbablyPictureInPicture(window: AXUIElement) -> Bool {
+        let subrole = window.subrole() ?? ""
+        if subrole == "AXPictureInPictureWindow" ||
+           subrole == "AXFloatingWindow" ||
+           subrole == "AXPanel" ||
+           subrole == "AXSystemDialog"
+        {
+            return true
+        }
+        var sizeValue: AnyObject?
+        if AXUIElementCopyAttributeValue(window, kAXSizeAttribute as CFString, &sizeValue) == .success {
+            let axSize = sizeValue as! AXValue
+            var sz = CGSize.zero
+            AXValueGetValue(axSize, .cgSize, &sz)
+            if sz.width < 220 || sz.height < 220 {
+                let title = window.title() ?? ""
+                if title.isEmpty {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    static func close(window: WindowInfo) {
+        var closeButton: AnyObject?
+        if AXUIElementCopyAttributeValue(window.axElement, kAXCloseButtonAttribute as CFString, &closeButton) == .success,
+           closeButton != nil {
+            let btn = closeButton as! AXUIElement
+            AXUIElementPerformAction(btn, kAXPressAction as CFString)
+        }
+    }
+
+    static func minimize(window: WindowInfo) {
+        AXUIElementSetAttributeValue(window.axElement, kAXMinimizedAttribute as CFString, kCFBooleanTrue)
+    }
+
+    static func toggleFullScreen(window: WindowInfo) {
+        var fsValue: AnyObject?
+        if AXUIElementCopyAttributeValue(window.axElement, "AXFullScreen" as CFString, &fsValue) == .success,
+           let isFS = fsValue as? Bool {
+            AXUIElementSetAttributeValue(window.axElement, "AXFullScreen" as CFString, NSNumber(value: !isFS))
+        }
     }
 }

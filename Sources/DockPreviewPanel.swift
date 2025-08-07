@@ -1,11 +1,5 @@
 import SwiftUI
 
-struct BlurView: View {
-    var body: some View {
-        Rectangle().fill(.ultraThinMaterial)
-    }
-}
-
 fileprivate struct WindowRow: Identifiable, Equatable {
     let id: String
     let title: String
@@ -14,7 +8,6 @@ fileprivate struct WindowRow: Identifiable, Equatable {
     let index: Int
 
     init(index: Int, tuple: (title: String, isMinimized: Bool, shouldHighlight: Bool)) {
-        // If you can, use a unique identifier for the AXUIElement instead of index
         self.id = "\(index)-\(tuple.title)-\(tuple.isMinimized)-\(tuple.shouldHighlight)"
         self.title = tuple.title
         self.isMinimized = tuple.isMinimized
@@ -27,12 +20,16 @@ fileprivate struct WindowRow: Identifiable, Equatable {
     }
 }
 
+enum TrafficLightAction {
+    case close, minimize, fullscreen
+}
+
 struct DockPreviewPanel: View {
-    let appName: String
+    let appBundleID: String
+    let appDisplayName: String
     let appIcon: NSImage
     let windowInfos: [(title: String, isMinimized: Bool, shouldHighlight: Bool)]
     let onTitleClick: (String) -> Void
-    @State private var hoveredID: String? = nil
 
     private var windowRows: [WindowRow] {
         windowInfos.enumerated().map { WindowRow(index: $0.offset, tuple: $0.element) }
@@ -46,7 +43,7 @@ struct DockPreviewPanel: View {
                     .frame(width: 40, height: 40)
                     .cornerRadius(10)
                     .shadow(color: .black.opacity(0.18), radius: 3, x: 0, y: 1)
-                Text(appName)
+                Text(appDisplayName)
                     .font(.system(size: 19, weight: .semibold, design: .rounded))
                     .foregroundColor(Color.primary)
                     .lineLimit(1)
@@ -54,42 +51,13 @@ struct DockPreviewPanel: View {
                 Spacer()
             }
             .padding(.bottom, 4)
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 10) {
                 ForEach(windowRows) { row in
-                    Button(action: {
-                        onTitleClick(row.title)
-                    }) {
-                        HStack {
-                            MarqueeText(text: row.title.isEmpty ? "(Untitled)" : row.title, maxWidth: 185)
-                                .id(row.id)
-                            if row.isMinimized {
-                                MinimizedIndicator()
-                                    .padding(.leading, 5)
-                            }
-                            Spacer()
-                        }
-                        .padding(.vertical, 7)
-                        .padding(.horizontal, 10)
-                        .background(
-                            ZStack {
-                                if row.shouldHighlight {
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.accentColor.opacity(0.25))
-                                        .shadow(color: .black.opacity(0.12), radius: 6, x: 0, y: 2)
-                                } else if hoveredID == row.id {
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.accentColor.opacity(0.15))
-                                }
-                            }
-                        )
-                        .scaleEffect(row.shouldHighlight ? 1.02 : 1.0)
-                        // NO .animation here!
-                        .padding(.bottom, 6)
-                    }
-                    .buttonStyle(.plain)
-                    .onHover { hovering in
-                        hoveredID = hovering ? row.id : nil
-                    }
+                    RowWithTrafficLights(
+                        row: row,
+                        appBundleID: appBundleID,
+                        onTitleClick: onTitleClick
+                    )
                 }
             }
         }
@@ -98,12 +66,172 @@ struct DockPreviewPanel: View {
         .dockStyle(cornerRadius: 18, highlightColor: nil)
         .frame(minWidth: 240, maxWidth: 320)
         .id(windowRows.map(\.id).joined(separator: "|"))
-        .onChange(of: windowRows.map(\.id)) { _ in
-            hoveredID = nil // Reset hover on any row data change
-        }
     }
 }
 
+fileprivate struct RowWithTrafficLights: View {
+    let row: WindowRow
+    let appBundleID: String
+    let onTitleClick: (String) -> Void
+
+    @State private var isHovered: Bool = false
+
+    private func findWindowAXElement() -> AXUIElement? {
+        guard let app = NSRunningApplication.runningApplications(withBundleIdentifier: appBundleID).first else {
+            print("[DEBUG] No running app for bundle id \(appBundleID)")
+            return nil
+        }
+        let appEl = AXUIElementCreateApplication(app.processIdentifier)
+        var raw: AnyObject?
+        guard AXUIElementCopyAttributeValue(appEl, kAXWindowsAttribute as CFString, &raw) == .success,
+              let windows = raw as? [AXUIElement] else { return nil }
+        for window in windows {
+            var t: AnyObject?
+            if AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &t) == .success,
+               let t = t as? String,
+               t == row.title {
+                return window
+            }
+        }
+        return nil
+    }
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            Button(action: { onTitleClick(row.title) }) {
+                HStack {
+                    MarqueeText(text: row.title.isEmpty ? "(Untitled)" : row.title, maxWidth: 185).id(row.id)
+                    if row.isMinimized { MinimizedIndicator().padding(.leading, 5) }
+                    Spacer()
+                }
+                .padding(.vertical, 7)
+                .padding(.horizontal, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(row.shouldHighlight ? Color.accentColor.opacity(0.25)
+                              : (isHovered ? Color.accentColor.opacity(0.15) : Color.clear))
+                        .shadow(color: row.shouldHighlight ? .black.opacity(0.12) : .clear, radius: 6, x: 0, y: 2)
+                )
+                .scaleEffect(row.shouldHighlight ? 1.02 : 1.0)
+            }
+            .buttonStyle(.plain)
+
+            if isHovered {
+                TrafficLightButtons(
+                    onClose: {
+                        guard let win = findWindowAXElement() else { return }
+                        var closeBtn: AnyObject?
+                        if AXUIElementCopyAttributeValue(win, kAXCloseButtonAttribute as CFString, &closeBtn) == .success,
+                           let closeBtn = closeBtn {
+                            AXUIElementPerformAction(closeBtn as! AXUIElement, kAXPressAction as CFString)
+                        }
+                    },
+                    onMinimize: {
+                        guard let win = findWindowAXElement() else { return }
+                        AXUIElementSetAttributeValue(win, kAXMinimizedAttribute as CFString, kCFBooleanTrue)
+                    },
+                    onFullscreen: {
+                        guard let win = findWindowAXElement() else { return }
+                        var fsValue: AnyObject?
+                        if AXUIElementCopyAttributeValue(win, "AXFullScreen" as CFString, &fsValue) == .success,
+                           let isFS = fsValue as? Bool {
+                            AXUIElementSetAttributeValue(win, "AXFullScreen" as CFString, NSNumber(value: !isFS))
+                        }
+                    }
+                )
+                .padding(.trailing, 14)
+                .padding(.top, 2)
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .animation(.easeInOut(duration: 0.18), value: isHovered)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .background(Color.clear)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .onHover { hovering in isHovered = hovering }
+    }
+}
+
+// ... rest unchanged ...
+
+struct TrafficLightButtons: View {
+    let onClose: () -> Void
+    let onMinimize: () -> Void
+    let onFullscreen: () -> Void
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .frame(width: 85, height: 28)
+                .shadow(radius: 3, y: 1)
+
+            HStack(spacing: 9) {
+                Button(action: {
+                    print("[DEBUG] TrafficLightButtons: Close button tapped")
+                    onClose()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.red)
+                            .frame(width: 16, height: 16)
+                            .shadow(color: Color.red.opacity(0.13), radius: 1, x: 0, y: 0)
+                        Image(systemName: "xmark")
+                            .font(.system(size: 8.5, weight: .bold))
+                            .foregroundColor(.white.opacity(0.88))
+                    }
+                }
+                .buttonStyle(.plain)
+                .contentShape(Circle().inset(by: -6))
+                .padding(2)
+                .help("Close")
+
+                Button(action: {
+                    print("[DEBUG] TrafficLightButtons: Minimize button tapped")
+                    onMinimize()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.yellow)
+                            .frame(width: 16, height: 16)
+                            .shadow(color: Color.yellow.opacity(0.13), radius: 1, x: 0, y: 0)
+                        Image(systemName: "minus")
+                            .font(.system(size: 8.5, weight: .bold))
+                            .foregroundColor(.white.opacity(0.88))
+                    }
+                }
+                .buttonStyle(.plain)
+                .contentShape(Circle().inset(by: -6))
+                .padding(2)
+                .help("Minimize")
+
+                Button(action: {
+                    print("[DEBUG] TrafficLightButtons: Fullscreen button tapped")
+                    onFullscreen()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 16, height: 16)
+                            .shadow(color: Color.green.opacity(0.13), radius: 1, x: 0, y: 0)
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                            .font(.system(size: 8.5, weight: .bold))
+                            .foregroundColor(.white.opacity(0.88))
+                    }
+                }
+                .buttonStyle(.plain)
+                .contentShape(Circle().inset(by: -6))
+                .padding(2)
+                .help("Toggle Fullscreen")
+            }
+            .frame(height: 28)
+            .contentShape(Rectangle())
+        }
+        .frame(width: 85, height: 28)
+    }
+}
+
+// Fallback for MinimizedIndicator (if not defined elsewhere)
 struct MinimizedIndicator: View {
     var body: some View {
         GeometryReader { geo in
@@ -123,10 +251,17 @@ struct MinimizedIndicator: View {
     }
 }
 
+// Fallback for BlurView (if not defined elsewhere)
+struct BlurView: View {
+    var body: some View {
+        Rectangle().fill(.ultraThinMaterial)
+    }
+}
+
+// Fallback for dockStyle (if not defined elsewhere)
 struct DockStyleModifier: ViewModifier {
     let cornerRadius: Double
     let highlightColor: Color?
-
     func body(content: Content) -> some View {
         content
             .background {

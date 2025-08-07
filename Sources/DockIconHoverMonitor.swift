@@ -169,12 +169,15 @@ class DockIconHoverMonitor {
         }
     }
 
+    private var lastApp: NSRunningApplication?
+    private var lastWindowInfos: [WindowInfo] = []
+
     func handleDockSelectionChange() {
         if !showDockPopups {
             hidePreview()
             return
         }
-        
+
         guard let hoveredIcon = getCurrentlySelectedDockIcon() else {
             lastBundleIdentifier = nil
             hidePreview()
@@ -195,24 +198,29 @@ class DockIconHoverMonitor {
             lastIconFrame = nil
             return
         }
-        
-        let windowInfos = fetchWindowInfos(for: app)
-        if windowInfos.isEmpty {
+
+        // --- WindowInfo for traffic lights ---
+        let allWindowInfos = WindowManager.windowInfos(for: app)
+        lastApp = app
+        lastWindowInfos = allWindowInfos
+
+        let infoTuples = allWindowInfos.map { ($0.title, $0.isMinimized, $0.shouldHighlight) }
+        if infoTuples.isEmpty {
             hidePreview()
             lastPanelFrame = nil
             lastIconFrame = nil
             return
         }
-        
-        let appName = app.localizedName ?? bundleIdentifier
+
+        let appDisplayName = app.localizedName ?? bundleIdentifier
         let appIcon = app.icon ?? NSWorkspace.shared.icon(for: .application)
-        
+
         let panelWidth: CGFloat = 280
-        let panelHeight = CGFloat(82 + max(24, windowInfos.count * 32))
+        let panelHeight = CGFloat(82 + max(24, infoTuples.count * 32))
         let anchorY = iconFrame.maxY + 15
         let panelRect = CGRect(
             x: iconFrame.midX - panelWidth/2,
-            y: anchorY + CGFloat((windowInfos.count - 1 ) * 10),
+            y: anchorY + CGFloat((infoTuples.count - 1 ) * 10),
             width: panelWidth,
             height: panelHeight
         )
@@ -220,9 +228,10 @@ class DockIconHoverMonitor {
         self.lastPanelFrame = panelRect
         DispatchQueue.main.asyncAfter(deadline: .now() + dockPreviewDelay) {
             self.showOrUpdatePreviewPanel(
-                appName: appName,
+                appBundleID: bundleIdentifier,
+                appDisplayName: appDisplayName,
                 appIcon: appIcon,
-                windowInfos: windowInfos,
+                windowInfos: infoTuples,
                 panelRect: panelRect,
                 app: app
             )
@@ -230,14 +239,16 @@ class DockIconHoverMonitor {
     }
 
     private func showOrUpdatePreviewPanel(
-        appName: String,
+        appBundleID: String,
+        appDisplayName: String,
         appIcon: NSImage,
         windowInfos: [(title: String, isMinimized: Bool, shouldHighlight: Bool)],
         panelRect: CGRect,
         app: NSRunningApplication
     ) {
         let newContent = DockPreviewPanel(
-            appName: appName,
+            appBundleID: appBundleID,
+            appDisplayName: appDisplayName,
             appIcon: appIcon,
             windowInfos: windowInfos,
             onTitleClick: { [weak self] title in
@@ -306,7 +317,7 @@ class DockIconHoverMonitor {
         }
 
         let windowInfos = fetchWindowInfos(for: app)
-        let appName = app.localizedName ?? bundleIdentifier
+        let appDisplayName = app.localizedName ?? bundleIdentifier
         let appIcon = app.icon ?? NSWorkspace.shared.icon(for: .application)
 
         let panelWidth: CGFloat = 280
@@ -319,10 +330,10 @@ class DockIconHoverMonitor {
             height: panelHeight
         )
 
-        // Always update panel even if it's already visible
         if let panel = previewPanel, let hosting = hostingView {
             hosting.rootView = DockPreviewPanel(
-                appName: appName,
+                appBundleID: bundleIdentifier,
+                appDisplayName: appDisplayName,
                 appIcon: appIcon,
                 windowInfos: windowInfos,
                 onTitleClick: { [weak self] title in
@@ -345,7 +356,8 @@ class DockIconHoverMonitor {
             }
         } else {
             let hosting = NSHostingView(rootView: DockPreviewPanel(
-                appName: appName,
+                appBundleID: bundleIdentifier,
+                appDisplayName: appDisplayName,
                 appIcon: appIcon,
                 windowInfos: windowInfos,
                 onTitleClick: { [weak self] title in
