@@ -18,6 +18,10 @@ class DockIconHoverMonitor {
     private var dockFrame: CGRect = .zero
     private var lastIconFrame: CGRect?
 
+    // Store the last hovered dock icon and bundle identifier for fallback when the mouse leaves the dock and enters the popup
+    private var lastHoveredDockIcon: AXUIElement?
+    private var lastHoveredBundleIdentifier: String?
+
     private var dockClickMonitor: DockClickMonitor? {
         (NSApplication.shared.delegate as? AppDelegate)?.dockClickMonitor
     }
@@ -133,6 +137,9 @@ class DockIconHoverMonitor {
         let isInPopup = previewPanel?.frame.contains(mouseLocation) ?? false
         let isOverDockIcon = isMouseOverDockIcon()
         if !isInPopup && !isOverDockIcon {
+            // Mouse is not over popup or dock icon; clear fallback state.
+            lastHoveredDockIcon = nil
+            lastHoveredBundleIdentifier = nil
             hidePreview()
         }
     }
@@ -155,6 +162,9 @@ class DockIconHoverMonitor {
         let isInPopup = previewPanel?.frame.contains(mouseLocation) ?? false
         let isOverDockIcon = isMouseOverDockIcon()
         if !isInPopup && !isOverDockIcon {
+            // Mouse is not over popup or dock icon; clear fallback state.
+            lastHoveredDockIcon = nil
+            lastHoveredBundleIdentifier = nil
             hidePreview()
         }
     }
@@ -264,12 +274,37 @@ class DockIconHoverMonitor {
     }
 
     private func updateDockPreviewContent() {
-        guard let hoveredIcon = getCurrentlySelectedDockIcon(),
-              let (iconFrame, bundleIdentifier) = getDockIconInfo(element: hoveredIcon),
-              let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).first,
-              let panel = previewPanel, let hosting = hostingView else {
+        // Fallback: use last hovered dock icon and bundle id if getCurrentlySelectedDockIcon returns nil
+        var hoveredIcon = getCurrentlySelectedDockIcon()
+        var bundleIdentifier: String? = nil
+        var iconFrame: CGRect? = nil
+
+        if let icon = hoveredIcon, let (frame, bundleId) = getDockIconInfo(element: icon) {
+            // Remember this icon and bundle
+            lastHoveredDockIcon = icon
+            lastHoveredBundleIdentifier = bundleId
+            bundleIdentifier = bundleId
+            iconFrame = frame
+        } else if let lastIcon = lastHoveredDockIcon, let lastBundleId = lastHoveredBundleIdentifier,
+                  let (frame, bundleId) = getDockIconInfo(element: lastIcon) {
+            // Use last icon while mouse is over popup
+            hoveredIcon = lastIcon
+            bundleIdentifier = bundleId
+            iconFrame = frame
+        } else {
+            // Nowhere: clear state
+            lastHoveredDockIcon = nil
+            lastHoveredBundleIdentifier = nil
             return
         }
+
+        guard let iconFrame = iconFrame,
+              let bundleIdentifier = bundleIdentifier,
+              let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).first
+        else {
+            return
+        }
+
         let windowInfos = fetchWindowInfos(for: app)
         let appName = app.localizedName ?? bundleIdentifier
         let appIcon = app.icon ?? NSWorkspace.shared.icon(for: .application)
@@ -284,16 +319,60 @@ class DockIconHoverMonitor {
             height: panelHeight
         )
 
-        hosting.rootView = DockPreviewPanel(
-            appName: appName,
-            appIcon: appIcon,
-            windowInfos: windowInfos,
-            onTitleClick: { [weak self] title in
-                self?.focusWindow(of: app, withTitle: title)
+        // Always update panel even if it's already visible
+        if let panel = previewPanel, let hosting = hostingView {
+            hosting.rootView = DockPreviewPanel(
+                appName: appName,
+                appIcon: appIcon,
+                windowInfos: windowInfos,
+                onTitleClick: { [weak self] title in
+                    self?.focusWindow(of: app, withTitle: title)
+                }
+            )
+            panel.setContentSize(panelRect.size)
+            panel.setFrameOrigin(panelRect.origin)
+            panel.orderFrontRegardless()
+            panel.displayIfNeeded()
+            panel.contentView?.needsLayout = true
+            panel.contentView?.needsDisplay = true
+            panel.contentView?.layoutSubtreeIfNeeded()
+
+            hosting.setNeedsDisplay(hosting.bounds)
+            hosting.needsLayout = true
+            hosting.layoutSubtreeIfNeeded()
+            if !hosting.isDescendant(of: panel.contentView!) {
+                panel.contentView?.addSubview(hosting)
             }
-        )
-        panel.setContentSize(panelRect.size)
-        panel.setFrameOrigin(panelRect.origin)
+        } else {
+            let hosting = NSHostingView(rootView: DockPreviewPanel(
+                appName: appName,
+                appIcon: appIcon,
+                windowInfos: windowInfos,
+                onTitleClick: { [weak self] title in
+                    self?.focusWindow(of: app, withTitle: title)
+                }
+            ))
+            let panel = NSPanel(contentRect: panelRect,
+                                styleMask: [.borderless, .nonactivatingPanel],
+                                backing: .buffered, defer: false)
+            panel.contentView = hosting
+            panel.isFloatingPanel = true
+            panel.level = .statusBar
+            panel.backgroundColor = .clear
+            panel.hasShadow = false
+            panel.ignoresMouseEvents = false
+            panel.hidesOnDeactivate = false
+            panel.becomesKeyOnlyIfNeeded = true
+            panel.worksWhenModal = true
+            panel.isReleasedWhenClosed = false
+            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            panel.setFrameOrigin(panelRect.origin)
+            panel.setContentSize(panelRect.size)
+            panel.orderFrontRegardless()
+            self.previewPanel = panel
+            self.hostingView = hosting
+            self.startMouseTimer()
+        }
     }
 
     private func hidePreview() {
