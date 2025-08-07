@@ -3,6 +3,27 @@ import Cocoa
 
 fileprivate let kAXCloseAction = "AXClose" as CFString
 
+enum MaximizeBehavior: String, CaseIterable, Identifiable {
+    case zoom = "Zoom"
+    case fill = "Fill"
+    case fullscreen = "Fullscreen"
+
+    var id: String { rawValue }
+
+    var explanation: String {
+        switch self {
+        case .zoom: return "Zoom: Maximizes the window to fill most of the screen, but leaves a small border, just like the classic green button."
+        case .fill: return "Fill: Expands the window to fill the entire screen area (excluding the menu bar and Dock), leaving no space around."
+        case .fullscreen: return "Fullscreen: Native macOS fullscreen mode (window becomes its own space, hides menu bar and Dock)."
+        }
+    }
+
+    static var current: MaximizeBehavior {
+        let raw = UserDefaults.standard.string(forKey: "maximizeBehavior") ?? MaximizeBehavior.zoom.rawValue
+        return MaximizeBehavior(rawValue: raw) ?? .zoom
+    }
+}
+
 fileprivate func robustMinimize(window: AXUIElement) {
     var minimized: AnyObject?
     if AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimized) == .success,
@@ -32,9 +53,108 @@ fileprivate func performClose(window: AXUIElement) {
     if AXUIElementCopyAttributeValue(window, kAXCloseButtonAttribute as CFString, &closeBtn) == .success {
         AXUIElementPerformAction(closeBtn as! AXUIElement, kAXPressAction as CFString)
     } else {
-        // Fallback: try sending kAXCloseAction directly to window
         AXUIElementPerformAction(window, kAXCloseAction as CFString)
     }
+}
+
+fileprivate func performMaximize(window: AXUIElement, app: NSRunningApplication?) {
+    var minimized: AnyObject?
+    let gotMin = AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimized) == .success
+    let isMinimized = gotMin ? ((minimized as? Bool) ?? false) : false
+    if isMinimized {
+        AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
+    }
+
+    if let app = app {
+        NSApp.activate(ignoringOtherApps: true)
+        _ = app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+    }
+
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+        switch MaximizeBehavior.current {
+        case .zoom:
+            // Try to zoom using the AXZoom action, fallback to fill if not supported
+            let result = AXUIElementPerformAction(window, "AXZoom" as CFString)
+            if result != .success {
+                // Fallback: use fill
+                if let screen = screenForWindow(window) {
+                    let frame = screen.frame
+                    let visible = screen.visibleFrame
+                    let flipped = frame.origin.y > visible.origin.y ? false : true
+                    var pos: CGPoint
+                    if !flipped {
+                        // Standard macOS: bottom-left origin
+                        pos = visible.origin
+                    } else {
+                        // Flipped: top-left origin (Y increases downward)
+                        let y = frame.height - visible.origin.y - visible.height
+                        pos = CGPoint(x: visible.origin.x, y: y)
+                    }
+                    var size = CGSize(width: visible.width, height: visible.height)
+                    print("=== [DEBUG][ZOOM FALLBACK] flipped: \(flipped), set window pos: \(pos), size: \(size)")
+                    let posVal = AXValueCreate(.cgPoint, &pos)
+                    let sizeVal = AXValueCreate(.cgSize, &size)
+                    if let posVal, let sizeVal {
+                        AXUIElementSetAttributeValue(window, kAXPositionAttribute as CFString, posVal)
+                        AXUIElementSetAttributeValue(window, kAXSizeAttribute as CFString, sizeVal)
+                    }
+                }
+            }
+        case .fill:
+            if let screen = screenForWindow(window) {
+                let frame = screen.frame
+                let visible = screen.visibleFrame
+                let flipped = frame.origin.y > visible.origin.y ? false : true
+                var pos: CGPoint
+                if !flipped {
+                    pos = visible.origin
+                } else {
+                    let y = frame.height - visible.origin.y - visible.height
+                    pos = CGPoint(x: visible.origin.x, y: y)
+                }
+                var size = CGSize(width: visible.width, height: visible.height)
+                print("=== [DEBUG][FILL] flipped: \(flipped), set window pos: \(pos), size: \(size)")
+                let posVal = AXValueCreate(.cgPoint, &pos)
+                let sizeVal = AXValueCreate(.cgSize, &size)
+                if let posVal, let sizeVal {
+                    AXUIElementSetAttributeValue(window, kAXPositionAttribute as CFString, posVal)
+                    AXUIElementSetAttributeValue(window, kAXSizeAttribute as CFString, sizeVal)
+                }
+            }
+        case .fullscreen:
+            var fsValue: AnyObject?
+            if AXUIElementCopyAttributeValue(window, "AXFullScreen" as CFString, &fsValue) == .success,
+               let isFS = fsValue as? Bool {
+                AXUIElementSetAttributeValue(window, "AXFullScreen" as CFString, NSNumber(value: !isFS))
+            } else {
+                AXUIElementSetAttributeValue(window, "AXFullScreen" as CFString, NSNumber(value: true))
+            }
+        }
+    }
+}
+
+fileprivate func screenForWindow(_ window: AXUIElement) -> NSScreen? {
+    var posValue: AnyObject?
+    var sizeValue: AnyObject?
+    guard
+        AXUIElementCopyAttributeValue(window, kAXPositionAttribute as CFString, &posValue) == .success,
+        AXUIElementCopyAttributeValue(window, kAXSizeAttribute as CFString, &sizeValue) == .success
+    else { return NSScreen.main }
+    let posAX = posValue as! AXValue
+    let sizeAX = sizeValue as! AXValue
+    var pos = CGPoint.zero
+    var size = CGSize.zero
+    AXValueGetValue(posAX, .cgPoint, &pos)
+    AXValueGetValue(sizeAX, .cgSize, &size)
+    let frame = CGRect(origin: pos, size: size)
+    // Find the screen that contains the center of the window
+    let windowCenter = CGPoint(x: frame.midX, y: frame.midY)
+    for screen in NSScreen.screens {
+        if screen.frame.contains(windowCenter) {
+            return screen
+        }
+    }
+    return NSScreen.main
 }
 
 fileprivate struct WindowRow: Identifiable, Equatable {
@@ -171,21 +291,15 @@ fileprivate struct RowWithTrafficLights: View {
                     },
                     onMinimize: {
                         guard let win = findWindowAXElement() else { onActionComplete(); return }
-                        if !row.isMinimized { // Only allow minimize if not already minimized
-                            robustMinimize(window: win)
-                        }
+                        if !row.isMinimized { robustMinimize(window: win) }
                         onActionComplete()
                     },
                     onFullscreen: {
-                        guard let win = findWindowAXElement() else { onActionComplete(); return }
-                        var fsValue: AnyObject?
-                        if AXUIElementCopyAttributeValue(win, "AXFullScreen" as CFString, &fsValue) == .success,
-                           let isFS = fsValue as? Bool {
-                            AXUIElementSetAttributeValue(win, "AXFullScreen" as CFString, NSNumber(value: !isFS))
-                        }
+                        guard let win = findWindowAXElement(), let app = findApp() else { onActionComplete(); return }
+                        performMaximize(window: win, app: app)
                         onActionComplete()
                     },
-                    isMinimized: row.isMinimized // Pass minimized state for button filtering
+                    isMinimized: row.isMinimized
                 )
                 .padding(.trailing, 6)
                 .padding(.top, 4)
@@ -200,7 +314,6 @@ fileprivate struct RowWithTrafficLights: View {
     }
 }
 
-// Modified: Hide Minimize if minimized
 struct TrafficLightButtons: View {
     let onClose: () -> Void
     let onMinimize: () -> Void
@@ -263,7 +376,7 @@ struct TrafficLightButtons: View {
                 .buttonStyle(.plain)
                 .contentShape(Circle().inset(by: -6))
                 .padding(2)
-                .help("Toggle Fullscreen")
+                .help("Maximize")
             }
             .frame(height: 28)
             .contentShape(Rectangle())

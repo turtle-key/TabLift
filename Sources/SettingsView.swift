@@ -63,7 +63,11 @@ struct GeneralSettingsTab: View {
     @AppStorage("startAtLogin") var startAtLogin: Bool = true
     @AppStorage("showDockIcon") var showDockIcon: Bool = false
     @State private var isHoveringQuit = false
+    @AppStorage("maximizeBehavior") var maximizeBehaviorRaw: String = MaximizeBehavior.zoom.rawValue
 
+    var maximizeBehavior: MaximizeBehavior {
+        MaximizeBehavior(rawValue: maximizeBehaviorRaw) ?? .fullscreen
+    }
     // Local state for mutual exclusion
     @State private var openNewWindow: Bool = true
     @State private var minimizePreviousWindow: Bool = false
@@ -124,34 +128,53 @@ struct GeneralSettingsTab: View {
                             .font(.body)
                     }
                     .help("Show a popup with app windows when hovering over icons in the Dock.")
-                }
-                Section(header: Label("Performance", systemImage: "speedometer").font(.headline)) {
-                    Picker("Dock preview speed", selection: $performanceProfileRaw) {
-                        ForEach(PerformanceProfile.allCases) { profile in
-                            Text(profile.rawValue)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Picker("Green Button Action", selection: $maximizeBehaviorRaw) {
+                            ForEach(MaximizeBehavior.allCases) { beh in
+                                Text(beh.rawValue).tag(beh.rawValue)
+                            }
                         }
-                    }
-                    .pickerStyle(.segmented)
-                    .onChange(of: performanceProfileRaw) { newRaw in
-                        let newProfile = PerformanceProfile(rawValue: newRaw) ?? .balanced
-                        dockPreviewSpeed = newProfile.hoverDelay
-                        dockPreviewFade = newProfile.fadeOutDuration
-                    }
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Profile: \(selectedProfile.rawValue)")
-                            .font(.headline)
-                        Text("How quickly the Dock preview appears and fades out when you hover.\n")
+                        .pickerStyle(.segmented)
+                        .help("Choose what happens when you click the green maximize button in window previews.")
+
+                        Text(maximizeBehavior.explanation)
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        HStack {
-                            Text("Preview delay: \(String(format: "%.2f", selectedProfile.hoverDelay))s")
-                            Text("Fade out: \(String(format: "%.2f", selectedProfile.fadeOutDuration))s")
-                        }
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.top, 2)
+                            .frame(maxWidth: 340, alignment: .leading)
                     }
+                    .padding(.top, 2)
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        Picker("Dock preview speed", selection: $performanceProfileRaw) {
+                            ForEach(PerformanceProfile.allCases) { profile in
+                                Text(profile.rawValue)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .onChange(of: performanceProfileRaw) { newRaw in
+                            let newProfile = PerformanceProfile(rawValue: newRaw) ?? .balanced
+                            dockPreviewSpeed = newProfile.hoverDelay
+                            dockPreviewFade = newProfile.fadeOutDuration
+                        }
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Profile: \(selectedProfile.rawValue)")
+                                .font(.headline)
+                            Text("How quickly the Dock preview appears and fades out when you hover.\n")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            HStack {
+                                Text("Preview delay: \(String(format: "%.2f", selectedProfile.hoverDelay))s")
+                                Text("Fade out: \(String(format: "%.2f", selectedProfile.fadeOutDuration))s")
+                            }
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 2)
                 }
-                
+               
                 Section(header: Label("Window Switching Behavior", systemImage: "arrow.triangle.swap").font(.headline)) {
                     VStack(alignment: .leading, spacing: 24) {
                         // Restore All Windows Demo
