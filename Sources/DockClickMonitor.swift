@@ -158,7 +158,6 @@ class DockClickMonitor {
 
                 let pid = app.processIdentifier
                 let frontmostPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
-                let restoreAll = UserDefaults.standard.bool(forKey: WindowManager.restoreAllKey)
                 let minimized = areAllVisibleWindowsMinimized(for: app)
                 let visWindows = visibleWindows(of: app)
 
@@ -168,19 +167,9 @@ class DockClickMonitor {
                         app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
                     }
                 } else if pid == frontmostPID {
-                    if restoreAll {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
-                            for win in visWindows {
-                                AXUIElementSetAttributeValue(win, kAXMinimizedAttribute as CFString, kCFBooleanTrue)
-                            }
-                        }
-                    } else if let focused = visWindows.first {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
-                            AXUIElementSetAttributeValue(focused, kAXMinimizedAttribute as CFString, kCFBooleanTrue)
-                        }
-                    } else {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
-                            app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+                        for win in visWindows {
+                            AXUIElementSetAttributeValue(win, kAXMinimizedAttribute as CFString, kCFBooleanTrue)
                         }
                     }
                 } else {
