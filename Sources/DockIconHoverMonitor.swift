@@ -5,7 +5,14 @@ import UniformTypeIdentifiers
 
 class DockIconHoverMonitor {
     private var dockPreviewDelay: Double {
+        // Use the user-selected profile from Settings (GeneralSettingsTab)
         UserDefaults.standard.double(forKey: "dockPreviewSpeed")
+    }
+    private var mouseUpdateInterval: Double {
+        // Use the performance profile as the update interval for panel position/contents
+        // If not set, fall back to something smooth.
+        max(0.016, min(UserDefaults.standard.double(forKey: "dockPreviewSpeed") * 0.45, 0.100))
+        // For example: 0.2s profile => ~0.09s update, 0.08s profile => ~0.036s update
     }
     private var axObserver: AXObserver?
     private var dockPID: pid_t = 0
@@ -129,9 +136,11 @@ class DockIconHoverMonitor {
 
     private func startMouseTimer() {
         stopMouseTimer()
-        mouseTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+        // Use the performance profile's derived speed for smoothness (see mouseUpdateInterval)
+        mouseTimer = Timer.scheduledTimer(withTimeInterval: mouseUpdateInterval, repeats: true) { [weak self] _ in
             guard let self = self else { return }
-            if self.previewPanel?.isVisible ?? false {
+            // Only update the popup if it's visible and a valid icon is hovered
+            if self.previewPanel?.isVisible ?? false, self.lockedHoveredIcon != nil {
                 self.updateDockPreviewContent()
             }
             self.checkMouseAndDismissIfNeeded()
@@ -233,7 +242,7 @@ class DockIconHoverMonitor {
         let bundleIdentifierCopy = bundleIdentifier
         let appCopy = app
 
-        showPanelTimer = Timer.scheduledTimer(withTimeInterval: 0.14, repeats: false) { [weak self] _ in
+        showPanelTimer = Timer.scheduledTimer(withTimeInterval: dockPreviewDelay, repeats: false) { [weak self] _ in
             guard let self = self else { return }
             // Only show if still on the same icon
             if let locked = self.lockedHoveredIcon, CFEqual(hoveredIconCopy, locked) {
@@ -272,7 +281,10 @@ class DockIconHoverMonitor {
                 self.lastPanelFrame = panelRect
 
                 let updatePopupImmediately: () -> Void = { [weak self] in
-                    _ = self?.updateDockPreviewContent()
+                    // Debounced: let the timer handle fast updates, but trigger one soon after action.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + max(0.01, self?.mouseUpdateInterval ?? 0.04)) {
+                        self?.updateDockPreviewContent()
+                    }
                 }
 
                 self.showOrUpdatePreviewPanel(
@@ -364,7 +376,10 @@ class DockIconHoverMonitor {
         )
 
         let updatePopupImmediately: () -> Void = { [weak self] in
-            _ = self?.updateDockPreviewContent()
+            // Debounced: let the timer handle fast updates, but trigger one soon after action.
+            DispatchQueue.main.asyncAfter(deadline: .now() + max(0.01, self?.mouseUpdateInterval ?? 0.04)) {
+                self?.updateDockPreviewContent()
+            }
         }
 
         if let panel = previewPanel, let hosting = hostingView {
