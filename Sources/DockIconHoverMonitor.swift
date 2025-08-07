@@ -209,7 +209,7 @@ class DockIconHoverMonitor {
         
         let panelWidth: CGFloat = 280
         let panelHeight = CGFloat(82 + max(24, windowInfos.count * 32))
-        let anchorY = iconFrame.maxY + 10
+        let anchorY = iconFrame.maxY + 15
         let panelRect = CGRect(
             x: iconFrame.midX - panelWidth/2,
             y: anchorY + CGFloat((windowInfos.count - 1 ) * 10),
@@ -311,7 +311,7 @@ class DockIconHoverMonitor {
 
         let panelWidth: CGFloat = 280
         let panelHeight = CGFloat(82 + max(24, windowInfos.count * 32))
-        let anchorY = iconFrame.maxY + 10
+        let anchorY = iconFrame.maxY + 15
         let panelRect = CGRect(
             x: iconFrame.midX - panelWidth/2,
             y: anchorY + CGFloat((windowInfos.count - 1 ) * 10),
