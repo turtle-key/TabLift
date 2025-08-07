@@ -13,7 +13,6 @@ struct WindowInfo: Identifiable, Equatable {
         self.axElement = axElement
         self.app = app
 
-        // Title
         var t: AnyObject?
         if AXUIElementCopyAttributeValue(axElement, kAXTitleAttribute as CFString, &t) == .success, let ti = t as? String {
             self.title = ti
@@ -26,7 +25,6 @@ struct WindowInfo: Identifiable, Equatable {
             }
         }
 
-        // Minimized
         var minRaw: AnyObject?
         if AXUIElementCopyAttributeValue(axElement, kAXMinimizedAttribute as CFString, &minRaw) == .success, let isMin = minRaw as? Bool {
             self.isMinimized = isMin
@@ -34,10 +32,8 @@ struct WindowInfo: Identifiable, Equatable {
             self.isMinimized = false
         }
 
-        // Highlight (focused)
         self.shouldHighlight = isFrontmostApp && (focusedWindow != nil) && (CFEqual(axElement, focusedWindow))
 
-        // Use memory address + pid + index for id
         self.id = "\(app.processIdentifier)-\(Unmanaged.passUnretained(axElement).toOpaque())-\(index)"
     }
 
@@ -280,24 +276,4 @@ class WindowManager {
         return false
     }
 
-    static func close(window: WindowInfo) {
-        var closeButton: AnyObject?
-        if AXUIElementCopyAttributeValue(window.axElement, kAXCloseButtonAttribute as CFString, &closeButton) == .success,
-           closeButton != nil {
-            let btn = closeButton as! AXUIElement
-            AXUIElementPerformAction(btn, kAXPressAction as CFString)
-        }
-    }
-
-    static func minimize(window: WindowInfo) {
-        AXUIElementSetAttributeValue(window.axElement, kAXMinimizedAttribute as CFString, kCFBooleanTrue)
-    }
-
-    static func toggleFullScreen(window: WindowInfo) {
-        var fsValue: AnyObject?
-        if AXUIElementCopyAttributeValue(window.axElement, "AXFullScreen" as CFString, &fsValue) == .success,
-           let isFS = fsValue as? Bool {
-            AXUIElementSetAttributeValue(window.axElement, "AXFullScreen" as CFString, NSNumber(value: !isFS))
-        }
-    }
 }

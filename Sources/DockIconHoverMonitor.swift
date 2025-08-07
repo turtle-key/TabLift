@@ -17,8 +17,8 @@ class DockIconHoverMonitor {
     private var mouseTimer: Timer?
     private var dockFrame: CGRect = .zero
     private var lastIconFrame: CGRect?
+    private var previousWindowCount: Int = -1
 
-    // Store the last hovered dock icon and bundle identifier for fallback when the mouse leaves the dock and enters the popup
     private var lastHoveredDockIcon: AXUIElement?
     private var lastHoveredBundleIdentifier: String?
 
@@ -124,6 +124,7 @@ class DockIconHoverMonitor {
                 self.updateDockPreviewContent()
             }
             self.checkMouseAndDismissIfNeeded()
+            self.checkForWindowCountChange()
         }
     }
 
@@ -137,7 +138,6 @@ class DockIconHoverMonitor {
         let isInPopup = previewPanel?.frame.contains(mouseLocation) ?? false
         let isOverDockIcon = isMouseOverDockIcon()
         if !isInPopup && !isOverDockIcon {
-            // Mouse is not over popup or dock icon; clear fallback state.
             lastHoveredDockIcon = nil
             lastHoveredBundleIdentifier = nil
             hidePreview()
@@ -162,48 +162,29 @@ class DockIconHoverMonitor {
         let isInPopup = previewPanel?.frame.contains(mouseLocation) ?? false
         let isOverDockIcon = isMouseOverDockIcon()
         if !isInPopup && !isOverDockIcon {
-            // Mouse is not over popup or dock icon; clear fallback state.
             lastHoveredDockIcon = nil
             lastHoveredBundleIdentifier = nil
             hidePreview()
         }
     }
 
-    private var lastApp: NSRunningApplication?
-    private var lastWindowInfos: [WindowInfo] = []
-
     func handleDockSelectionChange() {
         if !showDockPopups {
             hidePreview()
             return
         }
-
-        guard let hoveredIcon = getCurrentlySelectedDockIcon() else {
+        guard let hoveredIcon = getCurrentlySelectedDockIcon(),
+              let (iconFrame, bundleIdentifier) = getDockIconInfo(element: hoveredIcon),
+              let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).first
+        else {
             lastBundleIdentifier = nil
             hidePreview()
             lastPanelFrame = nil
             lastIconFrame = nil
             return
         }
-        guard let (iconFrame, bundleIdentifier) = getDockIconInfo(element: hoveredIcon) else {
-            lastBundleIdentifier = nil
-            hidePreview()
-            lastPanelFrame = nil
-            lastIconFrame = nil
-            return
-        }
-        guard let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).first else {
-            hidePreview()
-            lastPanelFrame = nil
-            lastIconFrame = nil
-            return
-        }
 
-        // --- WindowInfo for traffic lights ---
-        let allWindowInfos = WindowManager.windowInfos(for: app)
-        lastApp = app
-        lastWindowInfos = allWindowInfos
-
+        let allWindowInfos = filteredWindowInfos(for: app)
         let infoTuples = allWindowInfos.map { ($0.title, $0.isMinimized, $0.shouldHighlight) }
         if infoTuples.isEmpty {
             hidePreview()
@@ -293,7 +274,6 @@ class DockIconHoverMonitor {
     }
 
     private func updateDockPreviewContent() {
-        // Fallback: use last hovered dock icon and bundle id if getCurrentlySelectedDockIcon returns nil
         var hoveredIcon = getCurrentlySelectedDockIcon()
         var bundleIdentifier: String? = nil
         var iconFrame: CGRect? = nil
@@ -321,7 +301,7 @@ class DockIconHoverMonitor {
             return
         }
 
-        let windowInfos = fetchWindowInfos(for: app)
+        let windowInfos = filteredWindowInfos(for: app)
         if windowInfos.isEmpty {
             hidePreview()
             return
@@ -348,7 +328,7 @@ class DockIconHoverMonitor {
                 appBundleID: bundleIdentifier,
                 appDisplayName: appDisplayName,
                 appIcon: appIcon,
-                windowInfos: windowInfos,
+                windowInfos: windowInfos.map { ($0.title, $0.isMinimized, $0.shouldHighlight) },
                 onTitleClick: { [weak self] title in
                     self?.focusWindow(of: app, withTitle: title)
                 },
@@ -373,7 +353,7 @@ class DockIconHoverMonitor {
                 appBundleID: bundleIdentifier,
                 appDisplayName: appDisplayName,
                 appIcon: appIcon,
-                windowInfos: windowInfos,
+                windowInfos: windowInfos.map { ($0.title, $0.isMinimized, $0.shouldHighlight) },
                 onTitleClick: { [weak self] title in
                     self?.focusWindow(of: app, withTitle: title)
                 },
@@ -401,6 +381,94 @@ class DockIconHoverMonitor {
             self.startMouseTimer()
         }
     }
+
+    private func checkForWindowCountChange() {
+        guard let hoveredIcon = getCurrentlySelectedDockIcon(),
+              let (_, bundleIdentifier) = getDockIconInfo(element: hoveredIcon),
+              let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).first
+        else {
+            previousWindowCount = -1
+            return
+        }
+        let count = filteredWindowInfos(for: app).count
+        if previousWindowCount == 0 && count > 0 {
+            handleDockSelectionChange()
+        }
+        previousWindowCount = count
+    }
+
+    private func focusWindow(of app: NSRunningApplication?, withTitle title: String) {
+        guard let app = app else {
+            return
+        }
+        let appElement = AXUIElementCreateApplication(app.processIdentifier)
+        var windowsValue: AnyObject?
+        let result = AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue)
+        guard result == .success, let windows = windowsValue as? [AXUIElement] else {
+            return
+        }
+
+        // Find the window by title
+        var targetWindow: AXUIElement?
+        for (i, window) in windows.enumerated() {
+            var titleValue: AnyObject?
+            let gotTitle = AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &titleValue) == .success
+            let t = (titleValue as? String) ?? "(nil)"
+            if gotTitle, t == title {
+                targetWindow = window
+                break
+            }
+        }
+        guard let window = targetWindow else {
+            return
+        }
+
+        // Unminimize if needed
+        var minimizedValue: AnyObject?
+        let gotMin = AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedValue) == .success
+        let isMinimized = gotMin ? ((minimizedValue as? Bool) ?? false) : false
+        if isMinimized {
+            AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
+        }
+
+        // --- Most Robust Activation Sequence ---
+        // 1. Try to bring your own process to the front (sometimes required)
+        NSApp.activate(ignoringOtherApps: true)
+        usleep(50_000) // 50ms
+
+        // 2. Try to activate the target app
+        let didActivate = app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+
+        // 3. If activate failed, try AppleScript fallback
+        if !didActivate {
+            let bundleID = app.bundleIdentifier ?? ""
+            let script = "tell application id \"\(bundleID)\" to activate"
+            if let appleScript = NSAppleScript(source: script) {
+                var errorDict: NSDictionary? = nil
+                appleScript.executeAndReturnError(&errorDict)
+            }
+        }
+
+        // 4. Wait for app to be frontmost, then set AXMain/AXFocused
+        waitForAppToBeFrontmost(app: app, timeout: 1.5) {
+            let mainResult = AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
+            let focusedResult = AXUIElementSetAttributeValue(window, kAXFocusedAttribute as CFString, kCFBooleanTrue)
+        }
+    }
+
+    private func waitForAppToBeFrontmost(app: NSRunningApplication, timeout: TimeInterval, completion: @escaping () -> Void) {
+        let deadline = Date().addingTimeInterval(timeout)
+        func poll() {
+            let frontmost = NSWorkspace.shared.frontmostApplication
+            if frontmost == app {
+                completion()
+            } else if Date() < deadline {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) { poll() }
+            }
+        }
+        poll()
+    }
+
 
     private func hidePreview() {
         stopMouseTimer()
@@ -451,6 +519,89 @@ class DockIconHoverMonitor {
         return (frame, bundleID)
     }
 
+    private func filteredWindowInfos(for app: NSRunningApplication) -> [WindowInfo] {
+        let appElement = AXUIElementCreateApplication(app.processIdentifier)
+        var windowsValue: AnyObject?
+        guard AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue) == .success,
+              let windows = windowsValue as? [AXUIElement] else { return [] }
+
+        var focusedWindowValue: AnyObject?
+        var focusedWindow: AXUIElement?
+        if AXUIElementCopyAttributeValue(appElement, kAXFocusedWindowAttribute as CFString, &focusedWindowValue) == .success,
+           focusedWindowValue != nil {
+            focusedWindow = focusedWindowValue as! AXUIElement
+        }
+
+        let frontmostPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
+        let isFrontmostApp = (app.processIdentifier == frontmostPID)
+
+        let cgVisible = visibleCGWindowTitles(for: app)
+
+        var infos: [WindowInfo] = []
+
+        for (idx, window) in windows.enumerated() {
+            let role = window.role() ?? ""
+            let subrole = window.subrole() ?? ""
+            if role != "AXWindow" { continue }
+            if subrole != "AXStandardWindow" && subrole != "" { continue }
+            if isProbablyPictureInPicture(window: window) { continue }
+
+            var sizeValue: AnyObject?
+            var skip = false
+            if AXUIElementCopyAttributeValue(window, kAXSizeAttribute as CFString, &sizeValue) == .success {
+                let axSize = sizeValue as! AXValue
+                var sz = CGSize.zero
+                AXValueGetValue(axSize, .cgSize, &sz)
+                if sz.width < 80 || sz.height < 80 { skip = true }
+            }
+            if skip { continue }
+
+            var t: AnyObject?
+            var title = ""
+            if AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &t) == .success, let ti = t as? String {
+                title = ti
+            }
+            var minimizedRaw: AnyObject?
+            let isMinimized = AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedRaw) == .success && (minimizedRaw as? Bool ?? false)
+            if title.isEmpty || title == "(Untitled)" {
+                if !(isMinimized || (cgVisible.contains(title) && !title.isEmpty)) {
+                    continue
+                }
+            }
+
+            infos.append(WindowInfo(
+                axElement: window,
+                app: app,
+                index: idx,
+                focusedWindow: focusedWindow,
+                isFrontmostApp: isFrontmostApp
+            ))
+        }
+        return infos
+    }
+
+    private func visibleCGWindowTitles(for app: NSRunningApplication) -> Set<String> {
+        var result = Set<String>()
+        guard let bundleID = app.bundleIdentifier else { return result }
+        let appProcs = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
+        let pids = Set(appProcs.map { $0.processIdentifier })
+
+        guard let infoList = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else {
+            return result
+        }
+
+        for dict in infoList {
+            guard
+                let ownerPID = dict[kCGWindowOwnerPID as String] as? pid_t,
+                pids.contains(ownerPID),
+                let title = dict[kCGWindowName as String] as? String,
+                !title.isEmpty
+            else { continue }
+            result.insert(title)
+        }
+        return result
+    }
+
     private func isProbablyPictureInPicture(window: AXUIElement) -> Bool {
         let subrole = window.subrole() ?? ""
         if subrole == "AXPictureInPictureWindow" ||
@@ -465,7 +616,7 @@ class DockIconHoverMonitor {
             let axSize = sizeValue as! AXValue
             var sz = CGSize.zero
             AXValueGetValue(axSize, .cgSize, &sz)
-            if sz.width < 220 || sz.height < 220 {
+            if sz.width < 80 || sz.height < 80 {
                 let title = window.title() ?? ""
                 if title.isEmpty {
                     return true
@@ -473,78 +624,6 @@ class DockIconHoverMonitor {
             }
         }
         return false
-    }
-
-    private func fetchWindowInfos(for app: NSRunningApplication?) -> [(title: String, isMinimized: Bool, shouldHighlight: Bool)] {
-        guard let app = app else { return [] }
-        let appElement = AXUIElementCreateApplication(app.processIdentifier)
-        var windowsValue: AnyObject?
-        guard AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue) == .success,
-              let windows = windowsValue as? [AXUIElement] else { return [] }
-
-        var focusedWindowValue: AnyObject?
-        var focusedWindow: AXUIElement?
-        if AXUIElementCopyAttributeValue(appElement, kAXFocusedWindowAttribute as CFString, &focusedWindowValue) == .success,
-           let fw = focusedWindowValue {
-            focusedWindow = (fw as! AXUIElement)
-        }
-
-        let frontmostPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
-        let isFrontmostApp = (app.processIdentifier == frontmostPID)
-
-        var infos: [(String, Bool, Bool)] = []
-
-        for window in windows {
-            let role = window.role() ?? "(nil)"
-            let pip = isProbablyPictureInPicture(window: window)
-            if role != "AXWindow" { continue }
-            if pip { continue }
-
-            var titleValue: AnyObject?
-            var minimizedValue: AnyObject?
-            let titleSuccess = AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &titleValue) == .success
-            let minSuccess = AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedValue) == .success
-            var title = titleSuccess ? (titleValue as? String ?? "") : ""
-            let minimized = minSuccess ? ((minimizedValue as? Bool) ?? false) : false
-            let shouldHighlight = isFrontmostApp && (focusedWindow != nil) && CFEqual(window, focusedWindow)
-
-            if title.isEmpty {
-                var documentValue: AnyObject?
-                if AXUIElementCopyAttributeValue(window, kAXDocumentAttribute as CFString, &documentValue) == .success,
-                    let document = documentValue as? String, !document.isEmpty {
-                    title = document
-                } else {
-                    title = "(Untitled)"
-                }
-            }
-            infos.append((title, minimized, shouldHighlight))
-        }
-        return infos
-    }
-
-    private func focusWindow(of app: NSRunningApplication?, withTitle title: String) {
-        guard let app = app else { return }
-        let appElement = AXUIElementCreateApplication(app.processIdentifier)
-        var windowsValue: AnyObject?
-        guard AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue) == .success,
-              let windows = windowsValue as? [AXUIElement] else { return }
-        for window in windows {
-            var titleValue: AnyObject?
-            if AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &titleValue) == .success,
-               let t = titleValue as? String, t == title {
-                var minimizedValue: AnyObject?
-                if AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedValue) == .success,
-                   let isMinimized = minimizedValue as? Bool, isMinimized
-                {
-                    WindowManager.restoreMinimizedWindows(for: app)
-                }
-                AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
-                AXUIElementSetAttributeValue(window, kAXFocusedAttribute as CFString, kCFBooleanTrue)
-                app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
-                return
-            }
-        }
-        app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
     }
 
     func refresh() {

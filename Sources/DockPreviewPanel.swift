@@ -81,7 +81,6 @@ fileprivate struct RowWithTrafficLights: View {
 
     private func findWindowAXElement() -> AXUIElement? {
         guard let app = NSRunningApplication.runningApplications(withBundleIdentifier: appBundleID).first else {
-            print("[DEBUG] No running app for bundle id \(appBundleID)")
             return nil
         }
         let appEl = AXUIElementCreateApplication(app.processIdentifier)
@@ -145,8 +144,8 @@ fileprivate struct RowWithTrafficLights: View {
                         onActionComplete()
                     }
                 )
-                .padding(.trailing, 14)
-                .padding(.top, 2)
+                .padding(.trailing, 6)
+                .padding(.top, 4)
                 .transition(.move(edge: .top).combined(with: .opacity))
                 .animation(.easeInOut(duration: 0.18), value: isHovered)
             }
@@ -158,7 +157,6 @@ fileprivate struct RowWithTrafficLights: View {
     }
 }
 
-// ... rest unchanged ...
 
 struct TrafficLightButtons: View {
     let onClose: () -> Void
@@ -174,7 +172,6 @@ struct TrafficLightButtons: View {
 
             HStack(spacing: 9) {
                 Button(action: {
-                    print("[DEBUG] TrafficLightButtons: Close button tapped")
                     onClose()
                 }) {
                     ZStack {
@@ -193,7 +190,6 @@ struct TrafficLightButtons: View {
                 .help("Close")
 
                 Button(action: {
-                    print("[DEBUG] TrafficLightButtons: Minimize button tapped")
                     onMinimize()
                 }) {
                     ZStack {
@@ -212,7 +208,6 @@ struct TrafficLightButtons: View {
                 .help("Minimize")
 
                 Button(action: {
-                    print("[DEBUG] TrafficLightButtons: Fullscreen button tapped")
                     onFullscreen()
                 }) {
                     ZStack {
@@ -237,7 +232,6 @@ struct TrafficLightButtons: View {
     }
 }
 
-// Fallback for MinimizedIndicator (if not defined elsewhere)
 struct MinimizedIndicator: View {
     var body: some View {
         GeometryReader { geo in
@@ -257,14 +251,12 @@ struct MinimizedIndicator: View {
     }
 }
 
-// Fallback for BlurView (if not defined elsewhere)
 struct BlurView: View {
     var body: some View {
         Rectangle().fill(.ultraThinMaterial)
     }
 }
 
-// Fallback for dockStyle (if not defined elsewhere)
 struct DockStyleModifier: ViewModifier {
     let cornerRadius: Double
     let highlightColor: Color?
