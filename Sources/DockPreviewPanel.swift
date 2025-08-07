@@ -1,4 +1,40 @@
 import SwiftUI
+import Cocoa
+
+// --- Robust Traffic Light Actions for Min/Close ---
+fileprivate func robustMinimize(window: AXUIElement) {
+    var minimized: AnyObject?
+    if AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimized) == .success,
+       let isMin = minimized as? Bool, !isMin {
+        AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanTrue)
+    }
+}
+
+fileprivate func robustClose(window: AXUIElement, app: NSRunningApplication?) {
+    var minimized: AnyObject?
+    let gotMin = AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimized) == .success
+    let isMinimized = gotMin ? ((minimized as? Bool) ?? false) : false
+
+    // Unminimize first if minimized, then close
+    if isMinimized {
+        AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+            performClose(window: window)
+        }
+    } else {
+        performClose(window: window)
+    }
+}
+let kAXCloseAction = "AXClose" as CFString
+fileprivate func performClose(window: AXUIElement) {
+    var closeBtn: AnyObject?
+    if AXUIElementCopyAttributeValue(window, kAXCloseButtonAttribute as CFString, &closeBtn) == .success {
+        AXUIElementPerformAction(closeBtn as! AXUIElement, kAXPressAction as CFString)
+    } else {
+        // Fallback: try sending kAXCloseAction directly to window
+        AXUIElementPerformAction(window, kAXCloseAction as CFString)
+    }
+}
 
 fileprivate struct WindowRow: Identifiable, Equatable {
     let id: String
@@ -98,6 +134,10 @@ fileprivate struct RowWithTrafficLights: View {
         return nil
     }
 
+    private func findApp() -> NSRunningApplication? {
+        NSRunningApplication.runningApplications(withBundleIdentifier: appBundleID).first
+    }
+
     var body: some View {
         ZStack(alignment: .topTrailing) {
             Button(action: { onTitleClick(row.title) }) {
@@ -122,16 +162,12 @@ fileprivate struct RowWithTrafficLights: View {
                 TrafficLightButtons(
                     onClose: {
                         guard let win = findWindowAXElement() else { onActionComplete(); return }
-                        var closeBtn: AnyObject?
-                        if AXUIElementCopyAttributeValue(win, kAXCloseButtonAttribute as CFString, &closeBtn) == .success,
-                           let closeBtn = closeBtn {
-                            AXUIElementPerformAction(closeBtn as! AXUIElement, kAXPressAction as CFString)
-                        }
+                        robustClose(window: win, app: findApp())
                         onActionComplete()
                     },
                     onMinimize: {
                         guard let win = findWindowAXElement() else { onActionComplete(); return }
-                        AXUIElementSetAttributeValue(win, kAXMinimizedAttribute as CFString, kCFBooleanTrue)
+                        robustMinimize(window: win)
                         onActionComplete()
                     },
                     onFullscreen: {
