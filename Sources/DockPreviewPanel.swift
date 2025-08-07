@@ -1,7 +1,8 @@
 import SwiftUI
 import Cocoa
 
-// --- Robust Traffic Light Actions for Min/Close ---
+fileprivate let kAXCloseAction = "AXClose" as CFString
+
 fileprivate func robustMinimize(window: AXUIElement) {
     var minimized: AnyObject?
     if AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimized) == .success,
@@ -25,7 +26,7 @@ fileprivate func robustClose(window: AXUIElement, app: NSRunningApplication?) {
         performClose(window: window)
     }
 }
-let kAXCloseAction = "AXClose" as CFString
+
 fileprivate func performClose(window: AXUIElement) {
     var closeBtn: AnyObject?
     if AXUIElementCopyAttributeValue(window, kAXCloseButtonAttribute as CFString, &closeBtn) == .success {
@@ -143,7 +144,10 @@ fileprivate struct RowWithTrafficLights: View {
             Button(action: { onTitleClick(row.title) }) {
                 HStack {
                     MarqueeText(text: row.title.isEmpty ? "(Untitled)" : row.title, maxWidth: 185).id(row.id)
-                    if row.isMinimized { MinimizedIndicator().padding(.leading, 5) }
+                    if row.isMinimized {
+                        MinimizedIndicator()
+                            .padding(.leading, 5)
+                    }
                     Spacer()
                 }
                 .padding(.vertical, 7)
@@ -167,7 +171,9 @@ fileprivate struct RowWithTrafficLights: View {
                     },
                     onMinimize: {
                         guard let win = findWindowAXElement() else { onActionComplete(); return }
-                        robustMinimize(window: win)
+                        if !row.isMinimized { // Only allow minimize if not already minimized
+                            robustMinimize(window: win)
+                        }
                         onActionComplete()
                     },
                     onFullscreen: {
@@ -178,7 +184,8 @@ fileprivate struct RowWithTrafficLights: View {
                             AXUIElementSetAttributeValue(win, "AXFullScreen" as CFString, NSNumber(value: !isFS))
                         }
                         onActionComplete()
-                    }
+                    },
+                    isMinimized: row.isMinimized // Pass minimized state for button filtering
                 )
                 .padding(.trailing, 6)
                 .padding(.top, 4)
@@ -193,23 +200,22 @@ fileprivate struct RowWithTrafficLights: View {
     }
 }
 
-
+// Modified: Hide Minimize if minimized
 struct TrafficLightButtons: View {
     let onClose: () -> Void
     let onMinimize: () -> Void
     let onFullscreen: () -> Void
+    let isMinimized: Bool
 
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(.ultraThinMaterial)
-                .frame(width: 85, height: 28)
+                .frame(width: isMinimized ? 58 : 85, height: 28)
                 .shadow(radius: 3, y: 1)
 
             HStack(spacing: 9) {
-                Button(action: {
-                    onClose()
-                }) {
+                Button(action: { onClose() }) {
                     ZStack {
                         Circle()
                             .fill(Color.red)
@@ -225,27 +231,25 @@ struct TrafficLightButtons: View {
                 .padding(2)
                 .help("Close")
 
-                Button(action: {
-                    onMinimize()
-                }) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.yellow)
-                            .frame(width: 16, height: 16)
-                            .shadow(color: Color.yellow.opacity(0.13), radius: 1, x: 0, y: 0)
-                        Image(systemName: "minus")
-                            .font(.system(size: 8.5, weight: .bold))
-                            .foregroundColor(.white.opacity(0.88))
+                if !isMinimized {
+                    Button(action: { onMinimize() }) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.yellow)
+                                .frame(width: 16, height: 16)
+                                .shadow(color: Color.yellow.opacity(0.13), radius: 1, x: 0, y: 0)
+                            Image(systemName: "minus")
+                                .font(.system(size: 8.5, weight: .bold))
+                                .foregroundColor(.white.opacity(0.88))
+                        }
                     }
+                    .buttonStyle(.plain)
+                    .contentShape(Circle().inset(by: -6))
+                    .padding(2)
+                    .help("Minimize")
                 }
-                .buttonStyle(.plain)
-                .contentShape(Circle().inset(by: -6))
-                .padding(2)
-                .help("Minimize")
 
-                Button(action: {
-                    onFullscreen()
-                }) {
+                Button(action: { onFullscreen() }) {
                     ZStack {
                         Circle()
                             .fill(Color.green)
@@ -264,7 +268,7 @@ struct TrafficLightButtons: View {
             .frame(height: 28)
             .contentShape(Rectangle())
         }
-        .frame(width: 85, height: 28)
+        .frame(width: isMinimized ? 58 : 85, height: 28)
     }
 }
 
