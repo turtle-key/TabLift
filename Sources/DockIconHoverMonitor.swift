@@ -226,6 +226,11 @@ class DockIconHoverMonitor {
         )
         self.lastIconFrame = iconFrame
         self.lastPanelFrame = panelRect
+
+        let updatePopupImmediately: () -> Void = { [weak self] in
+            _ = self?.updateDockPreviewContent()
+        }
+
         DispatchQueue.main.asyncAfter(deadline: .now() + dockPreviewDelay) {
             self.showOrUpdatePreviewPanel(
                 appBundleID: bundleIdentifier,
@@ -233,7 +238,8 @@ class DockIconHoverMonitor {
                 appIcon: appIcon,
                 windowInfos: infoTuples,
                 panelRect: panelRect,
-                app: app
+                app: app,
+                onActionComplete: updatePopupImmediately
             )
         }
     }
@@ -244,7 +250,8 @@ class DockIconHoverMonitor {
         appIcon: NSImage,
         windowInfos: [(title: String, isMinimized: Bool, shouldHighlight: Bool)],
         panelRect: CGRect,
-        app: NSRunningApplication
+        app: NSRunningApplication,
+        onActionComplete: @escaping () -> Void
     ) {
         let newContent = DockPreviewPanel(
             appBundleID: appBundleID,
@@ -253,7 +260,8 @@ class DockIconHoverMonitor {
             windowInfos: windowInfos,
             onTitleClick: { [weak self] title in
                 self?.focusWindow(of: app, withTitle: title)
-            }
+            },
+            onActionComplete: onActionComplete
         )
         if let panel = self.previewPanel, let hosting = self.hostingView {
             hosting.rootView = newContent
@@ -291,19 +299,16 @@ class DockIconHoverMonitor {
         var iconFrame: CGRect? = nil
 
         if let icon = hoveredIcon, let (frame, bundleId) = getDockIconInfo(element: icon) {
-            // Remember this icon and bundle
             lastHoveredDockIcon = icon
             lastHoveredBundleIdentifier = bundleId
             bundleIdentifier = bundleId
             iconFrame = frame
         } else if let lastIcon = lastHoveredDockIcon, let lastBundleId = lastHoveredBundleIdentifier,
                   let (frame, bundleId) = getDockIconInfo(element: lastIcon) {
-            // Use last icon while mouse is over popup
             hoveredIcon = lastIcon
             bundleIdentifier = bundleId
             iconFrame = frame
         } else {
-            // Nowhere: clear state
             lastHoveredDockIcon = nil
             lastHoveredBundleIdentifier = nil
             return
@@ -317,6 +322,10 @@ class DockIconHoverMonitor {
         }
 
         let windowInfos = fetchWindowInfos(for: app)
+        if windowInfos.isEmpty {
+            hidePreview()
+            return
+        }
         let appDisplayName = app.localizedName ?? bundleIdentifier
         let appIcon = app.icon ?? NSWorkspace.shared.icon(for: .application)
 
@@ -330,6 +339,10 @@ class DockIconHoverMonitor {
             height: panelHeight
         )
 
+        let updatePopupImmediately: () -> Void = { [weak self] in
+            _ = self?.updateDockPreviewContent()
+        }
+
         if let panel = previewPanel, let hosting = hostingView {
             hosting.rootView = DockPreviewPanel(
                 appBundleID: bundleIdentifier,
@@ -338,7 +351,8 @@ class DockIconHoverMonitor {
                 windowInfos: windowInfos,
                 onTitleClick: { [weak self] title in
                     self?.focusWindow(of: app, withTitle: title)
-                }
+                },
+                onActionComplete: updatePopupImmediately
             )
             panel.setContentSize(panelRect.size)
             panel.setFrameOrigin(panelRect.origin)
@@ -362,7 +376,8 @@ class DockIconHoverMonitor {
                 windowInfos: windowInfos,
                 onTitleClick: { [weak self] title in
                     self?.focusWindow(of: app, withTitle: title)
-                }
+                },
+                onActionComplete: updatePopupImmediately
             ))
             let panel = NSPanel(contentRect: panelRect,
                                 styleMask: [.borderless, .nonactivatingPanel],

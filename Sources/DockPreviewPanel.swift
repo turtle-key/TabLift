@@ -30,6 +30,7 @@ struct DockPreviewPanel: View {
     let appIcon: NSImage
     let windowInfos: [(title: String, isMinimized: Bool, shouldHighlight: Bool)]
     let onTitleClick: (String) -> Void
+    let onActionComplete: () -> Void
 
     private var windowRows: [WindowRow] {
         windowInfos.enumerated().map { WindowRow(index: $0.offset, tuple: $0.element) }
@@ -56,7 +57,8 @@ struct DockPreviewPanel: View {
                     RowWithTrafficLights(
                         row: row,
                         appBundleID: appBundleID,
-                        onTitleClick: onTitleClick
+                        onTitleClick: onTitleClick,
+                        onActionComplete: onActionComplete
                     )
                 }
             }
@@ -73,6 +75,7 @@ fileprivate struct RowWithTrafficLights: View {
     let row: WindowRow
     let appBundleID: String
     let onTitleClick: (String) -> Void
+    let onActionComplete: () -> Void
 
     @State private var isHovered: Bool = false
 
@@ -119,24 +122,27 @@ fileprivate struct RowWithTrafficLights: View {
             if isHovered {
                 TrafficLightButtons(
                     onClose: {
-                        guard let win = findWindowAXElement() else { return }
+                        guard let win = findWindowAXElement() else { onActionComplete(); return }
                         var closeBtn: AnyObject?
                         if AXUIElementCopyAttributeValue(win, kAXCloseButtonAttribute as CFString, &closeBtn) == .success,
                            let closeBtn = closeBtn {
                             AXUIElementPerformAction(closeBtn as! AXUIElement, kAXPressAction as CFString)
                         }
+                        onActionComplete()
                     },
                     onMinimize: {
-                        guard let win = findWindowAXElement() else { return }
+                        guard let win = findWindowAXElement() else { onActionComplete(); return }
                         AXUIElementSetAttributeValue(win, kAXMinimizedAttribute as CFString, kCFBooleanTrue)
+                        onActionComplete()
                     },
                     onFullscreen: {
-                        guard let win = findWindowAXElement() else { return }
+                        guard let win = findWindowAXElement() else { onActionComplete(); return }
                         var fsValue: AnyObject?
                         if AXUIElementCopyAttributeValue(win, "AXFullScreen" as CFString, &fsValue) == .success,
                            let isFS = fsValue as? Bool {
                             AXUIElementSetAttributeValue(win, "AXFullScreen" as CFString, NSNumber(value: !isFS))
                         }
+                        onActionComplete()
                     }
                 )
                 .padding(.trailing, 14)
