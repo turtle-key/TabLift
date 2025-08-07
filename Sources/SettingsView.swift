@@ -1,6 +1,7 @@
 import SwiftUI
 import ServiceManagement
 import AVKit
+
 enum PerformanceProfile: String, CaseIterable, Identifiable {
     case detailed = "Relaxed"
     case balanced = "Default"
@@ -22,6 +23,7 @@ enum PerformanceProfile: String, CaseIterable, Identifiable {
         }
     }
 }
+
 struct SettingsView: View {
     var body: some View {
         TabView {
@@ -63,7 +65,7 @@ struct GeneralSettingsTab: View {
     @AppStorage("startAtLogin") var startAtLogin: Bool = true
     @AppStorage("showDockIcon") var showDockIcon: Bool = false
     @State private var isHoveringQuit = false
-    @AppStorage("maximizeBehavior") var maximizeBehaviorRaw: String = MaximizeBehavior.zoom.rawValue
+    @AppStorage("maximizeBehavior") var maximizeBehaviorRaw: String = MaximizeBehavior.fill.rawValue
 
     var maximizeBehavior: MaximizeBehavior {
         MaximizeBehavior(rawValue: maximizeBehaviorRaw) ?? .fullscreen

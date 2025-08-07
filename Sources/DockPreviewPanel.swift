@@ -4,7 +4,6 @@ import Cocoa
 fileprivate let kAXCloseAction = "AXClose" as CFString
 
 enum MaximizeBehavior: String, CaseIterable, Identifiable {
-    case zoom = "Zoom"
     case fill = "Fill"
     case fullscreen = "Fullscreen"
 
@@ -12,15 +11,14 @@ enum MaximizeBehavior: String, CaseIterable, Identifiable {
 
     var explanation: String {
         switch self {
-        case .zoom: return "Zoom: Maximizes the window to fill most of the screen, but leaves a small border, just like the classic green button."
         case .fill: return "Fill: Expands the window to fill the entire screen area (excluding the menu bar and Dock), leaving no space around."
         case .fullscreen: return "Fullscreen: Native macOS fullscreen mode (window becomes its own space, hides menu bar and Dock)."
         }
     }
 
     static var current: MaximizeBehavior {
-        let raw = UserDefaults.standard.string(forKey: "maximizeBehavior") ?? MaximizeBehavior.zoom.rawValue
-        return MaximizeBehavior(rawValue: raw) ?? .zoom
+        let raw = UserDefaults.standard.string(forKey: "maximizeBehavior") ?? MaximizeBehavior.fill.rawValue
+        return MaximizeBehavior(rawValue: raw) ?? .fill
     }
 }
 
@@ -72,34 +70,6 @@ fileprivate func performMaximize(window: AXUIElement, app: NSRunningApplication?
 
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
         switch MaximizeBehavior.current {
-        case .zoom:
-            // Try to zoom using the AXZoom action, fallback to fill if not supported
-            let result = AXUIElementPerformAction(window, "AXZoom" as CFString)
-            if result != .success {
-                // Fallback: use fill
-                if let screen = screenForWindow(window) {
-                    let frame = screen.frame
-                    let visible = screen.visibleFrame
-                    let flipped = frame.origin.y > visible.origin.y ? false : true
-                    var pos: CGPoint
-                    if !flipped {
-                        // Standard macOS: bottom-left origin
-                        pos = visible.origin
-                    } else {
-                        // Flipped: top-left origin (Y increases downward)
-                        let y = frame.height - visible.origin.y - visible.height
-                        pos = CGPoint(x: visible.origin.x, y: y)
-                    }
-                    var size = CGSize(width: visible.width, height: visible.height)
-                    print("=== [DEBUG][ZOOM FALLBACK] flipped: \(flipped), set window pos: \(pos), size: \(size)")
-                    let posVal = AXValueCreate(.cgPoint, &pos)
-                    let sizeVal = AXValueCreate(.cgSize, &size)
-                    if let posVal, let sizeVal {
-                        AXUIElementSetAttributeValue(window, kAXPositionAttribute as CFString, posVal)
-                        AXUIElementSetAttributeValue(window, kAXSizeAttribute as CFString, sizeVal)
-                    }
-                }
-            }
         case .fill:
             if let screen = screenForWindow(window) {
                 let frame = screen.frame
@@ -113,7 +83,6 @@ fileprivate func performMaximize(window: AXUIElement, app: NSRunningApplication?
                     pos = CGPoint(x: visible.origin.x, y: y)
                 }
                 var size = CGSize(width: visible.width, height: visible.height)
-                print("=== [DEBUG][FILL] flipped: \(flipped), set window pos: \(pos), size: \(size)")
                 let posVal = AXValueCreate(.cgPoint, &pos)
                 let sizeVal = AXValueCreate(.cgSize, &size)
                 if let posVal, let sizeVal {
