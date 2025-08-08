@@ -227,7 +227,14 @@ fileprivate struct RowWithTrafficLights: View {
     private func findApp() -> NSRunningApplication? {
         NSRunningApplication.runningApplications(withBundleIdentifier: appBundleID).first
     }
-
+    @State private var backingScale: CGFloat = NSScreen.main?.backingScaleFactor ?? 2.0
+    private var hairlineWidth: CGFloat { 2.5 / max(backingScale, 1.0) }
+    private var borderColor: Color {
+        // Subtle by default, brighter when hovered/highlighted
+        if row.shouldHighlight { return Color.white.opacity(0.55) }
+        if isHovered { return Color.accentColor.opacity(0.50) }
+        return Color(nsColor: .separatorColor).opacity(0.65)
+    }
     var body: some View {
         ZStack(alignment: .topTrailing) {
             Button(action: { onTitleClick(row.title) }) {
@@ -247,6 +254,15 @@ fileprivate struct RowWithTrafficLights: View {
                               : (isHovered ? Color.accentColor.opacity(0.15) : Color.clear))
                         .shadow(color: row.shouldHighlight ? .black.opacity(0.12) : .clear, radius: 6, x: 0, y: 2)
                 )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .inset(by: hairlineWidth / 2) // keeps stroke fully inside the clip
+                        .stroke(borderColor, lineWidth: hairlineWidth)
+                )
+                .onAppear { backingScale = NSScreen.main?.backingScaleFactor ?? backingScale }
+                .onReceive(NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)) { _ in
+                    backingScale = NSScreen.main?.backingScaleFactor ?? backingScale
+                }
                 .scaleEffect(row.shouldHighlight ? 1.02 : 1.0)
             }
             .buttonStyle(.plain)
