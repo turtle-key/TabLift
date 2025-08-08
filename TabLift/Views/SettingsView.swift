@@ -626,6 +626,7 @@ struct SupportTab: View {
                     Form {
                         Section {
                             AccessibilityPermissionCheckView()
+                            ShieldBannerSettings()
                         }
                         Section {
                             CheckForUpdatesView()
@@ -861,5 +862,15 @@ struct DockKeyCap: View {
             )
             .shadow(color: Color.accentColor.opacity(0.09), radius: 1, x: 0, y: 1)
             .frame(width: 40, height: 40)
+    }
+}
+
+struct ShieldBannerSettings: View {
+    @AppStorage("showShieldBanner") private var showShieldBanner: Bool = true
+
+    var body: some View {
+        Toggle("Show accessibility shield tips", isOn: $showShieldBanner)
+            .toggleStyle(.switch)
+            .help("Show a brief tip when macOS temporarily blocks Accessibility after unlock/wake.")
     }
 }
