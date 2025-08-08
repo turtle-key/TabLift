@@ -5,14 +5,10 @@ import UniformTypeIdentifiers
 
 class DockIconHoverMonitor {
     private var dockPreviewDelay: Double {
-        // Use the user-selected profile from Settings (GeneralSettingsTab)
         UserDefaults.standard.double(forKey: "dockPreviewSpeed")
     }
     private var mouseUpdateInterval: Double {
-        // Use the performance profile as the update interval for panel position/contents
-        // If not set, fall back to something smooth.
         max(0.016, min(UserDefaults.standard.double(forKey: "dockPreviewSpeed") * 0.45, 0.100))
-        // For example: 0.2s profile => ~0.09s update, 0.08s profile => ~0.036s update
     }
     private var axObserver: AXObserver?
     private var dockPID: pid_t = 0
@@ -34,6 +30,9 @@ class DockIconHoverMonitor {
     private var lockedIconFrame: CGRect?
     private var lockedBundleIdentifier: String?
     private var showPanelTimer: Timer?
+
+    // ANIMATION: Only update anchorX when app icon changes
+    private var anchorX: CGFloat?
 
     private var dockClickMonitor: DockClickMonitor? {
         (NSApplication.shared.delegate as? AppDelegate)?.dockClickMonitor
@@ -136,10 +135,8 @@ class DockIconHoverMonitor {
 
     private func startMouseTimer() {
         stopMouseTimer()
-        // Use the performance profile's derived speed for smoothness (see mouseUpdateInterval)
         mouseTimer = Timer.scheduledTimer(withTimeInterval: mouseUpdateInterval, repeats: true) { [weak self] _ in
             guard let self = self else { return }
-            // Only update the popup if it's visible and a valid icon is hovered
             if self.previewPanel?.isVisible ?? false, self.lockedHoveredIcon != nil {
                 self.updateDockPreviewContent()
             }
@@ -163,6 +160,7 @@ class DockIconHoverMonitor {
             lockedHoveredIcon = nil
             lockedIconFrame = nil
             lockedBundleIdentifier = nil
+            anchorX = nil
             showPanelTimer?.invalidate()
             showPanelTimer = nil
             hidePreview()
@@ -192,6 +190,7 @@ class DockIconHoverMonitor {
             lockedHoveredIcon = nil
             lockedIconFrame = nil
             lockedBundleIdentifier = nil
+            anchorX = nil
             showPanelTimer?.invalidate()
             showPanelTimer = nil
             hidePreview()
@@ -214,6 +213,7 @@ class DockIconHoverMonitor {
             lockedHoveredIcon = nil
             lockedIconFrame = nil
             lockedBundleIdentifier = nil
+            anchorX = nil
             showPanelTimer?.invalidate()
             showPanelTimer = nil
             return
@@ -221,21 +221,24 @@ class DockIconHoverMonitor {
 
         // Only update if hovered icon changes (pointer comparison)
         if let locked = lockedHoveredIcon, CFEqual(hoveredIcon, locked), previewPanel != nil {
-            // But always update the lockedIconFrame to the latest magnified frame
             if let (liveFrame, _) = getDockIconInfo(element: hoveredIcon) {
                 lockedIconFrame = liveFrame
             }
             return
         }
 
-        // New icon hovered: cancel any pending show
         showPanelTimer?.invalidate()
         showPanelTimer = nil
 
-        // Wait before showing (e.g. 140ms) so Dock magnification can settle and slot positions are accurate
         lockedHoveredIcon = hoveredIcon
         lockedBundleIdentifier = bundleIdentifier
         lockedIconFrame = iconFrame
+
+        // --- ANIMATION: Reset anchorX on app change
+        if anchorX == nil || bundleIdentifier != lastBundleIdentifier {
+            anchorX = iconFrame.midX
+            lastBundleIdentifier = bundleIdentifier
+        }
 
         let iconFrameCopy = iconFrame
         let hoveredIconCopy = hoveredIcon
@@ -244,7 +247,6 @@ class DockIconHoverMonitor {
 
         showPanelTimer = Timer.scheduledTimer(withTimeInterval: dockPreviewDelay, repeats: false) { [weak self] _ in
             guard let self = self else { return }
-            // Only show if still on the same icon
             if let locked = self.lockedHoveredIcon, CFEqual(hoveredIconCopy, locked) {
                 if let (liveFrame, _) = self.getDockIconInfo(element: hoveredIconCopy) {
                     self.lockedIconFrame = liveFrame
@@ -259,6 +261,7 @@ class DockIconHoverMonitor {
                     self.lockedHoveredIcon = nil
                     self.lockedIconFrame = nil
                     self.lockedBundleIdentifier = nil
+                    self.anchorX = nil
                     return
                 }
 
@@ -266,22 +269,28 @@ class DockIconHoverMonitor {
                 let appIcon = appCopy.icon ?? NSWorkspace.shared.icon(for: .application)
 
                 let panelWidth: CGFloat = 280
+                // FIX: Never shrink the panel height after creation, only grow (to avoid cutting)
                 let panelHeight = CGFloat(82 + max(24, infoTuples.count * 32))
-
-                // Center on current live icon's vertical axis (magnified!)
-                let anchorCenterX = self.lockedIconFrame?.midX ?? iconFrameCopy.midX
+                let anchorCenterX = self.anchorX ?? (self.lockedIconFrame?.midX ?? iconFrameCopy.midX)
                 let anchorY = (self.lockedIconFrame?.maxY ?? iconFrameCopy.maxY) + 9
-                let panelRect = CGRect(
+                var panelRect = CGRect(
                     x: anchorCenterX - panelWidth/2,
                     y: anchorY + CGFloat((infoTuples.count - 1 ) * 14),
                     width: panelWidth,
                     height: panelHeight
                 )
+                // Clamp panelRect bottom if needed
+                if let screen = NSScreen.main ?? NSScreen.screens.first {
+                    let maxY = screen.visibleFrame.maxY
+                    if panelRect.maxY > maxY {
+                        panelRect.origin.y = max(0, maxY - panelRect.height - 12)
+                    }
+                }
+
                 self.lastIconFrame = self.lockedIconFrame
                 self.lastPanelFrame = panelRect
 
                 let updatePopupImmediately: () -> Void = { [weak self] in
-                    // Debounced: let the timer handle fast updates, but trigger one soon after action.
                     DispatchQueue.main.asyncAfter(deadline: .now() + max(0.01, self?.mouseUpdateInterval ?? 0.04)) {
                         self?.updateDockPreviewContent()
                     }
@@ -320,9 +329,14 @@ class DockIconHoverMonitor {
             onActionComplete: onActionComplete
         )
         if let panel = self.previewPanel, let hosting = self.hostingView {
+            // Only GROW the panel; never shrink (prevents cutoff)
+            let newHeight = max(panel.frame.height, panelRect.height)
+            let newPanelRect = CGRect(origin: panelRect.origin, size: CGSize(width: panelRect.width, height: newHeight))
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.25
+                panel.animator().setFrame(newPanelRect, display: true)
+            }
             hosting.rootView = newContent
-            panel.setContentSize(panelRect.size)
-            panel.setFrameOrigin(panelRect.origin)
         } else {
             let hosting = NSHostingView(rootView: newContent)
             let panel = NSPanel(contentRect: panelRect,
@@ -349,7 +363,6 @@ class DockIconHoverMonitor {
     }
 
     private func updateDockPreviewContent() {
-        // Use lockedIconFrame (live, magnified icon) as anchor
         guard let lockedIcon = lockedHoveredIcon, let lockedFrame = lockedIconFrame, let bundleIdentifier = lockedBundleIdentifier,
               let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).first else { return }
 
@@ -359,6 +372,7 @@ class DockIconHoverMonitor {
             lockedHoveredIcon = nil
             lockedIconFrame = nil
             lockedBundleIdentifier = nil
+            anchorX = nil
             return
         }
         let appDisplayName = app.localizedName ?? bundleIdentifier
@@ -366,23 +380,39 @@ class DockIconHoverMonitor {
 
         let panelWidth: CGFloat = 280
         let panelHeight = CGFloat(82 + max(24, windowInfos.count * 32))
-        let anchorCenterX = lockedFrame.midX
+        if anchorX == nil || bundleIdentifier != lastBundleIdentifier {
+            anchorX = lockedFrame.midX
+            lastBundleIdentifier = bundleIdentifier
+        }
+        let anchorCenterX = anchorX ?? lockedFrame.midX
         let anchorY = lockedFrame.maxY + 9
-        let panelRect = CGRect(
+        var panelRect = CGRect(
             x: anchorCenterX - panelWidth/2,
             y: anchorY + CGFloat((windowInfos.count - 1 ) * 14),
             width: panelWidth,
             height: panelHeight
         )
+        if let screen = NSScreen.main ?? NSScreen.screens.first {
+            let maxY = screen.visibleFrame.maxY
+            if panelRect.maxY > maxY {
+                panelRect.origin.y = max(0, maxY - panelRect.height - 12)
+            }
+        }
 
         let updatePopupImmediately: () -> Void = { [weak self] in
-            // Debounced: let the timer handle fast updates, but trigger one soon after action.
             DispatchQueue.main.asyncAfter(deadline: .now() + max(0.01, self?.mouseUpdateInterval ?? 0.04)) {
                 self?.updateDockPreviewContent()
             }
         }
 
         if let panel = previewPanel, let hosting = hostingView {
+            // Only GROW the panel; never shrink (prevents cutoff)
+            let newHeight = max(panel.frame.height, panelRect.height)
+            let newPanelRect = CGRect(origin: panelRect.origin, size: CGSize(width: panelRect.width, height: newHeight))
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.25
+                panel.animator().setFrame(newPanelRect, display: true)
+            }
             hosting.rootView = DockPreviewPanel(
                 appBundleID: bundleIdentifier,
                 appDisplayName: appDisplayName,
@@ -393,20 +423,6 @@ class DockIconHoverMonitor {
                 },
                 onActionComplete: updatePopupImmediately
             )
-            panel.setContentSize(panelRect.size)
-            panel.setFrameOrigin(panelRect.origin)
-            panel.orderFrontRegardless()
-            panel.displayIfNeeded()
-            panel.contentView?.needsLayout = true
-            panel.contentView?.needsDisplay = true
-            panel.contentView?.layoutSubtreeIfNeeded()
-
-            hosting.setNeedsDisplay(hosting.bounds)
-            hosting.needsLayout = true
-            hosting.layoutSubtreeIfNeeded()
-            if !hosting.isDescendant(of: panel.contentView!) {
-                panel.contentView?.addSubview(hosting)
-            }
         }
     }
 
@@ -434,8 +450,6 @@ class DockIconHoverMonitor {
         guard result == .success, let windows = windowsValue as? [AXUIElement] else {
             return
         }
-
-        // Find the window by title
         var targetWindow: AXUIElement?
         for window in windows {
             var titleValue: AnyObject?
@@ -450,7 +464,6 @@ class DockIconHoverMonitor {
             return
         }
 
-        // Unminimize if needed
         var minimizedValue: AnyObject?
         let gotMin = AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedValue) == .success
         let isMinimized = gotMin ? ((minimizedValue as? Bool) ?? false) : false
@@ -458,9 +471,8 @@ class DockIconHoverMonitor {
             AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
         }
 
-        // --- Most Robust Activation Sequence ---
         NSApp.activate(ignoringOtherApps: true)
-        usleep(50_000) // 50ms
+        usleep(50_000)
         let didActivate = app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         if !didActivate {
             let bundleID = app.bundleIdentifier ?? ""
@@ -501,6 +513,7 @@ class DockIconHoverMonitor {
         lockedHoveredIcon = nil
         lockedIconFrame = nil
         lockedBundleIdentifier = nil
+        anchorX = nil
         showPanelTimer?.invalidate()
         showPanelTimer = nil
     }
