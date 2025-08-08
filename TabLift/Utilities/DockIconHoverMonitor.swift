@@ -34,9 +34,6 @@ class DockIconHoverMonitor {
     // ANIMATION: Only update anchorX when app icon changes
     private var anchorX: CGFloat?
 
-    // NEW: cache last non-empty content to avoid flicker when new windows appear untitled
-    private var lastNonEmptyWindowInfos: [(title: String, isMinimized: Bool, shouldHighlight: Bool)] = []
-
     private var dockClickMonitor: DockClickMonitor? {
         (NSApplication.shared.delegate as? AppDelegate)?.dockClickMonitor
     }
@@ -237,7 +234,7 @@ class DockIconHoverMonitor {
         lockedBundleIdentifier = bundleIdentifier
         lockedIconFrame = iconFrame
 
-        // --- ANIMATION: Reset anchorX on app change
+        // Reset anchorX on app change
         if anchorX == nil || bundleIdentifier != lastBundleIdentifier {
             anchorX = iconFrame.midX
             lastBundleIdentifier = bundleIdentifier
@@ -272,26 +269,19 @@ class DockIconHoverMonitor {
                 let appIcon = appCopy.icon ?? NSWorkspace.shared.icon(for: .application)
 
                 let panelWidth: CGFloat = 280
-                // Keep origin based on icon and let growth happen upward later on updates
-                let panelHeight = CGFloat(82 + max(24, infoTuples.count * 32))
                 let anchorCenterX = self.anchorX ?? (self.lockedIconFrame?.midX ?? iconFrameCopy.midX)
                 let anchorY = (self.lockedIconFrame?.maxY ?? iconFrameCopy.maxY) + 9
-                var panelRect = CGRect(
+                // Initial height guess (will be corrected to fit actual content immediately after render)
+                let initialHeight = CGFloat(82 + max(24, infoTuples.count * 32))
+                let panelRect = CGRect(
                     x: anchorCenterX - panelWidth/2,
-                    y: anchorY, // <- no extra per-row offset in origin; growth is handled by height
+                    y: anchorY, // bottom anchored to Dock
                     width: panelWidth,
-                    height: panelHeight
+                    height: initialHeight
                 )
-                if let screen = NSScreen.main ?? NSScreen.screens.first {
-                    let maxY = screen.visibleFrame.maxY
-                    if panelRect.maxY > maxY {
-                        panelRect.origin.y = max(0, maxY - panelRect.height - 12)
-                    }
-                }
 
                 self.lastIconFrame = self.lockedIconFrame
                 self.lastPanelFrame = panelRect
-                self.lastNonEmptyWindowInfos = infoTuples
 
                 let updatePopupImmediately: () -> Void = { [weak self] in
                     DispatchQueue.main.asyncAfter(deadline: .now() + max(0.01, self?.mouseUpdateInterval ?? 0.04)) {
@@ -332,14 +322,9 @@ class DockIconHoverMonitor {
             onActionComplete: onActionComplete
         )
         if let panel = self.previewPanel, let hosting = self.hostingView {
-            // Only GROW the panel; never shrink (prevents cutoff)
-            let newHeight = max(panel.frame.height, panelRect.height)
-            let newPanelRect = CGRect(origin: panelRect.origin, size: CGSize(width: panelRect.width, height: newHeight))
-            NSAnimationContext.runAnimationGroup { context in
-                context.duration = 0.20
-                panel.animator().setFrame(newPanelRect, display: true)
-            }
             hosting.rootView = newContent
+            // Measure and snap to actual content height (bottom stays anchored)
+            adjustPanelHeightToFit(panel: panel, hosting: hosting, anchorY: panelRect.origin.y)
         } else {
             let hosting = NSHostingView(rootView: newContent)
             let panel = NSPanel(contentRect: panelRect,
@@ -361,11 +346,39 @@ class DockIconHoverMonitor {
             panel.orderFrontRegardless()
             self.previewPanel = panel
             self.hostingView = hosting
+            // Immediately correct height to the real content (prevents cutting)
+            adjustPanelHeightToFit(panel: panel, hosting: hosting, anchorY: panelRect.origin.y)
             self.startMouseTimer()
         }
     }
 
-    // CHANGED: robust, measured, non-jumping updates
+    // Bottom anchored height adjustment that never lets the Dock occlude the panel.
+    private func adjustPanelHeightToFit(panel: NSPanel, hosting: NSHostingView<DockPreviewPanel>, anchorY: CGFloat) {
+        hosting.layoutSubtreeIfNeeded()
+        var targetSize = hosting.fittingSize
+        if targetSize.width.isZero || targetSize.height.isZero {
+            // Safety defaults during first pass
+            targetSize = CGSize(width: max(panel.frame.width, 280), height: max(panel.frame.height, 120))
+        }
+
+        // Cap height to the available space above the Dock
+        let screen = NSScreen.main ?? NSScreen.screens.first
+        let maxTop = screen?.visibleFrame.maxY ?? (panel.frame.origin.y + 900)
+        let available = max(60, maxTop - anchorY - 8) // small headroom
+        let targetHeight = min(targetSize.height, available)
+
+        let newFrame = CGRect(x: panel.frame.origin.x,
+                              y: anchorY,                 // keep bottom on Dock edge
+                              width: panel.frame.width,
+                              height: targetHeight)       // grow/shrink only the top edge
+
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = 0.18
+            panel.animator().setFrame(newFrame, display: true)
+        }
+        panel.setContentSize(CGSize(width: newFrame.width, height: newFrame.height))
+    }
+
     private func updateDockPreviewContent() {
         guard let lockedIcon = lockedHoveredIcon,
               let lockedFrame = lockedIconFrame,
@@ -374,38 +387,41 @@ class DockIconHoverMonitor {
               let panel = previewPanel,
               let hosting = hostingView else { return }
 
-        var windowInfos = filteredWindowInfos(for: app).map { ($0.title, $0.isMinimized, $0.shouldHighlight) }
-
-        // Grace: when creating/retitling windows we often get an empty set briefly — keep old UI
+        let windowInfos = filteredWindowInfos(for: app)
         if windowInfos.isEmpty {
-            if !lastNonEmptyWindowInfos.isEmpty {
-                windowInfos = lastNonEmptyWindowInfos
-            } else {
-                // Try again shortly; don't hide (prevents flicker)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.20) { [weak self] in
-                    self?.updateDockPreviewContent()
-                }
-                return
-            }
-        } else {
-            lastNonEmptyWindowInfos = windowInfos
+            hidePreview()
+            lockedHoveredIcon = nil
+            lockedIconFrame = nil
+            lockedBundleIdentifier = nil
+            anchorX = nil
+            return
         }
-
         let appDisplayName = app.localizedName ?? bundleIdentifier
         let appIcon = app.icon ?? NSWorkspace.shared.icon(for: .application)
 
-        // Keep anchor stable across updates for this app
+        let panelWidth: CGFloat = 280
         if anchorX == nil || bundleIdentifier != lastBundleIdentifier {
             anchorX = lockedFrame.midX
             lastBundleIdentifier = bundleIdentifier
         }
+        let anchorCenterX = anchorX ?? lockedFrame.midX
+        let anchorY = lockedFrame.maxY + 9
 
-        // Update SwiftUI content first
+        // Keep bottom anchored to Dock; we’ll correct height to content next
+        let guessedHeight = CGFloat(82 + max(24, windowInfos.count * 32))
+        let targetRect = CGRect(
+            x: anchorCenterX - panelWidth/2,
+            y: anchorY,
+            width: panelWidth,
+            height: guessedHeight
+        )
+
+        // Update content first
         hosting.rootView = DockPreviewPanel(
             appBundleID: bundleIdentifier,
             appDisplayName: appDisplayName,
             appIcon: appIcon,
-            windowInfos: windowInfos,
+            windowInfos: windowInfos.map { ($0.title, $0.isMinimized, $0.shouldHighlight) },
             onTitleClick: { [weak self] title in
                 self?.focusWindow(of: app, withTitle: title)
             },
@@ -417,17 +433,12 @@ class DockIconHoverMonitor {
             }
         )
 
-        // Measure the actual content height and grow upward without moving origin
-        hosting.layoutSubtreeIfNeeded()
-        var fitting = hosting.fittingSize
-        if fitting.height < 60 { fitting.height = 120 }
-        let origin = panel.frame.origin
-        let target = CGRect(x: origin.x, y: origin.y, width: panel.frame.width, height: max(panel.frame.height, fitting.height))
-
+        // Apply rect (to move horizontally if needed), then correct height to fit content
         NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.18
-            panel.animator().setFrame(target, display: true)
+            ctx.duration = 0.16
+            panel.animator().setFrame(targetRect, display: true)
         }
+        adjustPanelHeightToFit(panel: panel, hosting: hosting, anchorY: anchorY)
     }
 
     private func checkForWindowCountChange() {
@@ -520,7 +531,6 @@ class DockIconHoverMonitor {
         anchorX = nil
         showPanelTimer?.invalidate()
         showPanelTimer = nil
-        lastNonEmptyWindowInfos = []
     }
 
     private func getCurrentlySelectedDockIcon() -> AXUIElement? {
