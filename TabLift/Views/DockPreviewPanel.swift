@@ -231,7 +231,7 @@ fileprivate struct RowWithTrafficLights: View {
     private var hairlineWidth: CGFloat { 2.5 / max(backingScale, 1.0) }
     private var borderColor: Color {
         // Subtle by default, brighter when hovered/highlighted
-        if row.shouldHighlight { return Color.white.opacity(0.55) }
+        if row.shouldHighlight { return Color.white.opacity(0) }
         if isHovered { return Color.accentColor.opacity(0.50) }
         return Color(nsColor: .separatorColor).opacity(0.65)
     }
