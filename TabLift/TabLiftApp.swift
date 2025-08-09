@@ -16,7 +16,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var window: NSWindow?
     private let autoUpdateManager = AutoUpdateManager.shared
     private var globalHotkeyMonitor: HotkeyMonitor?
-
+    var windowSwitcherMonitor: WindowSwitcherMonitor?
     var dockClickMonitor: DockClickMonitor?
     var dockIconHoverMonitor: DockIconHoverMonitor?
 
@@ -62,7 +62,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         )
 
         updateDockIconPolicy()
-
+        windowSwitcherMonitor = WindowSwitcherMonitor()
         cmdBacktickMonitor = CmdBacktickMonitor()
         appMonitor = AppMonitor()
         appMonitor?.setupEventTap()
