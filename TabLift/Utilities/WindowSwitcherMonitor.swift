@@ -235,7 +235,7 @@ final class WindowSwitcherMonitor {
         )
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = false // shadow drawn by SwiftUI if desired
+        panel.hasShadow = true // shadow drawn by SwiftUI if desired
         panel.hidesOnDeactivate = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.level = .statusBar
@@ -257,7 +257,7 @@ final class WindowSwitcherMonitor {
         effect.layer?.cornerRadius = cornerRadius
         effect.layer?.masksToBounds = true
 
-        // Hosting SwiftUI content
+        // Hosting SwiftUI contents
         let rootView = WindowSwitcherPanel(
             model: model,
             cornerRadius: cornerRadius,
