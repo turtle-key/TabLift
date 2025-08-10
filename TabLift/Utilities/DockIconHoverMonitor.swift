@@ -334,7 +334,7 @@ class DockIconHoverMonitor {
             panel.isFloatingPanel = true
             panel.level = .statusBar
             panel.backgroundColor = .clear
-            panel.hasShadow = false
+            panel.hasShadow = true
             panel.ignoresMouseEvents = false
             panel.hidesOnDeactivate = false
             panel.becomesKeyOnlyIfNeeded = true
