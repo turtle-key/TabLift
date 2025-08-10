@@ -9,8 +9,8 @@ final class ShieldNoticeManager {
 
     // Behavior
     private var firstShownAt: Date?
-    private let minShowDuration: TimeInterval = 5.0
-    private let showDelay: TimeInterval = 5.0
+    private let minShowDuration: TimeInterval = 4.0
+    private let showDelay: TimeInterval = 8.0
     private var showWorkItem: DispatchWorkItem?
 
     // User setting
