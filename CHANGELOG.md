@@ -35,7 +35,7 @@
     font-weight: bold;
     text-decoration: none;
     border: 1px solid rgba(209, 213, 219, 0.6);
-    box-shadow: 
+    box-shadow:
       0 4px 20px rgba(0,0,0,0.08),
       0 1px 3px rgba(0,0,0,0.1),
       inset 0 1px 0 rgba(255,255,255,0.6);
@@ -59,7 +59,6 @@
       #E03A3E 50%,
       #E03A3E 66.66%,
       #963D97 66.66%,
-      #963D97 83.33%,
       #009DDC 83.33%,
       #009DDC 100%
     );
@@ -79,15 +78,7 @@
     content: '';
     position: absolute;
     top: -2px; left: -2px; right: -2px; bottom: -2px;
-    background: linear-gradient(
-      45deg,
-      #61BB46,
-      #FDB827,
-      #F5821F,
-      #E03A3E,
-      #963D97,
-      #009DDC
-    );
+    background: linear-gradient(45deg,#61BB46,#FDB827,#F5821F,#E03A3E,#963D97,#009DDC);
     border-radius: inherit;
     z-index: -1;
     opacity: 0;
@@ -99,7 +90,7 @@
   }
   .donation-link:hover {
     transform: translateY(-1px);
-    box-shadow: 
+    box-shadow:
       0 8px 30px rgba(0,0,0,0.12),
       0 4px 12px rgba(0,0,0,0.08),
       inset 0 1px 0 rgba(255,255,255,0.2);
