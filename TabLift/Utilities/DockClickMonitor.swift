@@ -8,6 +8,7 @@ final class DockClickMonitor {
     private var workspaceObserver: NSObjectProtocol?
     private var minimizedObserver: NSObjectProtocol?
 
+    // User preference (General > Dock Features > “Dock click toggles all windows”)
     private var restoreAllOnDockClick: Bool {
         UserDefaults.standard.object(forKey: "restoreAllOnDockClick") as? Bool ?? false
     }
@@ -33,6 +34,7 @@ final class DockClickMonitor {
         if let observer = minimizedObserver { NSWorkspace.shared.notificationCenter.removeObserver(observer) }
     }
 
+    // MARK: Event Tap
 
     private func setupEventTap() {
         let mask = (1 << CGEventType.leftMouseDown.rawValue)
@@ -60,6 +62,7 @@ final class DockClickMonitor {
         CGEvent.tapEnable(tap: eventTap, enable: true)
     }
 
+    // MARK: AX helpers / identity (no titles)
 
     private let kAXWindowNumberAttributeStr = "AXWindowNumber" as CFString
 
@@ -94,12 +97,12 @@ final class DockClickMonitor {
     private func isProbablyPictureInPicture(window: AXUIElement) -> Bool {
         let sub = subrole(of: window) ?? ""
         if sub == "AXPictureInPictureWindow" ||
-           sub == "AXFloatingWindow" ||
-           sub == "AXPanel" ||
-           sub == "AXSystemDialog" {
+            sub == "AXFloatingWindow" ||
+            sub == "AXPanel" ||
+            sub == "AXSystemDialog" {
             return true
         }
-        // Heuristic: tiny utility overlays
+        // Heuristic: very tiny utility / overlay
         var sizeValue: AnyObject?
         if AXUIElementCopyAttributeValue(window, kAXSizeAttribute as CFString, &sizeValue) == .success {
             let axSize = sizeValue as! AXValue
@@ -156,7 +159,8 @@ final class DockClickMonitor {
         return false
     }
 
-    // Prefer pressing the minimize button; fallback to attribute
+    // MARK: Minimize / Restore helpers
+
     private func minimizeWindow(_ window: AXUIElement) {
         var btnAny: AnyObject?
         if AXUIElementCopyAttributeValue(window, kAXMinimizeButtonAttribute as CFString, &btnAny) == .success {
@@ -243,33 +247,44 @@ final class DockClickMonitor {
                       let bundleID = bundle.bundleIdentifier,
                       let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first else { return }
 
-                let pid = app.processIdentifier
                 let frontmostPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
+                let pid = app.processIdentifier
+                let isFrontmost = (pid == frontmostPID)
+
                 let c = counts(for: app)
 
                 if restoreAllOnDockClick {
-                    // Toggle ALL windows: minimize all if any visible, else restore all
+                    // Toggle mode but only minimize if frontmost
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.20) {
-                        if c.visible > 0 {
-                            self.minimizeAllVisibleWindows(for: app)
-                        } else if c.minimized > 0 {
-                            self.restoreAllMinimizedWindows(for: app)
+                        if isFrontmost {
+                            if c.visible > 0 {
+                                self.minimizeAllVisibleWindows(for: app)
+                            } else if c.total > 0 && c.minimized == c.total {
+                                self.restoreAllMinimizedWindows(for: app)
+                            } else {
+                                // No windows? Just activate (should already be frontmost).
+                                _ = app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                            }
                         } else {
-                            _ = app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                            // Not frontmost: never minimize, only restore all if everything minimized, else activate.
+                            if c.total > 0 && c.minimized == c.total {
+                                self.restoreAllMinimizedWindows(for: app)
+                            } else {
+                                _ = app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                            }
                         }
                     }
                 } else {
-                    // Default: minimize only current window; if all are minimized, restore all
-                    if c.total > 0 && c.minimized == c.total {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.20) {
+                    // Single-window minimize mode
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.20) {
+                        if c.total > 0 && c.minimized == c.total {
+                            // All minimized -> restore all
                             self.restoreAllMinimizedWindows(for: app)
-                        }
-                    } else if pid == frontmostPID {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.20) {
+                        } else if isFrontmost {
+                            // Only minimize the focused (or first visible) when already frontmost
                             self.minimizeFocusedOrTopVisibleWindow(for: app)
-                        }
-                    } else {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.20) {
+                        } else {
+                            // Bring to front (do not minimize if not already frontmost)
                             _ = app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
                         }
                     }
@@ -279,6 +294,7 @@ final class DockClickMonitor {
         }
     }
 
+    // MARK: Refresh
 
     func refresh() {
         if let eventTap {
