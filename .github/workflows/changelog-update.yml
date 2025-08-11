@@ -1,24 +1,31 @@
 name: Update changelog on published release
+
 on:
   release:
     types: [published]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
+concurrency:
+  group: changelog-gh-pages
+  cancel-in-progress: false
+
 jobs:
   changelog:
     name: Update changelog
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
         with:
+          ref: gh-pages
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Checkout gh-pages branch
-        run: git checkout gh-pages
-
-      - name: Update changelog from release
+      - name: Update changelog from latest release
         uses: rhysd/changelog-from-release/action@v3
         with:
           file: CHANGELOG.md
@@ -71,8 +78,6 @@ jobs:
                 backdrop-filter: blur(4px);
                 letter-spacing: 0.025em;
               }
-              
-              /* Rainbow overlay animation */
               .donation-link::before {
                 content: '';
                 position: absolute;
@@ -98,16 +103,12 @@ jobs:
                 border-radius: inherit;
                 opacity: 0.95;
               }
-              
               .donation-link:hover::before {
                 transform: translateY(0%);
               }
-              
               .donation-link:not(:hover)::before {
                 transform: translateY(100%);
               }
-              
-              /* Glow effect */
               .donation-link::after {
                 content: '';
                 position: absolute;
@@ -127,11 +128,9 @@ jobs:
                 filter: blur(8px);
                 transition: opacity 0.5s ease;
               }
-              
               .donation-link:hover::after {
                 opacity: 0.3;
               }
-              
               .donation-link:hover {
                 transform: translateY(-1px);
                 box-shadow: 
@@ -141,28 +140,30 @@ jobs:
                 border-color: rgba(209, 213, 219, 0.8);
                 color: white !important;
               }
-              
               .donation-link span {
                 position: relative;
                 z-index: 10;
                 transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
               }
-              
               .donation-link:hover span {
                 filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
               }
             </style>
             <div class="donation-link" target="_blank">❤️ Support turtle-key at https://buymeacoffee.com/turtle.key</div>
 
-      - name: Set file permissions
-        run: sudo chown -R $(whoami) .
-
-      - name: Commit changes
+      - name: Verify CHANGELOG.md exists
         run: |
-          git config --global user.name "Mihai Ghețu"
-          git config --global user.email "turtle-key@users.noreply.github.com"
-          git add CHANGELOG.md
-          git commit -m "chore: update changelog for ${{ github.event.release.tag_name || 'manual trigger' }}" || echo "No changes to commit"
+          test -s CHANGELOG.md || { echo "CHANGELOG.md was not generated or is empty"; exit 1; }
 
-      - name: Push changes
-        run: git push origin main
+      - name: Commit and push (gh-pages)
+        run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git add CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            TAG="${{ github.event.release.tag_name || 'manual trigger' }}"
+            git commit -m "chore: update changelog for ${TAG}"
+            git push origin gh-pages
+          fi
