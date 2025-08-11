@@ -54,17 +54,7 @@ struct ShieldNoticeView: View {
 
     private var appIcon: NSImage {
         // Fallback to system app icon if needed
-    private let appIcon: NSImage
-
-    init(
-        onClose: @escaping () -> Void,
-        onNeverShowAgain: @escaping () -> Void
-    ) {
-        self.onClose = onClose
-        self.onNeverShowAgain = onNeverShowAgain
-        // Fallback to system app icon if needed
-        self.appIcon = NSApplication.shared.applicationIconImage
-            ?? (NSImage(named: NSImage.applicationIconName) ?? NSImage())
+        NSApplication.shared.applicationIconImage ?? (NSImage(named: NSImage.applicationIconName) ?? NSImage())
     }
 
     private var appName: String {

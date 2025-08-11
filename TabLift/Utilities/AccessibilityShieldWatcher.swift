@@ -32,9 +32,6 @@ final class AccessibilityShieldWatcher {
 
     // Tunables
     private let pollInterval: TimeInterval = 0.25
-    private let coverageThreshold: CGFloat = 0.70      // require ≥70% coverage by very-high-layer windows
-    private let ownerCoverageThreshold: CGFloat = 0.45 // if owner looks like a shield, ≥45% coverage is enough
-    private let graceAfterClear: TimeInterval = 0.60
     /// The minimum fraction of the screen that must be covered by very-high-layer windows
     /// to consider the shield active. Set to 0.70 (70%) based on empirical observation of
     /// typical shield overlays, balancing sensitivity and false positives.
