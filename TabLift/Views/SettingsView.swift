@@ -176,7 +176,6 @@ struct GeneralSettingsTab: View {
                     }
                     .padding(.vertical, 2)
 
-                    // NEW: Dock click behavior toggle and description
                     VStack(alignment: .leading, spacing: 6) {
                         Toggle(isOn: $restoreAllOnDockClick) {
                             Text("Dock click toggles all windows").font(.body)
