@@ -3,6 +3,7 @@ import Cocoa
 
 fileprivate let kAXCloseAction = "AXClose" as CFString
 
+
 enum MaximizeBehavior: String, CaseIterable, Identifiable {
     case fill = "Fill"
     case fullscreen = "Fullscreen"
@@ -22,11 +23,13 @@ enum MaximizeBehavior: String, CaseIterable, Identifiable {
     }
 }
 
+
 fileprivate func robustMinimize(window: AXUIElement) {
     var minimized: AnyObject?
     if AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimized) == .success,
        let isMin = minimized as? Bool, !isMin {
         AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanTrue)
+    } else {
     }
 }
 
@@ -35,7 +38,6 @@ fileprivate func robustClose(window: AXUIElement, app: NSRunningApplication?) {
     let gotMin = AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimized) == .success
     let isMinimized = gotMin ? ((minimized as? Bool) ?? false) : false
 
-    // Unminimize first if minimized, then close
     if isMinimized {
         AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
@@ -89,6 +91,7 @@ fileprivate func performMaximize(window: AXUIElement, app: NSRunningApplication?
                     AXUIElementSetAttributeValue(window, kAXPositionAttribute as CFString, posVal)
                     AXUIElementSetAttributeValue(window, kAXSizeAttribute as CFString, sizeVal)
                 }
+            } else {
             }
         case .fullscreen:
             var fsValue: AnyObject?
@@ -116,7 +119,6 @@ fileprivate func screenForWindow(_ window: AXUIElement) -> NSScreen? {
     AXValueGetValue(posAX, .cgPoint, &pos)
     AXValueGetValue(sizeAX, .cgSize, &size)
     let frame = CGRect(origin: pos, size: size)
-    // Find the screen that contains the center of the window
     let windowCenter = CGPoint(x: frame.midX, y: frame.midY)
     for screen in NSScreen.screens {
         if screen.frame.contains(windowCenter) {
@@ -125,6 +127,7 @@ fileprivate func screenForWindow(_ window: AXUIElement) -> NSScreen? {
     }
     return NSScreen.main
 }
+
 
 fileprivate struct WindowRow: Identifiable, Equatable {
     let id: String
@@ -149,6 +152,7 @@ fileprivate struct WindowRow: Identifiable, Equatable {
 enum TrafficLightAction {
     case close, minimize, fullscreen
 }
+
 
 struct DockPreviewPanel: View {
     let appBundleID: String
@@ -178,6 +182,7 @@ struct DockPreviewPanel: View {
                 Spacer()
             }
             .padding(.bottom, 4)
+
             VStack(alignment: .leading, spacing: 10) {
                 ForEach(windowRows) { row in
                     RowWithTrafficLights(
@@ -197,28 +202,45 @@ struct DockPreviewPanel: View {
     }
 }
 
+
 fileprivate struct RowWithTrafficLights: View {
     let row: WindowRow
     let appBundleID: String
     let onTitleClick: (String) -> Void
     let onActionComplete: () -> Void
 
-    @State private var isHovered: Bool = false
+    @State private var isRowHovering: Bool = false
+    @State private var isOverlayHovered: Bool = false
+    @State private var isOverlayPinned: Bool = false
 
-    private func findWindowAXElement() -> AXUIElement? {
-        guard let app = NSRunningApplication.runningApplications(withBundleIdentifier: appBundleID).first else {
-            return nil
-        }
+    private var shouldShowOverlay: Bool {
+        isRowHovering || isOverlayHovered || isOverlayPinned
+    }
+
+    // Prefer selecting by AX windows index to disambiguate same-titled windows
+    private func axWindowByIndex() -> AXUIElement? {
+        guard let app = NSRunningApplication.runningApplications(withBundleIdentifier: appBundleID).first else { return nil }
         let appEl = AXUIElementCreateApplication(app.processIdentifier)
         var raw: AnyObject?
         guard AXUIElementCopyAttributeValue(appEl, kAXWindowsAttribute as CFString, &raw) == .success,
               let windows = raw as? [AXUIElement] else { return nil }
-        for window in windows {
+
+        var filtered: [AXUIElement] = []
+        for w in windows {
+            if w.role() == "AXWindow" {
+                filtered.append(w)
+            }
+        }
+        if row.index >= 0 && row.index < filtered.count {
+            return filtered[row.index]
+        }
+
+        // Fallback: match by title
+        for w in filtered {
             var t: AnyObject?
-            if AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &t) == .success,
-               let t = t as? String,
-               t == row.title {
-                return window
+            if AXUIElementCopyAttributeValue(w, kAXTitleAttribute as CFString, &t) == .success,
+               let t = t as? String, t == row.title {
+                return w
             }
         }
         return nil
@@ -227,24 +249,28 @@ fileprivate struct RowWithTrafficLights: View {
     private func findApp() -> NSRunningApplication? {
         NSRunningApplication.runningApplications(withBundleIdentifier: appBundleID).first
     }
+
     @State private var backingScale: CGFloat = NSScreen.main?.backingScaleFactor ?? 2.0
     private var hairlineWidth: CGFloat { 2.5 / max(backingScale, 1.0) }
     private var borderColor: Color {
         if row.shouldHighlight { return Color.white.opacity(0) }
-        if isHovered { return Color.accentColor.opacity(0.50) }
+        if shouldShowOverlay { return Color.accentColor.opacity(0.50) }
         return Color(nsColor: .separatorColor).opacity(0.65)
+    }
+
+    private var mouseLogger: some Gesture {
+        DragGesture(minimumDistance: 0)
     }
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            // Title row button (underlay)
-            Button(action: { onTitleClick(row.title) }) {
+            // Underlay title button. Leave hit-testing enabled; overlay intercepts within its own bounds.
+            Button(action: {
+                onTitleClick(row.title)
+            }) {
                 HStack {
                     MarqueeText(text: row.title.isEmpty ? "(Untitled)" : row.title, maxWidth: 185).id(row.id)
-                    if row.isMinimized {
-                        MinimizedIndicator()
-                            .padding(.leading, 5)
-                    }
+                    if row.isMinimized { MinimizedIndicator().padding(.leading, 5) }
                     Spacer()
                 }
                 .padding(.vertical, 7)
@@ -252,7 +278,7 @@ fileprivate struct RowWithTrafficLights: View {
                 .background(
                     RoundedRectangle(cornerRadius: 10)
                         .fill(row.shouldHighlight ? Color.accentColor.opacity(0.25)
-                              : (isHovered ? Color.accentColor.opacity(0.15) : Color.clear))
+                              : (shouldShowOverlay ? Color.accentColor.opacity(0.15) : Color.clear))
                         .shadow(color: row.shouldHighlight ? .black.opacity(0.12) : .clear, radius: 6, x: 0, y: 2)
                 )
                 .overlay(
@@ -260,75 +286,111 @@ fileprivate struct RowWithTrafficLights: View {
                         .inset(by: hairlineWidth / 2)
                         .stroke(borderColor, lineWidth: hairlineWidth)
                 )
-                .onAppear { backingScale = NSScreen.main?.backingScaleFactor ?? backingScale }
+                .contentShape(RoundedRectangle(cornerRadius: 10))
                 .onReceive(NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)) { _ in
                     backingScale = NSScreen.main?.backingScaleFactor ?? backingScale
                 }
                 .scaleEffect(row.shouldHighlight ? 1.02 : 1.0)
             }
             .buttonStyle(.plain)
+            .simultaneousGesture(mouseLogger)
             .zIndex(0)
 
-            // Traffic light buttons (overlay)
-            if isHovered {
+            // Overlay traffic lights, with pinning and hover reporting. Backplate tap => activate row.
+            if shouldShowOverlay {
                 TrafficLightButtons(
+                    rowTitle: row.title,
+                    isMinimized: row.isMinimized,
                     onClose: {
-                        guard let win = findWindowAXElement() else { onActionComplete(); return }
-                        robustClose(window: win, app: findApp())
+                        if let win = axWindowByIndex() {
+                            robustClose(window: win, app: findApp())
+                        } else {
+                        }
                         onActionComplete()
                     },
                     onMinimize: {
-                        guard let win = findWindowAXElement() else { onActionComplete(); return }
-                        if !row.isMinimized { robustMinimize(window: win) }
+                        if let win = axWindowByIndex() {
+                            robustMinimize(window: win)
+                        } else {
+                        }
                         onActionComplete()
                     },
                     onFullscreen: {
-                        guard let win = findWindowAXElement(), let app = findApp() else { onActionComplete(); return }
-                        performMaximize(window: win, app: app)
+                        if let win = axWindowByIndex(), let app = findApp() {
+                            performMaximize(window: win, app: app)
+                        } else {
+                        }
                         onActionComplete()
                     },
-                    isMinimized: row.isMinimized
+                    overlayHoverChanged: { hovering in
+                        isOverlayHovered = hovering
+                    },
+                    overlayInteractionChanged: { interacting in
+                        isOverlayPinned = interacting
+                    },
+                    onBackplateTap: {
+                        onTitleClick(row.title)
+                    }
                 )
                 .padding(.trailing, 6)
                 .padding(.top, 4)
-                .zIndex(1000)                     // Ensure above the title button
-                .allowsHitTesting(true)           // Always accept hits while shown
-                .contentShape(Rectangle())        // Single top-level hit area for the cluster
-                .onTapGesture { }                 // Absorb any taps in gaps between circles
-                .transition(.move(edge: .top).combined(with: .opacity))
-                .animation(.easeInOut(duration: 0.18), value: isHovered)
+                .zIndex(1000)
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.18), value: shouldShowOverlay)
             }
         }
         .frame(maxWidth: .infinity)
         .background(Color.clear)
         .clipShape(RoundedRectangle(cornerRadius: 10))
-        .onHover { hovering in isHovered = hovering }
+        .contentShape(Rectangle())
+        .onHover { hovering in
+            isRowHovering = hovering
+        }
+        .simultaneousGesture(mouseLogger)
     }
 }
 
+
 struct TrafficLightButtons: View {
+    let rowTitle: String
+    let isMinimized: Bool
     let onClose: () -> Void
     let onMinimize: () -> Void
     let onFullscreen: () -> Void
-    let isMinimized: Bool
+    let overlayHoverChanged: (Bool) -> Void
+    let overlayInteractionChanged: (Bool) -> Void
+    let onBackplateTap: () -> Void
+
+    @State private var hovering = false
+
+    private var overlayMouseLogger: some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { _ in
+                overlayInteractionChanged(true)
+            }
+            .onEnded { _ in
+                overlayInteractionChanged(false)
+            }
+    }
 
     var body: some View {
         ZStack {
-            // Backplate blocks pass-through and defines a single hit area
+            // Backplate blocks pass-through and now triggers the row click if you click the background.
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(.ultraThinMaterial)
                 .frame(width: isMinimized ? 58 : 85, height: 28)
                 .shadow(radius: 3, y: 1)
-                .contentShape(RoundedRectangle(cornerRadius: 12)) // backplate hit area
+                .contentShape(RoundedRectangle(cornerRadius: 12))
+                .onTapGesture {
+                    onBackplateTap()
+                }
 
-            // Foreground controls
             HStack(spacing: 9) {
-                // Close
-                Button(action: { onClose() }) {
+                Button(action: {
+                    onClose()
+                }) {
                     ZStack {
-                        Circle()
-                            .fill(Color.red)
-                            .frame(width: 16, height: 16)
+                        Circle().fill(Color.red).frame(width: 16, height: 16)
                             .shadow(color: Color.red.opacity(0.13), radius: 1, x: 0, y: 0)
                         Image(systemName: "xmark")
                             .font(.system(size: 8.5, weight: .bold))
@@ -336,16 +398,20 @@ struct TrafficLightButtons: View {
                     }
                 }
                 .buttonStyle(.plain)
-                .contentShape(Circle().inset(by: -6)) // enlarge hit area
+                .contentShape(Circle().inset(by: -6))
+                .simultaneousGesture(DragGesture(minimumDistance: 0).onChanged { _ in
+                    overlayInteractionChanged(true)
+                }.onEnded { _ in
+                    overlayInteractionChanged(false)
+                })
                 .help("Close")
 
-                // Minimize
                 if !isMinimized {
-                    Button(action: { onMinimize() }) {
+                    Button(action: {
+                        onMinimize()
+                    }) {
                         ZStack {
-                            Circle()
-                                .fill(Color.yellow)
-                                .frame(width: 16, height: 16)
+                            Circle().fill(Color.yellow).frame(width: 16, height: 16)
                                 .shadow(color: Color.yellow.opacity(0.13), radius: 1, x: 0, y: 0)
                             Image(systemName: "minus")
                                 .font(.system(size: 8.5, weight: .bold))
@@ -354,15 +420,19 @@ struct TrafficLightButtons: View {
                     }
                     .buttonStyle(.plain)
                     .contentShape(Circle().inset(by: -6))
+                    .simultaneousGesture(DragGesture(minimumDistance: 0).onChanged { _ in
+                        overlayInteractionChanged(true)
+                    }.onEnded { _ in
+                        overlayInteractionChanged(false)
+                    })
                     .help("Minimize")
                 }
 
-                // Fullscreen
-                Button(action: { onFullscreen() }) {
+                Button(action: {
+                    onFullscreen()
+                }) {
                     ZStack {
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 16, height: 16)
+                        Circle().fill(Color.green).frame(width: 16, height: 16)
                             .shadow(color: Color.green.opacity(0.13), radius: 1, x: 0, y: 0)
                         Image(systemName: "arrow.up.left.and.arrow.down.right")
                             .font(.system(size: 8.5, weight: .bold))
@@ -371,15 +441,27 @@ struct TrafficLightButtons: View {
                 }
                 .buttonStyle(.plain)
                 .contentShape(Circle().inset(by: -6))
+                .simultaneousGesture(DragGesture(minimumDistance: 0).onChanged { _ in
+                    overlayInteractionChanged(true)
+                }.onEnded { _ in
+                    overlayInteractionChanged(false)
+                })
                 .help("Maximize")
             }
             .frame(height: 28)
         }
         .frame(width: isMinimized ? 58 : 85, height: 28)
         .zIndex(1000)
-        .allowsHitTesting(true) // Do not gate hit-testing by internal hover state
+        .allowsHitTesting(true)
+        .contentShape(RoundedRectangle(cornerRadius: 12))
+        .simultaneousGesture(overlayMouseLogger)
+        .onHover { h in
+            hovering = h
+            overlayHoverChanged(h)
+        }
     }
 }
+
 
 struct MinimizedIndicator: View {
     var body: some View {

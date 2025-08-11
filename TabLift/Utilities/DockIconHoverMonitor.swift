@@ -65,6 +65,11 @@ class DockIconHoverMonitor {
         UserDefaults.standard.bool(forKey: "showDockPopups")
     }
 
+    // Throttle (leading + trailing) for updateDockPreviewContent
+    private let updateThrottleInterval: TimeInterval = 0.08
+    private var lastUpdateTime: TimeInterval = 0
+    private var pendingThrottleWork: DispatchWorkItem?
+
     init() {
         guard AXIsProcessTrusted() else { return }
         setupDockObserver()
@@ -198,7 +203,7 @@ class DockIconHoverMonitor {
         mouseTimer = Timer.scheduledTimer(withTimeInterval: mouseUpdateInterval, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             if self.previewPanel?.isVisible ?? false, self.lockedHoveredIcon != nil {
-                self.updateDockPreviewContent()
+                self.requestUpdateDockPreviewContentThrottled()
             }
             self.checkMouseAndDismissIfNeeded()
             self.checkForWindowCountChange()
@@ -371,7 +376,7 @@ class DockIconHoverMonitor {
                 self.lastPanelFrame = panelRect
 
                 let updateNow: () -> Void = { [weak self] in
-                    self?.updateDockPreviewContent()
+                    self?.requestUpdateDockPreviewContentThrottled()
                 }
 
                 self.showOrUpdatePreviewPanel(
@@ -407,9 +412,9 @@ class DockIconHoverMonitor {
             },
             onActionComplete: { [weak self] in
                 guard let self = self else { return }
-                self.updateDockPreviewContent()
+                self.requestUpdateDockPreviewContentThrottled()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                    self.updateDockPreviewContent()
+                    self.requestUpdateDockPreviewContentThrottled()
                 }
                 onActionComplete()
             }
@@ -423,6 +428,7 @@ class DockIconHoverMonitor {
                 if !isInteractingInsidePanel {
                     hosting.rootView = newContent
                     lastRenderedSnapshot = incomingSnapshot
+                } else {
                 }
             }
             adjustPanelHeightToFit(panel: panel, hosting: hosting, anchorY: panelRect.origin.y)
@@ -477,6 +483,25 @@ class DockIconHoverMonitor {
         panel.setContentSize(CGSize(width: newFrame.width, height: newFrame.height))
     }
 
+    private func requestUpdateDockPreviewContentThrottled() {
+        let now = ProcessInfo.processInfo.systemUptime
+        let elapsed = now - lastUpdateTime
+        if elapsed >= updateThrottleInterval {
+            lastUpdateTime = now
+            updateDockPreviewContent()
+        } else if pendingThrottleWork == nil {
+            let delay = updateThrottleInterval - elapsed
+            let work = DispatchWorkItem { [weak self] in
+                guard let self = self else { return }
+                self.lastUpdateTime = ProcessInfo.processInfo.systemUptime
+                self.pendingThrottleWork = nil
+                self.updateDockPreviewContent()
+            }
+            pendingThrottleWork = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+        }
+    }
+
     private func updateDockPreviewContent() {
         guard let lockedFrame = lockedIconFrame,
               let bundleIdentifier = lockedBundleIdentifier,
@@ -529,13 +554,14 @@ class DockIconHoverMonitor {
                 },
                 onActionComplete: { [weak self] in
                     guard let self = self else { return }
-                    self.updateDockPreviewContent()
+                    self.requestUpdateDockPreviewContentThrottled()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                        self.updateDockPreviewContent()
+                        self.requestUpdateDockPreviewContentThrottled()
                     }
                 }
             )
             lastRenderedSnapshot = snapshot
+        } else if isInteractingInsidePanel {
         }
 
         adjustPanelHeightToFit(panel: panel, hosting: hosting, anchorY: anchorY)
@@ -550,7 +576,7 @@ class DockIconHoverMonitor {
         }
         let count = filteredWindowInfos(for: app).count
         if previousWindowCount == 0 && count > 0 {
-            updateDockPreviewContent()
+            requestUpdateDockPreviewContentThrottled()
         }
         previousWindowCount = count
     }
@@ -601,9 +627,9 @@ class DockIconHoverMonitor {
         waitForAppToBeFrontmost(app: app, timeout: 1.5) {
             let _ = AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
             let _ = AXUIElementSetAttributeValue(window, kAXFocusedAttribute as CFString, kCFBooleanTrue)
-            self.updateDockPreviewContent()
+            self.requestUpdateDockPreviewContentThrottled()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                self.updateDockPreviewContent()
+                self.requestUpdateDockPreviewContentThrottled()
             }
         }
     }
@@ -644,6 +670,10 @@ class DockIconHoverMonitor {
         localClickMonitorUp = nil
         isInteractingInsidePanel = false
         suppressTitleClickUntilMouseUp = false
+
+        // Cancel any pending trailing update
+        pendingThrottleWork?.cancel()
+        pendingThrottleWork = nil
     }
 
     private func getCurrentlySelectedDockIcon() -> AXUIElement? {
@@ -818,7 +848,7 @@ class DockIconHoverMonitor {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
                     self.isInteractingInsidePanel = false
                     self.suppressTitleClickUntilMouseUp = false
-                    self.updateDockPreviewContent()
+                    self.requestUpdateDockPreviewContentThrottled()
                 }
             }
             return event
