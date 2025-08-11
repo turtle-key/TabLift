@@ -1,55 +1,160 @@
 <style>
-  h1:first-of-type {
+  :root {
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    --text: #0f172a;         /* slate-900 */
+    --muted: #475569;        /* slate-600 */
+    --link: #2563eb;         /* blue-600 */
+    --link-hover: #1d4ed8;   /* blue-700 */
+    --border: rgba(15, 23, 42, 0.08);
+  }
+
+  /* Base typography */
+  html, body {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+  }
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text);
+    max-width: 820px;
+    margin: 24px auto;
+    padding: 0 16px;
+  }
+
+  /* Headings */
+  h1, h2, h3, h4 {
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  h1:first-of-type { /* hide GitHub release title duplicate */
     display: none;
   }
-  .my-5 {
-    margin: unset !important;
+  h1 {
+    font-weight: 750;
+    font-size: clamp(26px, 3.6vw, 34px);
+    line-height: 1.25;
+    margin: 8px 0 16px;
   }
-  .markdown-body img {
-    max-width: 50%;
+  h2 {
+    font-weight: 700;
+    font-size: clamp(22px, 2.8vw, 28px);
+    margin: 28px 0 10px;
   }
+  h3 {
+    font-weight: 650;
+    font-size: 20px;
+    margin: 20px 0 8px;
+  }
+
+  /* Text and lists */
+  p { margin: 10px 0 14px; color: var(--text); }
+  strong { font-weight: 650; }
+  ul, ol { padding-left: 1.25rem; margin: 8px 0 14px; }
+  li { margin: 6px 0; }
+  blockquote {
+    margin: 12px 0;
+    padding: 8px 12px;
+    border-left: 3px solid var(--border);
+    color: var(--muted);
+  }
+
+  /* Links */
+  a, :link {
+    color: var(--link);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+    transition: color .2s ease, text-decoration-color .2s ease;
+  }
+  a:hover { color: var(--link-hover); }
+  a:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .25);
+    border-radius: 6px;
+  }
+
+  /* Media */
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+  }
+
+  /* Code */
+  code, pre, kbd, samp {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+  pre {
+    background: rgba(15, 23, 42, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    overflow: auto;
+  }
+  code {
+    background: rgba(15, 23, 42, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1px 6px;
+  }
+
+  /* Utility */
+  .my-5 { margin: unset !important; }
+
+  /* Dark mode */
   @media (prefers-color-scheme: dark) {
-    body {
-      color-scheme: dark;
-      color: white;
-      background: transparent;
+    :root {
+      --text: #e5e7eb;          /* gray-200 */
+      --muted: #9ca3af;         /* gray-400 */
+      --link: #60a5fa;          /* blue-400 */
+      --link-hover: #93c5fd;    /* blue-300 */
+      --border: rgba(148, 163, 184, 0.18);
     }
-    a, :link {
-      color: #419cff;
-    }
-    a:active, link:active {
-      color: #ff1919;
+    pre, code {
+      background: rgba(148, 163, 184, 0.08);
     }
   }
+
+  /* Donation button */
   .donation-link {
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 8px 16px;
+    gap: 8px;
+    padding: 10px 16px;
     min-width: 180px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.8) 100%);
-    color: #000 !important;
-    font-size: 0.9em;
-    font-weight: bold;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(248,250,252,0.88) 100%);
+    color: #0b1324 !important; /* readable on light background */
+    font-size: 0.95em;
+    font-weight: 700;
     text-decoration: none;
-    border: 1px solid rgba(209, 213, 219, 0.6);
-    box-shadow: 
-      0 4px 20px rgba(0,0,0,0.08),
-      0 1px 3px rgba(0,0,0,0.1),
-      inset 0 1px 0 rgba(255,255,255,0.6);
+    border: 1px solid var(--border);
+    box-shadow:
+      0 6px 24px rgba(0,0,0,0.10),
+      0 1px 3px rgba(0,0,0,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.65);
     overflow: hidden;
-    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: transform .35s cubic-bezier(.25,.46,.45,.94), box-shadow .35s cubic-bezier(.25,.46,.45,.94);
     backdrop-filter: blur(4px);
-    letter-spacing: 0.025em;
+    letter-spacing: 0.02em;
   }
-  
-  /* Rainbow overlay animation */
+  .donation-link span {
+    position: relative;
+    z-index: 2; /* keep text above overlays */
+    transition: color .35s ease, filter .35s ease;
+  }
   .donation-link::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    inset: 0;
     background: linear-gradient(
       to bottom,
       #61BB46 0%,
@@ -65,267 +170,348 @@
       #009DDC 83.33%,
       #009DDC 100%
     );
-    transform: translateY(-100%);
-    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transform: translateY(100%);
+    transition: transform .45s cubic-bezier(.25,.46,.45,.94);
     z-index: 1;
-    border-radius: inherit;
     opacity: 0.95;
   }
-  
-  .donation-link:hover::before {
-    transform: translateY(0%);
-  }
-  
-  .donation-link:not(:hover)::before {
-    transform: translateY(100%);
-  }
-  
-  /* Glow effect */
   .donation-link::after {
     content: '';
     position: absolute;
-    top: -2px; left: -2px; right: -2px; bottom: -2px;
-    background: linear-gradient(
-      45deg,
-      #61BB46,
-      #FDB827,
-      #F5821F,
-      #E03A3E,
-      #963D97,
-      #009DDC
-    );
+    inset: -2px;
+    background: linear-gradient(45deg,#61BB46,#FDB827,#F5821F,#E03A3E,#963D97,#009DDC);
     border-radius: inherit;
-    z-index: -1;
+    z-index: 0;
     opacity: 0;
-    filter: blur(8px);
-    transition: opacity 0.5s ease;
+    filter: blur(10px);
+    transition: opacity .45s ease;
   }
-  
+  .donation-link:hover::before {
+    transform: translateY(0%); /* reveal rainbow overlay */
+  }
   .donation-link:hover::after {
-    opacity: 0.3;
+    opacity: .28; /* subtle glow */
   }
-  
   .donation-link:hover {
     transform: translateY(-1px);
-    box-shadow: 
-      0 8px 30px rgba(0,0,0,0.12),
-      0 4px 12px rgba(0,0,0,0.08),
-      inset 0 1px 0 rgba(255,255,255,0.2);
-    border-color: rgba(209, 213, 219, 0.8);
-    color: white !important;
+    box-shadow:
+      0 10px 32px rgba(0,0,0,0.14),
+      0 4px 12px rgba(0,0,0,0.10),
+      inset 0 1px 0 rgba(255,255,255,0.25);
+    border-color: rgba(209, 213, 219, 0.75);
   }
-  
-  .donation-link span {
-    position: relative;
-    z-index: 10;
-    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  }
-  
   .donation-link:hover span {
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+    color: #ffffff;                 /* ensure readable on overlay */
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
+  }
+  @media (prefers-color-scheme: dark) {
+    .donation-link {
+      background: linear-gradient(135deg, rgba(17,24,39,0.7) 0%, rgba(31,41,55,0.7) 100%);
+      color: #f3f4f6 !important;
+      border-color: var(--border);
+      box-shadow:
+        0 6px 24px rgba(0,0,0,0.35),
+        0 1px 3px rgba(0,0,0,0.25),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .donation-link:hover {
+      border-color: rgba(148, 163, 184, 0.45);
+    }
   }
 </style>
-<div class="donation-link" target="_blank">❤️ Support turtle-key at https://buymeacoffee.com/turtle.key</div>
 
-<p><a id="v1.9"></a></p>
-<h1><a href="https://github.com/turtle-key/TabLift/releases/tag/v1.9">TabLift v1.9</a> - 2025-08-05</h1>
-<h1>TabLift v1.9</h1>
-<h2>What’s Changed</h2>
-<ul>
-<li><strong>Performance Profiles for Dock Previews:</strong> Added customizable profiles to fine-tune how quickly Dock popups appear and fade out. Choose between Relaxed, Default, and Speedy to match your workflow.</li>
-<li><strong>Marquee Text in Dock Previews:</strong> Window titles are now animated with smooth marquee text, ensuring even long titles are always visible and readable.</li>
-<li><strong>New Keyboard Shortcut:</strong> Added ⌘⇧M to instantly minimize all windows of the frontmost app, making it easy to clear your workspace.</li>
-<li><strong>Settings &amp; UI Improvements:</strong>  <ul>
-<li>Settings window now supports sticky footers and improved ordering for options.</li>
-<li>About and Support tabs are more visually appealing, with new icons and hover effects.</li>
-<li>Added demo videos directly in settings to explain features.</li>
-<li>Accessibility permission checks and fixes to ensure full compatibility.</li>
-<li>Made the app automatically move itself to the Applications folder (if not already there), for a more native install experience.</li>
-<li>Improved support window aesthetics and clarity.</li>
-</ul>
-</li>
-<li><strong>Dock Popup Enhancements:</strong>  <ul>
-<li>Dock popups now refresh continuously while hovered, so window previews are always up-to-date.</li>
-<li>Window previews update themselves without closing when you hover over different icons.</li>
-<li>Improved support for minimized indicators and filetype icons in window previews.</li>
-</ul>
-</li>
-<li><strong>Menu Bar:</strong>  <ul>
-<li>Menu bar icon now features hover effects and accessibility labels for VoiceOver.</li>
-<li>Improved popover styling with blur, rounded corners, and accent color touches.</li>
-</ul>
-</li>
-<li><strong>Bug Fixes &amp; Refinements:</strong>  <ul>
-<li>Fixed multiple accessibility API and permission issues.</li>
-<li>Various layout and merge conflict resolutions.</li>
-<li>Made sure settings changes apply instantly at first startup.</li>
-<li>Fixed undercorrection and help menu issues.</li>
-<li>Numerous minor UI and performance tweaks.</li>
-</ul>
-</li>
-</ul>
-<hr>
-<p>For a complete history of changes, see the <a href="https://github.com/turtle-key/TabLift/commits/main">commit log</a>.</p>
-<p><sub>Note: This summary includes only the most recent changes since the last release. For more details, visit the <a href="https://github.com/turtle-key/TabLift">TabLift repository</a>.</sub></p>
-<p><a href="https://github.com/turtle-key/TabLift/compare/v1.8...v1.9">Changes</a></p>
-<p><a id="v1.8"></a></p>
-<h1><a href="https://github.com/turtle-key/TabLift/releases/tag/v1.8">TabLift v1.8</a> - 2025-07-30</h1>
-<h1>TabLift v1.8</h1>
-<h2>What’s Changed</h2>
-<ul>
-<li>Added beautiful Dock popups with live window previews and clear minimized indicators. Hovering a Dock icon now shows all open and minimized windows for that app, making it easier to jump to exactly the window you want.</li>
-<li>Fixed several UI layout issues and made Settings more responsive, especially when resizing.</li>
-<li>Various bug fixes and refinements to window restoration logic for better compatibility with more apps and mission control.</li>
-</ul>
-<hr>
-<p>For a complete history of changes, see the <a href="https://github.com/turtle-key/TabLift/commits/main">commit log</a>.</p>
-<p><sub>Note: This summary includes only the most recent changes since the last release. For more details, visit the <a href="https://github.com/turtle-key/TabLift">TabLift repository</a>.</sub></p>
-<p><a href="https://github.com/turtle-key/TabLift/compare/v1.7...v1.8">Changes</a></p>
-<p><a id="v1.7"></a></p>
-<h1><a href="https://github.com/turtle-key/TabLift/releases/tag/v1.7">TabLift v1.7</a> - 2025-07-29</h1>
-<h1>TabLift v1.7</h1>
-<h2>What’s Changed</h2>
-<ul>
-<li><p>Added a new toggle in General settings to show TabLift in the Dock.<br>by <a href="https://github.com/turtle-key">@turtle-key</a> in <a href="https://github.com/turtle-key/TabLift/commit/f5ebdb595822a82806e6811ec794d70b66123cc6"><code>f5ebdb5958</code></a></p>
-</li>
-<li><p>Implemented automatic minimization of the previously focused window upon app switching for a cleaner workflow.<br>by <a href="https://github.com/turtle-key">@turtle-key</a> in <a href="https://github.com/turtle-key/TabLift/commit/5048abde0320b31b7f8c3c47faabd808bc808d2e"><code>5048abde03</code></a></p>
-</li>
-<li><p>Enabled automatic window creation when switching to apps without open windows, improving accessibility.<br>by <a href="https://github.com/turtle-key">@turtle-key</a> in <a href="https://github.com/turtle-key/TabLift/commit/3ccd64aed3528a6bf7985da8de7fd00b17543d05"><code>3ccd64aed3</code></a></p>
-</li>
-<li><p>Fixed a timing bug causing delays between Cmd+Tab press and window unminimization, smoothing out the switcher experience.<br>by <a href="https://github.com/turtle-key">@turtle-key</a> in <a href="https://github.com/turtle-key/TabLift/commit/36f2e2d30292b2dd0d2e85d79c689ab81616a091"><code>36f2e2d302</code></a></p>
-</li>
-</ul>
-<hr>
-<p>For a complete history of changes, see the <a href="https://github.com/turtle-key/TabLift/commits/main">commit log</a>.</p>
-<p><sub>Note: This summary includes only the most recent changes since the last release. For more details, visit the <a href="https://github.com/turtle-key/TabLift">TabLift repository</a>.</sub></p>
-<p><a href="https://github.com/turtle-key/TabLift/compare/v1.6.1...v1.7">Changes</a></p>
-<p><a id="v1.6.1"></a></p>
-<h1><a href="https://github.com/turtle-key/TabLift/releases/tag/v1.6.1">TabLift v1.6.1</a> - 2025-07-25</h1>
-<h1>TabLift v1.6.1</h1>
-<h2>What’s Changed</h2>
-<ul>
-<li>Made the footer (license link and Quit button) stick to the bottom of the window in the General tab, so it remains static even when the form content is short.<br>by <a href="https://github.com/turtle-key">@turtle-key</a> in <a href="https://github.com/turtle-key/TabLift/commit/d44899987c436d2dbbd8bd2890acf38f9cfe65e9"><code>d44899987c</code></a></li>
-</ul>
-<hr>
-<p>For a complete history of changes, see the <a href="https://github.com/turtle-key/TabLift/commits/main">commit log</a>.</p>
-<p><sub>Note: This summary includes only the most recent changes since the last release. For more details, visit the <a href="https://github.com/turtle-key/TabLift">TabLift repository</a>.</sub></p>
-<p><a href="https://github.com/turtle-key/TabLift/compare/v1.6...v1.6.1">Changes</a></p>
-<p><a id="v1.6"></a></p>
-<h1><a href="https://github.com/turtle-key/TabLift/releases/tag/v1.6">TabLift v1.6</a> - 2025-07-22</h1>
-<h2>What&#39;s Changed</h2>
-<ul>
-<li>Improved detection of app switching via Cmd+Tab and Cmd+` to ensure minimized windows are restored accurately. by <a href="https://github.com/turtle-key">@turtle-key</a> in <a href="https://github.com/turtle-key/TabLift/pull/15">#15</a></li>
-<li>Fixed NSPopover behavior to correctly dismiss when interacting with other menu bar items. by <a href="https://github.com/turtle-key">@turtle-key</a> in <a href="https://github.com/turtle-key/TabLift/pull/16">#16</a></li>
-</ul>
-<hr>
-<p>For a complete history of changes, see the <a href="https://github.com/turtle-key/TabLift/commits/main">commit log</a>.</p>
-<p><sub>Note: This summary includes only the most recent changes since the last release. For more details, visit the <a href="https://github.com/turtle-key/TabLift">TabLift repository</a>.</sub></p>
-<p><a href="https://github.com/turtle-key/TabLift/compare/v1.5...v1.6">Changes</a></p>
-<p><a id="v1.5"></a></p>
-<h1><a href="https://github.com/turtle-key/TabLift/releases/tag/v1.5">TabLift v1.5</a> - 2025-06-30</h1>
-<h2>What&#39;s Changed</h2>
-<ul>
-<li>Added support for cmd+backtick with minimized windows &amp; added a toggle for minimized windows to select between bringing all windows or just the last focused ones up. by <a href="https://github.com/turtle-key">@turtle-key</a> in <a href="https://github.com/turtle-key/TabLift/pull/10">#10</a></li>
-<li>Menu Bar functionality added by <a href="https://github.com/turtle-key">@turtle-key</a> in <a href="https://github.com/turtle-key/TabLift/pull/11">#11</a></li>
-</ul>
-<hr>
-<p>For a complete history of changes, see the <a href="https://github.com/turtle-key/TabLift/commits/main">commit log</a>.</p>
-<p><sub>Note: This summary includes only the most recent changes since the last release. For more details, visit the <a href="https://github.com/turtle-key/TabLift">TabLift repository</a>.</sub></p>
-<p><a href="https://github.com/turtle-key/TabLift/compare/v1.4...v1.5">Changes</a></p>
-<p><a id="v1.4"></a></p>
-<h1><a href="https://github.com/turtle-key/TabLift/releases/tag/v1.4">TabLift v1.4</a> - 2025-06-30</h1>
-<h2>What’s New</h2>
-<h3>Accessibility Privilege Management:</h3>
-<p>You can now enable or manage Accessibility permissions directly from the General tab in the Settings window. This streamlines onboarding and makes it much easier to grant or check the necessary privileges for TabLift to function.</p>
-<hr>
-<p>For a complete history of changes, see the <a href="https://github.com/turtle-key/TabLift/commits/main">commit log</a>.</p>
-<p><sub>Note: This summary includes only the most recent changes since the last release. For more details, visit the <a href="https://github.com/turtle-key/TabLift">TabLift repository</a>.</sub></p>
-<p><a href="https://github.com/turtle-key/TabLift/compare/v1.3...v1.4">Changes</a></p>
-<p><a id="v1.3"></a></p>
-<h1><a href="https://github.com/turtle-key/TabLift/releases/tag/v1.3">TabLift v1.3</a> - 2025-06-29</h1>
-<h2>What’s New</h2>
-<h3>Visual &amp; UI Improvements</h3>
-<p><strong>New App Icon:</strong><br>The app icon has been completely redesigned for a fresh look.</p>
-<p><strong>Modern About &amp; Settings Window:</strong>  </p>
-<ul>
-<li>The About window is now part of a new tabbed Settings window with a cleaner design.</li>
-<li>The app version label in the About window is now clickable and links directly to the latest GitHub release.</li>
-<li>Added a clickable license link, and website and donation links.</li>
-</ul>
-<p><strong>Accessibility Permission Flow:</strong>  </p>
-<ul>
-<li>New Accessibility permission prompt window with clear instructions and helpful links for a smoother onboarding experience.</li>
-</ul>
-<hr>
-<h3>Features &amp; Enhancements</h3>
-<ul>
-<li>Built-in update checker (using Sparkle, with configurable intervals and automatic update support).</li>
-<li>Improved permission management and onboarding screens for first-time users.</li>
-<li>Enhanced compatibility with modern versions of macOS (13+), including Apple Silicon support.</li>
-</ul>
-<hr>
-<h3>Metadata &amp; Packaging</h3>
-<ul>
-<li>Updated Xcode project and bundle metadata to reflect the new version and icon.</li>
-<li>Internal refactoring and modularization (renamed and reorganized Swift files).</li>
-<li>Updated and expanded the included website (powered by SvelteKit) for better documentation, SEO, and visuals.</li>
-<li>Project now includes Open Graph &amp; Twitter cards, FAQ, and privacy policy pages.</li>
-</ul>
-<hr>
-<p>For a complete history of changes, see the <a href="https://github.com/turtle-key/TabLift/commits/main">commit log</a>.</p>
-<p><sub>Note: This summary includes only the most recent changes since the last release. For more details, visit the <a href="https://github.com/turtle-key/TabLift">TabLift repository</a>.</sub></p>
-<p><a href="https://github.com/turtle-key/TabLift/compare/v1.2...v1.3">Changes</a></p>
-<p><a id="v1.2"></a></p>
-<h1><a href="https://github.com/turtle-key/TabLift/releases/tag/v1.2">TabLift v1.2</a> - 2025-06-23</h1>
-<h2>What’s New</h2>
-<h3>Visual &amp; UI Improvements</h3>
-<ul>
-<li><strong>New App Icon:</strong><br>The app icon has been completely redesigned for a fresh look (<a href="https://github.com/turtle-key/TabLift/commit/e6579488966df0a98fe28397e15ba7f456522bf9">commit</a>, <a href="https://github.com/turtle-key/TabLift/commit/9d254500d7ef40de51e17ca5b40d66d4c046f102">commit</a>).</li>
-<li><strong>About Window Enhancements:</strong>  <ul>
-<li>The app version label in the About window is now clickable and links directly to the latest GitHub release (<a href="https://github.com/turtle-key/TabLift/commit/241e7824d4201196bb5f365890c48c38c2f41d98">commit</a>).</li>
-<li>Added a license link.</li>
-</ul>
-</li>
-</ul>
-<h3>Metadata &amp; Packaging</h3>
-<ul>
-<li>Updated Xcode project and bundle metadata to reflect the new version and icon (<a href="https://github.com/turtle-key/TabLift/commit/e192924bdcd59fb2eb8f7beec0cb3d9449868fd5">commit</a>).</li>
-<li>Internal updates for app packaging.</li>
-</ul>
-<hr>
-<p><strong>For a complete history of changes, see the <a href="https://github.com/turtle-key/TabLift/commits/main">commit log</a>.</strong><br><em>Note: This summary includes only the most recent changes since the last release. For more details, visit the repository.</em></p>
-<p><a href="https://github.com/turtle-key/TabLift/compare/v1.1...v1.2">Changes</a></p>
-<p><a id="v1.1"></a></p>
-<h1><a href="https://github.com/turtle-key/TabLift/releases/tag/v1.1">TabLift v1.1</a> - 2025-06-21</h1>
-<h2>What’s New</h2>
-<h3>Features &amp; Improvements</h3>
-<ul>
-<li><p><strong>Quit Button Added:</strong><br>You can now quickly quit TabLift using a new, conveniently placed &quot;Quit&quot; button in the About window.<br>(<a href="https://github.com/turtle-key/TabLift/commit/af25f4b4f8b5fb7cc7a766ceb3c45543485d6870">See commit</a>)</p>
-</li>
-<li><p><strong>Dynamic App Version Display:</strong><br>The About window now automatically displays the current app version and build number, fetching them from your app’s bundle info.<br>(<a href="https://github.com/turtle-key/TabLift/commit/a7d99b76eeeae93b7d0d2d0513085909733b2a14">See commit</a>)</p>
-</li>
-</ul>
-<h3>Bug Fixes</h3>
-<ul>
-<li><strong>UI Bug Fix:</strong><br>Fixed a bug where static colors did not adapt to the system appearance, ensuring consistent look across light and dark mode.<br>(<a href="https://github.com/turtle-key/TabLift/commit/afec6908c3a5c13db720161394e13cf46d239cf6">See commit</a>)
-For a full list of changes and details, see the <a href="https://github.com/turtle-key/TabLift/commits/main">commit history</a>.</li>
-</ul>
-<p><a href="https://github.com/turtle-key/TabLift/compare/v1.0...v1.1">Changes</a></p>
-<p><a id="v1.0"></a></p>
-<h1><a href="https://github.com/turtle-key/TabLift/releases/tag/v1.0">TabLift v1.0</a> - 2025-06-21</h1>
-<p>TabLift v1.0(1) is the first public release of this lightweight macOS utility. With TabLift, your minimized windows are instantly restored whenever you switch between apps using ⌘+Tab—no need to hold extra keys or hunt for hidden windows. </p>
-<p><strong>Key Features:</strong></p>
-<ul>
-<li>Automatically restores minimized app windows on app switch (⌘+Tab)</li>
-<li>Seamless, native integration with macOS (works with Mission Control and multiple desktops)</li>
-<li>Runs quietly in the background with minimal resource usage</li>
-<li>Simple setup: just launch the app and grant Accessibility permission</li>
-<li>Open source and privacy-friendly</li>
-</ul>
-<p>Perfect for anyone who wants a more intuitive and efficient window management experience on macOS!</p>
-<blockquote>
-<p>TabLift – <em>Lift your windows. Free your workflow.</em></p>
-</blockquote>
-<p><a href="https://github.com/turtle-key/TabLift/tree/v1.0">Changes</a></p>
+<!-- Use an anchor tag and wrap text in a span so it stays above overlays -->
+<a
+  class="donation-link"
+  href="https://buymeacoffee.com/turtle.key"
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="Support turtle-key on Buy Me a Coffee"
+>
+  <span>❤️ Support turtle-key</span>
+</a>
+
+<a id="v1.9"></a>
+# [TabLift v1.9](https://github.com/turtle-key/TabLift/releases/tag/v1.9) - 2025-08-05
+
+# TabLift v1.9
+
+## What’s Changed
+
+- **Performance Profiles for Dock Previews:** Added customizable profiles to fine-tune how quickly Dock popups appear and fade out. Choose between Relaxed, Default, and Speedy to match your workflow.
+- **Marquee Text in Dock Previews:** Window titles are now animated with smooth marquee text, ensuring even long titles are always visible and readable.
+- **New Keyboard Shortcut:** Added ⌘⇧M to instantly minimize all windows of the frontmost app, making it easy to clear your workspace.
+- **Settings & UI Improvements:**  
+  - Settings window now supports sticky footers and improved ordering for options.
+  - About and Support tabs are more visually appealing, with new icons and hover effects.
+  - Added demo videos directly in settings to explain features.
+  - Accessibility permission checks and fixes to ensure full compatibility.
+  - Made the app automatically move itself to the Applications folder (if not already there), for a more native install experience.
+  - Improved support window aesthetics and clarity.
+- **Dock Popup Enhancements:**  
+  - Dock popups now refresh continuously while hovered, so window previews are always up-to-date.
+  - Window previews update themselves without closing when you hover over different icons.
+  - Improved support for minimized indicators and filetype icons in window previews.
+- **Menu Bar:**  
+  - Menu bar icon now features hover effects and accessibility labels for VoiceOver.
+  - Improved popover styling with blur, rounded corners, and accent color touches.
+- **Bug Fixes & Refinements:**  
+  - Fixed multiple accessibility API and permission issues.
+  - Various layout and merge conflict resolutions.
+  - Made sure settings changes apply instantly at first startup.
+  - Fixed undercorrection and help menu issues.
+  - Numerous minor UI and performance tweaks.
+
+---
+
+For a complete history of changes, see the [commit log](https://github.com/turtle-key/TabLift/commits/main).
+
+<sub>Note: This summary includes only the most recent changes since the last release. For more details, visit the [TabLift repository](https://github.com/turtle-key/TabLift).</sub>
+
+[Changes][v1.9]
+
+
+<a id="v1.8"></a>
+# [TabLift v1.8](https://github.com/turtle-key/TabLift/releases/tag/v1.8) - 2025-07-30
+
+# TabLift v1.8
+
+## What’s Changed
+
+- Added beautiful Dock popups with live window previews and clear minimized indicators. Hovering a Dock icon now shows all open and minimized windows for that app, making it easier to jump to exactly the window you want.
+- Fixed several UI layout issues and made Settings more responsive, especially when resizing.
+- Various bug fixes and refinements to window restoration logic for better compatibility with more apps and mission control.
+
+---
+
+For a complete history of changes, see the [commit log](https://github.com/turtle-key/TabLift/commits/main).
+
+<sub>Note: This summary includes only the most recent changes since the last release. For more details, visit the [TabLift repository](https://github.com/turtle-key/TabLift).</sub>
+
+[Changes][v1.8]
+
+
+<a id="v1.7"></a>
+# [TabLift v1.7](https://github.com/turtle-key/TabLift/releases/tag/v1.7) - 2025-07-29
+
+# TabLift v1.7
+
+## What’s Changed
+
+- Added a new toggle in General settings to show TabLift in the Dock.  
+  by [@turtle-key](https://github.com/turtle-key) in [`f5ebdb5958`](https://github.com/turtle-key/TabLift/commit/f5ebdb595822a82806e6811ec794d70b66123cc6)
+
+- Implemented automatic minimization of the previously focused window upon app switching for a cleaner workflow.  
+  by [@turtle-key](https://github.com/turtle-key) in [`5048abde03`](https://github.com/turtle-key/TabLift/commit/5048abde0320b31b7f8c3c47faabd808bc808d2e)
+
+- Enabled automatic window creation when switching to apps without open windows, improving accessibility.  
+  by [@turtle-key](https://github.com/turtle-key) in [`3ccd64aed3`](https://github.com/turtle-key/TabLift/commit/3ccd64aed3528a6bf7985da8de7fd00b17543d05)
+
+- Fixed a timing bug causing delays between Cmd+Tab press and window unminimization, smoothing out the switcher experience.  
+  by [@turtle-key](https://github.com/turtle-key) in [`36f2e2d302`](https://github.com/turtle-key/TabLift/commit/36f2e2d30292b2dd0d2e85d79c689ab81616a091)
+
+
+---
+
+For a complete history of changes, see the [commit log](https://github.com/turtle-key/TabLift/commits/main).
+
+<sub>Note: This summary includes only the most recent changes since the last release. For more details, visit the [TabLift repository](https://github.com/turtle-key/TabLift).</sub>
+
+[Changes][v1.7]
+
+
+<a id="v1.6.1"></a>
+# [TabLift v1.6.1](https://github.com/turtle-key/TabLift/releases/tag/v1.6.1) - 2025-07-25
+
+# TabLift v1.6.1
+
+## What’s Changed
+
+- Made the footer (license link and Quit button) stick to the bottom of the window in the General tab, so it remains static even when the form content is short.  
+  by [@turtle-key](https://github.com/turtle-key) in [`d44899987c`](https://github.com/turtle-key/TabLift/commit/d44899987c436d2dbbd8bd2890acf38f9cfe65e9)
+
+---
+
+For a complete history of changes, see the [commit log](https://github.com/turtle-key/TabLift/commits/main).
+
+<sub>Note: This summary includes only the most recent changes since the last release. For more details, visit the [TabLift repository](https://github.com/turtle-key/TabLift).</sub>
+
+[Changes][v1.6.1]
+
+
+<a id="v1.6"></a>
+# [TabLift v1.6](https://github.com/turtle-key/TabLift/releases/tag/v1.6) - 2025-07-22
+
+## What's Changed
+* Improved detection of app switching via Cmd+Tab and Cmd+` to ensure minimized windows are restored accurately. by [@turtle-key](https://github.com/turtle-key) in [#15](https://github.com/turtle-key/TabLift/pull/15)
+* Fixed NSPopover behavior to correctly dismiss when interacting with other menu bar items. by [@turtle-key](https://github.com/turtle-key) in [#16](https://github.com/turtle-key/TabLift/pull/16)
+
+---
+
+For a complete history of changes, see the [commit log](https://github.com/turtle-key/TabLift/commits/main).
+
+<sub>Note: This summary includes only the most recent changes since the last release. For more details, visit the [TabLift repository](https://github.com/turtle-key/TabLift).</sub>
+
+[Changes][v1.6]
+
+
+<a id="v1.5"></a>
+# [TabLift v1.5](https://github.com/turtle-key/TabLift/releases/tag/v1.5) - 2025-06-30
+
+## What's Changed
+* Added support for cmd+backtick with minimized windows & added a toggle for minimized windows to select between bringing all windows or just the last focused ones up. by [@turtle-key](https://github.com/turtle-key) in [#10](https://github.com/turtle-key/TabLift/pull/10)
+* Menu Bar functionality added by [@turtle-key](https://github.com/turtle-key) in [#11](https://github.com/turtle-key/TabLift/pull/11)
+
+---
+
+For a complete history of changes, see the [commit log](https://github.com/turtle-key/TabLift/commits/main).
+
+<sub>Note: This summary includes only the most recent changes since the last release. For more details, visit the [TabLift repository](https://github.com/turtle-key/TabLift).</sub>
+
+[Changes][v1.5]
+
+
+<a id="v1.4"></a>
+# [TabLift v1.4](https://github.com/turtle-key/TabLift/releases/tag/v1.4) - 2025-06-30
+
+## What’s New
+
+### Accessibility Privilege Management:
+
+You can now enable or manage Accessibility permissions directly from the General tab in the Settings window. This streamlines onboarding and makes it much easier to grant or check the necessary privileges for TabLift to function.
+
+---
+
+For a complete history of changes, see the [commit log](https://github.com/turtle-key/TabLift/commits/main).
+
+<sub>Note: This summary includes only the most recent changes since the last release. For more details, visit the [TabLift repository](https://github.com/turtle-key/TabLift).</sub>
+
+[Changes][v1.4]
+
+
+<a id="v1.3"></a>
+# [TabLift v1.3](https://github.com/turtle-key/TabLift/releases/tag/v1.3) - 2025-06-29
+
+## What’s New
+
+### Visual & UI Improvements
+
+**New App Icon:**  
+The app icon has been completely redesigned for a fresh look.
+
+**Modern About & Settings Window:**  
+- The About window is now part of a new tabbed Settings window with a cleaner design.
+- The app version label in the About window is now clickable and links directly to the latest GitHub release.
+- Added a clickable license link, and website and donation links.
+
+**Accessibility Permission Flow:**  
+- New Accessibility permission prompt window with clear instructions and helpful links for a smoother onboarding experience.
+
+---
+
+### Features & Enhancements
+
+- Built-in update checker (using Sparkle, with configurable intervals and automatic update support).
+- Improved permission management and onboarding screens for first-time users.
+- Enhanced compatibility with modern versions of macOS (13+), including Apple Silicon support.
+
+---
+
+### Metadata & Packaging
+
+- Updated Xcode project and bundle metadata to reflect the new version and icon.
+- Internal refactoring and modularization (renamed and reorganized Swift files).
+- Updated and expanded the included website (powered by SvelteKit) for better documentation, SEO, and visuals.
+- Project now includes Open Graph & Twitter cards, FAQ, and privacy policy pages.
+
+---
+
+For a complete history of changes, see the [commit log](https://github.com/turtle-key/TabLift/commits/main).
+
+<sub>Note: This summary includes only the most recent changes since the last release. For more details, visit the [TabLift repository](https://github.com/turtle-key/TabLift).</sub>
+
+[Changes][v1.3]
+
+
+<a id="v1.2"></a>
+# [TabLift v1.2](https://github.com/turtle-key/TabLift/releases/tag/v1.2) - 2025-06-23
+
+## What’s New
+
+### Visual & UI Improvements
+- **New App Icon:**  
+  The app icon has been completely redesigned for a fresh look ([commit](https://github.com/turtle-key/TabLift/commit/e6579488966df0a98fe28397e15ba7f456522bf9), [commit](https://github.com/turtle-key/TabLift/commit/9d254500d7ef40de51e17ca5b40d66d4c046f102)).
+- **About Window Enhancements:**  
+  - The app version label in the About window is now clickable and links directly to the latest GitHub release ([commit](https://github.com/turtle-key/TabLift/commit/241e7824d4201196bb5f365890c48c38c2f41d98)).
+  - Added a license link.
+
+### Metadata & Packaging
+- Updated Xcode project and bundle metadata to reflect the new version and icon ([commit](https://github.com/turtle-key/TabLift/commit/e192924bdcd59fb2eb8f7beec0cb3d9449868fd5)).
+- Internal updates for app packaging.
+
+---
+
+**For a complete history of changes, see the [commit log](https://github.com/turtle-key/TabLift/commits/main).**  
+_Note: This summary includes only the most recent changes since the last release. For more details, visit the repository._
+
+
+[Changes][v1.2]
+
+
+<a id="v1.1"></a>
+# [TabLift v1.1](https://github.com/turtle-key/TabLift/releases/tag/v1.1) - 2025-06-21
+
+## What’s New
+
+### Features & Improvements
+
+- **Quit Button Added:**  
+  You can now quickly quit TabLift using a new, conveniently placed "Quit" button in the About window.  
+  ([See commit](https://github.com/turtle-key/TabLift/commit/af25f4b4f8b5fb7cc7a766ceb3c45543485d6870))
+
+- **Dynamic App Version Display:**  
+  The About window now automatically displays the current app version and build number, fetching them from your app’s bundle info.  
+  ([See commit](https://github.com/turtle-key/TabLift/commit/a7d99b76eeeae93b7d0d2d0513085909733b2a14))
+
+###  Bug Fixes
+
+- **UI Bug Fix:**  
+  Fixed a bug where static colors did not adapt to the system appearance, ensuring consistent look across light and dark mode.  
+  ([See commit](https://github.com/turtle-key/TabLift/commit/afec6908c3a5c13db720161394e13cf46d239cf6))
+For a full list of changes and details, see the [commit history](https://github.com/turtle-key/TabLift/commits/main).
+
+[Changes][v1.1]
+
+
+<a id="v1.0"></a>
+# [TabLift v1.0](https://github.com/turtle-key/TabLift/releases/tag/v1.0) - 2025-06-21
+
+TabLift v1.0(1) is the first public release of this lightweight macOS utility. With TabLift, your minimized windows are instantly restored whenever you switch between apps using ⌘+Tab—no need to hold extra keys or hunt for hidden windows. 
+
+**Key Features:**
+- Automatically restores minimized app windows on app switch (⌘+Tab)
+- Seamless, native integration with macOS (works with Mission Control and multiple desktops)
+- Runs quietly in the background with minimal resource usage
+- Simple setup: just launch the app and grant Accessibility permission
+- Open source and privacy-friendly
+
+Perfect for anyone who wants a more intuitive and efficient window management experience on macOS!
+
+> TabLift – *Lift your windows. Free your workflow.*
+
+[Changes][v1.0]
+
+
+[v1.9]: https://github.com/turtle-key/TabLift/compare/v1.8...v1.9
+[v1.8]: https://github.com/turtle-key/TabLift/compare/v1.7...v1.8
+[v1.7]: https://github.com/turtle-key/TabLift/compare/v1.6.1...v1.7
+[v1.6.1]: https://github.com/turtle-key/TabLift/compare/v1.6...v1.6.1
+[v1.6]: https://github.com/turtle-key/TabLift/compare/v1.5...v1.6
+[v1.5]: https://github.com/turtle-key/TabLift/compare/v1.4...v1.5
+[v1.4]: https://github.com/turtle-key/TabLift/compare/v1.3...v1.4
+[v1.3]: https://github.com/turtle-key/TabLift/compare/v1.2...v1.3
+[v1.2]: https://github.com/turtle-key/TabLift/compare/v1.1...v1.2
+[v1.1]: https://github.com/turtle-key/TabLift/compare/v1.0...v1.1
+[v1.0]: https://github.com/turtle-key/TabLift/tree/v1.0
+
 <!-- Generated by https://github.com/rhysd/changelog-from-release v3.9.0 -->
-
