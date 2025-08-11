@@ -76,9 +76,17 @@ struct SettingsView: View {
 
 class SettingsWindow: NSWindow {
     override func keyDown(with event: NSEvent) {
-        if event.modifierFlags.contains(.command) && event.charactersIgnoringModifiers == "w" {
+        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        guard flags.contains(.command), let chars = event.charactersIgnoringModifiers?.lowercased() else {
+            super.keyDown(with: event)
+            return
+        }
+        switch chars {
+        case "w":
             performClose(nil)
-        } else {
+        case "m":
+            performMiniaturize(nil)
+        default:
             super.keyDown(with: event)
         }
     }
