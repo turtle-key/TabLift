@@ -72,6 +72,7 @@ class DockIconHoverMonitor {
         NotificationCenter.default.removeObserver(self)
         stopMouseTimer()
         showPanelTimer?.invalidate()
+        showPanelTimer = nil
         hidePreview()
     }
 
@@ -150,9 +151,13 @@ class DockIconHoverMonitor {
         mouseTimer = nil
     }
 
+    private func mouseIsInsidePreview() -> Bool {
+        guard let panel = previewPanel, panel.isVisible else { return false }
+        return panel.frame.contains(NSEvent.mouseLocation)
+    }
+
     private func checkMouseAndDismissIfNeeded() {
-        let mouseLocation = NSEvent.mouseLocation
-        let isInPopup = previewPanel?.frame.contains(mouseLocation) ?? false
+        let isInPopup = mouseIsInsidePreview()
         let isOverDockIcon = isMouseOverDockIcon()
         if !isInPopup && !isOverDockIcon {
             lastHoveredDockIcon = nil
@@ -181,8 +186,7 @@ class DockIconHoverMonitor {
     }
 
     private func handleMouseAndHideIfNeeded() {
-        let mouseLocation = NSEvent.mouseLocation
-        let isInPopup = previewPanel?.frame.contains(mouseLocation) ?? false
+        let isInPopup = mouseIsInsidePreview()
         let isOverDockIcon = isMouseOverDockIcon()
         if !isInPopup && !isOverDockIcon {
             lastHoveredDockIcon = nil
@@ -202,21 +206,37 @@ class DockIconHoverMonitor {
             hidePreview()
             return
         }
+
+        // If we get a deselection because the cursor moved from the Dock to our popup,
+        // ignore it and keep the preview visible.
+        let isInPopup = mouseIsInsidePreview()
+
         guard let hoveredIcon = getCurrentlySelectedDockIcon(),
               let (iconFrame, bundleIdentifier) = getDockIconInfo(element: hoveredIcon),
               let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).first
         else {
-            lastBundleIdentifier = nil
-            hidePreview()
-            lastPanelFrame = nil
-            lastIconFrame = nil
-            lockedHoveredIcon = nil
-            lockedIconFrame = nil
-            lockedBundleIdentifier = nil
-            anchorX = nil
-            showPanelTimer?.invalidate()
-            showPanelTimer = nil
+            // Nothing selected in the Dock.
+            // Only hide if we're not hovering the popup itself.
+            if !isInPopup {
+                lastBundleIdentifier = nil
+                hidePreview()
+                lastPanelFrame = nil
+                lastIconFrame = nil
+                lockedHoveredIcon = nil
+                lockedIconFrame = nil
+                lockedBundleIdentifier = nil
+                anchorX = nil
+                showPanelTimer?.invalidate()
+                showPanelTimer = nil
+            }
             return
+        }
+
+        // If the hovered app changed, hide the current preview immediately before scheduling the new one.
+        // This avoids flashing/incorrect updates and ensures the popup only switches on app changes.
+        let showingBundle = lockedBundleIdentifier ?? lastBundleIdentifier
+        if let current = showingBundle, current != bundleIdentifier {
+            hidePreview()
         }
 
         // Only update if hovered icon changes (pointer comparison)
