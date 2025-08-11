@@ -13,6 +13,8 @@ class DockIconHoverMonitor {
     private var dockPreviewDelay: Double { UserDefaults.standard.double(forKey: "dockPreviewSpeed") }
     private var mouseUpdateInterval: Double { 0.016 }
     private let artifactTimeThreshold: TimeInterval = 0.05
+    /// The maximum distance (in points) the mouse can drift before rescheduling the hover event.
+    /// 100 points was chosen empirically to balance responsiveness and avoid excessive rescheduling.
     private let schedulingMouseDriftThreshold: CGFloat = 100
     private var lateralMovementEnabled: Bool { UserDefaults.standard.bool(forKey: "lateralMovement") }
     private var bufferFromDock: CGFloat { CGFloat(UserDefaults.standard.double(forKey: "bufferFromDock")) }
