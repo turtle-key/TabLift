@@ -65,7 +65,6 @@ struct GeneralSettingsTab: View {
     @AppStorage("startAtLogin") var startAtLogin: Bool = true
     @AppStorage("showDockIcon") var showDockIcon: Bool = false
 
-    // NEW: Dock click behavior toggle (used by DockClickMonitor)
     // When true: Dock click toggles all windows for that app (minimize all / restore all).
     // When false: Dock click minimizes only the current window; if all windows are minimized it restores them all.
     @AppStorage("restoreAllOnDockClick") var restoreAllOnDockClick: Bool = false
