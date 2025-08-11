@@ -64,6 +64,12 @@ struct GeneralSettingsTab: View {
     @AppStorage("showDockPopups") var showDockPopups: Bool = true
     @AppStorage("startAtLogin") var startAtLogin: Bool = true
     @AppStorage("showDockIcon") var showDockIcon: Bool = false
+
+    // NEW: Dock click behavior toggle (used by DockClickMonitor)
+    // When true: Dock click toggles all windows for that app (minimize all / restore all).
+    // When false: Dock click minimizes only the current window; if all windows are minimized it restores them all.
+    @AppStorage("restoreAllOnDockClick") var restoreAllOnDockClick: Bool = false
+
     @State private var isHoveringQuit = false
     @AppStorage("maximizeBehavior") var maximizeBehaviorRaw: String = MaximizeBehavior.fill.rawValue
 
@@ -124,6 +130,7 @@ struct GeneralSettingsTab: View {
                         Text("Show Window Previews in Dock").font(.body)
                     }
                     .help("Show a popup with app windows when hovering over icons in the Dock.")
+
                     VStack(alignment: .leading, spacing: 8) {
                         Picker("Green Button Action", selection: $maximizeBehaviorRaw) {
                             ForEach(MaximizeBehavior.allCases) { beh in
@@ -168,6 +175,26 @@ struct GeneralSettingsTab: View {
                         }
                     }
                     .padding(.vertical, 2)
+
+                    // NEW: Dock click behavior toggle and description
+                    VStack(alignment: .leading, spacing: 6) {
+                        Toggle(isOn: $restoreAllOnDockClick) {
+                            Text("Dock click toggles all windows").font(.body)
+                        }
+                        .help("When enabled: Clicking an app’s Dock icon minimizes all its windows if any are visible, or restores all if they are all minimized. When disabled: Clicking the Dock icon minimizes only the current window when the app is frontmost; if all windows are minimized, it restores them all.")
+
+                        Text(
+                            restoreAllOnDockClick
+                            ? "Enabled: Clicking an app’s Dock icon will minimize all of its windows if any are visible, or restore all if they’re all minimized."
+                            : "Disabled: Clicking an app’s Dock icon will minimize only the current window when the app is frontmost. If all windows are minimized, it restores them all."
+                        )
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: 340, alignment: .leading)
+                        .padding(.top, 2)
+                    }
+                    .padding(.top, 2)
                 }
                
                 Section(header: Label("Window Switching Behavior", systemImage: "arrow.triangle.swap").font(.headline)) {
