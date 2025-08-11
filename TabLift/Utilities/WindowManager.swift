@@ -1,6 +1,46 @@
 import Cocoa
 import ApplicationServices
 
+struct WindowInfo: Identifiable, Equatable {
+    let id: String
+    let title: String
+    let isMinimized: Bool
+    let shouldHighlight: Bool
+    let axElement: AXUIElement
+    let app: NSRunningApplication
+
+    init(axElement: AXUIElement, app: NSRunningApplication, index: Int, focusedWindow: AXUIElement?, isFrontmostApp: Bool) {
+        self.axElement = axElement
+        self.app = app
+
+        var t: AnyObject?
+        if AXUIElementCopyAttributeValue(axElement, kAXTitleAttribute as CFString, &t) == .success, let ti = t as? String {
+            self.title = ti
+        } else {
+            var doc: AnyObject?
+            if AXUIElementCopyAttributeValue(axElement, kAXDocumentAttribute as CFString, &doc) == .success, let docstr = doc as? String, !docstr.isEmpty {
+                self.title = docstr
+            } else {
+                self.title = "(Untitled)"
+            }
+        }
+
+        var minRaw: AnyObject?
+        if AXUIElementCopyAttributeValue(axElement, kAXMinimizedAttribute as CFString, &minRaw) == .success, let isMin = minRaw as? Bool {
+            self.isMinimized = isMin
+        } else {
+            self.isMinimized = false
+        }
+
+        self.shouldHighlight = isFrontmostApp && (focusedWindow != nil) && (CFEqual(axElement, focusedWindow))
+        self.id = "\(app.processIdentifier)-\(Unmanaged.passUnretained(axElement).toOpaque())-\(index)"
+    }
+
+    static func == (lhs: WindowInfo, rhs: WindowInfo) -> Bool {
+        return lhs.id == rhs.id
+    }
+}
+
 class WindowManager {
     static let restoreAllKey             = "restoreAllWindows"
     static let openWindowKey             = "openNewWindow"
@@ -12,12 +52,9 @@ class WindowManager {
         let restoreAll = UserDefaults.standard.bool(forKey: restoreAllKey)
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            // 1. Minimize previous window (if any and enabled)
             if minimize, let prev = previous {
                 minimizeFocusedWindow(of: prev)
             }
-
-            // 2. Restore minimized windows per setting
             if restoreAll {
                 restoreMinimizedWindows(for: current)
             } else {
@@ -27,8 +64,6 @@ class WindowManager {
                     focusLastUnminimizedWindow(for: current)
                 }
             }
-
-            // 3. Open new window if needed
             if openNew && !hasAnyPracticalVisibleWindow(for: current) {
                 openNewWindowApp(for: current)
             }
@@ -133,7 +168,6 @@ class WindowManager {
         }
     }
 
-    /// Focus only the last unminimized window (do NOT restore minimized ones)
     static func focusLastUnminimizedWindow(for app: NSRunningApplication) {
         let appEl = AXUIElementCreateApplication(app.processIdentifier)
         var raw: AnyObject?
@@ -180,5 +214,56 @@ class WindowManager {
         up.flags = .maskCommand
         down.post(tap: .cghidEventTap)
         up.post(tap: .cghidEventTap)
+    }
+
+    static func windowInfos(for app: NSRunningApplication) -> [WindowInfo] {
+        let appElement = AXUIElementCreateApplication(app.processIdentifier)
+        var windowsValue: AnyObject?
+        guard AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue) == .success,
+              let windows = windowsValue as? [AXUIElement] else { return [] }
+
+        var focusedWindowValue: AnyObject?
+        var focusedWindow: AXUIElement?
+        if AXUIElementCopyAttributeValue(appElement, kAXFocusedWindowAttribute as CFString, &focusedWindowValue) == .success,
+           focusedWindowValue != nil {
+            focusedWindow = focusedWindowValue as! AXUIElement
+        }
+
+        let frontmostPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
+        let isFrontmostApp = (app.processIdentifier == frontmostPID)
+
+        var infos: [WindowInfo] = []
+
+        for (idx, window) in windows.enumerated() {
+            let role = window.role() ?? "(nil)"
+            if role != "AXWindow" { continue }
+            if isProbablyPictureInPicture(window: window) { continue }
+            infos.append(WindowInfo(axElement: window, app: app, index: idx, focusedWindow: focusedWindow, isFrontmostApp: isFrontmostApp))
+        }
+        return infos
+    }
+
+    private static func isProbablyPictureInPicture(window: AXUIElement) -> Bool {
+        let subrole = window.subrole() ?? ""
+        if subrole == "AXPictureInPictureWindow" ||
+           subrole == "AXFloatingWindow" ||
+           subrole == "AXPanel" ||
+           subrole == "AXSystemDialog"
+        {
+            return true
+        }
+        var sizeValue: AnyObject?
+        if AXUIElementCopyAttributeValue(window, kAXSizeAttribute as CFString, &sizeValue) == .success {
+            let axSize = sizeValue as! AXValue
+            var sz = CGSize.zero
+            AXValueGetValue(axSize, .cgSize, &sz)
+            if sz.width < 220 || sz.height < 220 {
+                let title = window.title() ?? ""
+                if title.isEmpty {
+                    return true
+                }
+            }
+        }
+        return false
     }
 }

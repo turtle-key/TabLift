@@ -16,7 +16,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var window: NSWindow?
     private let autoUpdateManager = AutoUpdateManager.shared
     private var globalHotkeyMonitor: HotkeyMonitor?
-
+    var windowSwitcherMonitor: WindowSwitcherMonitor?
     var dockClickMonitor: DockClickMonitor?
     var dockIconHoverMonitor: DockIconHoverMonitor?
 
@@ -32,6 +32,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Start shield banner/monitor early so it can react to system state immediately.
+        ShieldNoticeManager.shared.start()
+
         PFMoveToApplicationsFolderIfNecessary()
         guard AccessibilityPermission.enabled else {
             AccessibilityPermissionWindow.show()
@@ -45,6 +48,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             "showMenuBarIcon": true,
             "showDockIcon": false,
             "startAtLogin": true,
+            // Allow users to disable the shield banner if they want (default ON).
+            "showShieldBanner": true,
         ])
 
         applyAllSettings()
@@ -56,9 +61,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             object: nil
         )
 
-
         updateDockIconPolicy()
-
+        windowSwitcherMonitor = WindowSwitcherMonitor()
         cmdBacktickMonitor = CmdBacktickMonitor()
         appMonitor = AppMonitor()
         appMonitor?.setupEventTap()
@@ -110,11 +114,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     /// This refreshes all event taps/monitors for ALL known problematic system events.
     func handleGlobalRefresh() {
+        // If macOS is currently showing a high-level "shield" (loginwindow/SecurityAgent),
+        // defer heavy refresh until Accessibility is effectively clear to avoid churn/flicker.
+        let watcher = AccessibilityShieldWatcher.shared
+        if !watcher.isEffectivelyClear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.handleGlobalRefresh()
+            }
+            return
+        }
+
         print("Global system event - refreshing TabLift state")
         appMonitor?.refresh()
         cmdBacktickMonitor?.refresh()
         dockClickMonitor?.refresh()
         dockIconHoverMonitor?.refresh()
+        globalHotkeyMonitor?.refresh()
         if !AccessibilityPermission.enabled {
             AccessibilityPermissionWindow.show()
         }

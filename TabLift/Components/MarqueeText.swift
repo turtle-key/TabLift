@@ -30,8 +30,7 @@ struct MarqueeText: View {
     var maxWidth: Double? = nil
     var speed: Double = 30.0 // points/sec
 
-    @State private var textSize: CGSize = .zero
-
+    // Use id(text) to force reset of state when text changes
     var body: some View {
         TheMarquee(
             forcedWidth: maxWidth,
@@ -46,8 +45,8 @@ struct MarqueeText: View {
             Text(text)
                 .font(.system(size: 15, weight: .medium, design: .rounded))
                 .lineLimit(1)
-                .measure($textSize)
         }
+        .id(text) // Ensures new state when text changes
     }
 }
 
@@ -61,10 +60,14 @@ struct TheMarquee<C: View>: View {
     var horizontalPadding: Double = 8
     var fadeLength: Double = 8
     @ViewBuilder var content: () -> C
+
     @State private var contentSize: CGSize = .zero
     @State private var offset: Double = 0
     @State private var animating = false
     @State private var actualWidth: CGFloat = 0
+
+    // Used to track text changes and reset animation
+    @State private var lastContentString: String = ""
 
     var measured: Bool { contentSize != .zero }
 
@@ -123,7 +126,33 @@ struct TheMarquee<C: View>: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: spacingBetweenElements) {
                     content()
-                        .measure($contentSize)
+                        .background(
+                            GeometryReader { proxy in
+                                Color.clear
+                                    .onAppear {
+                                        let size = proxy.size
+                                        if size != contentSize {
+                                            contentSize = size
+                                            // reset animation if content changes
+                                            offset = 0
+                                            animating = false
+                                            DispatchQueue.main.async {
+                                                updateAnimationState()
+                                            }
+                                        }
+                                    }
+                                    .onChange(of: proxy.size) { newSize in
+                                        if newSize != contentSize {
+                                            contentSize = newSize
+                                            offset = 0
+                                            animating = false
+                                            DispatchQueue.main.async {
+                                                updateAnimationState()
+                                            }
+                                        }
+                                    }
+                            }
+                        )
                     if measured && internalShouldMove {
                         content()
                     }
@@ -131,9 +160,23 @@ struct TheMarquee<C: View>: View {
                 .padding(.horizontal, internalShouldMove ? horizontalPadding : 0)
                 .frame(minWidth: internalShouldMove ? displayRegionWidth : nil, alignment: internalShouldMove ? marqueeAlignment : nonMovingAlignment)
                 .offset(x: internalShouldMove ? offset : 0)
-                .onChange(of: contentSize) { _ in updateAnimationState() }
-                .onChange(of: displayRegionWidth) { _ in updateAnimationState() }
-                .onAppear { actualWidth = geo.size.width; updateAnimationState() }
+                .onAppear {
+                    actualWidth = geo.size.width
+                    // reset animation on appear
+                    offset = 0
+                    animating = false
+                    updateAnimationState()
+                }
+                .onChange(of: contentSize) { _ in
+                    offset = 0
+                    animating = false
+                    updateAnimationState()
+                }
+                .onChange(of: displayRegionWidth) { _ in
+                    offset = 0
+                    animating = false
+                    updateAnimationState()
+                }
             }
             .disabled(true)
         }

@@ -1,6 +1,7 @@
 import SwiftUI
 import ServiceManagement
 import AVKit
+
 enum PerformanceProfile: String, CaseIterable, Identifiable {
     case detailed = "Relaxed"
     case balanced = "Default"
@@ -22,6 +23,7 @@ enum PerformanceProfile: String, CaseIterable, Identifiable {
         }
     }
 }
+
 struct SettingsView: View {
     var body: some View {
         TabView {
@@ -62,13 +64,20 @@ struct GeneralSettingsTab: View {
     @AppStorage("showDockPopups") var showDockPopups: Bool = true
     @AppStorage("startAtLogin") var startAtLogin: Bool = true
     @AppStorage("showDockIcon") var showDockIcon: Bool = false
-    @State private var isHoveringQuit = false
 
-    // Local state for mutual exclusion
+    // When true: Dock click toggles all windows for that app (minimize all / restore all).
+    // When false: Dock click minimizes only the current window; if all windows are minimized it restores them all.
+    @AppStorage("restoreAllOnDockClick") var restoreAllOnDockClick: Bool = false
+
+    @State private var isHoveringQuit = false
+    @AppStorage("maximizeBehavior") var maximizeBehaviorRaw: String = MaximizeBehavior.fill.rawValue
+
+    var maximizeBehavior: MaximizeBehavior {
+        MaximizeBehavior(rawValue: maximizeBehaviorRaw) ?? .fullscreen
+    }
+
     @State private var openNewWindow: Bool = true
     @State private var minimizePreviousWindow: Bool = false
-
-    // Hover state for demo videos & help text
     @State private var hoveredDemo: DemoType? = nil
 
     enum DemoType { case restore, opennew, minimizeprev }
@@ -77,7 +86,7 @@ struct GeneralSettingsTab: View {
     private var licenseURL: URL {
         URL(string: "https://github.com/turtle-key/TabLift/blob/main/LICENSE")!
     }
-    // performance profiles
+
     @AppStorage("performanceProfile") var performanceProfileRaw: String = PerformanceProfile.balanced.rawValue
     @AppStorage("dockPreviewSpeed") var dockPreviewSpeed: Double = PerformanceProfile.balanced.hoverDelay
     @AppStorage("dockPreviewFade") var dockPreviewFade: Double = PerformanceProfile.balanced.fadeOutDuration
@@ -85,23 +94,21 @@ struct GeneralSettingsTab: View {
     var selectedProfile: PerformanceProfile {
         PerformanceProfile(rawValue: performanceProfileRaw) ?? .balanced
     }
-    // Maximum length of help texts (measured, can be tweaked)
+
     private let helpTextMaxWidth: CGFloat = 320
-    private let helpTextMaxHeight: CGFloat = 46 // ~2 lines at caption font
+    private let helpTextMaxHeight: CGFloat = 46
 
     var body: some View {
         VStack(spacing: 20) {
             Form {
                 Section(header: Label("App Launch & Appearance", systemImage: "rectangle.stack").font(.headline)) {
                     Toggle(isOn: $startAtLogin) {
-                        Text("Start at login")
-                            .font(.body)
+                        Text("Start at login").font(.body)
                     }
                     .help("Launch TabLift automatically when you log in to your Mac.")
 
                     Toggle(isOn: $showMenuBarIcon) {
-                        Text("Show in menu bar")
-                            .font(.body)
+                        Text("Show in menu bar").font(.body)
                         if !showMenuBarIcon {
                             Text("To show the settings, launch TabLift again.")
                                 .foregroundColor(.secondary)
@@ -112,54 +119,88 @@ struct GeneralSettingsTab: View {
                     .help("Show or hide the TabLift icon in your menu bar for quick access.")
 
                     Toggle(isOn: $showDockIcon) {
-                        Text("Show in Dock")
-                            .font(.body)
+                        Text("Show in Dock").font(.body)
                     }
                     .help("Display the icon of the app in the Dock. Works just like a normal app.")
                 }
                 
                 Section(header: Label("Dock Features", systemImage: "dock.rectangle").font(.headline)) {
                     Toggle(isOn: $showDockPopups) {
-                        Text("Show Window Previews in Dock")
-                            .font(.body)
+                        Text("Show Window Previews in Dock").font(.body)
                     }
                     .help("Show a popup with app windows when hovering over icons in the Dock.")
-                }
-                Section(header: Label("Performance", systemImage: "speedometer").font(.headline)) {
-                    Picker("Dock preview speed", selection: $performanceProfileRaw) {
-                        ForEach(PerformanceProfile.allCases) { profile in
-                            Text(profile.rawValue)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Picker("Green Button Action", selection: $maximizeBehaviorRaw) {
+                            ForEach(MaximizeBehavior.allCases) { beh in
+                                Text(beh.rawValue).tag(beh.rawValue)
+                            }
                         }
-                    }
-                    .pickerStyle(.segmented)
-                    .onChange(of: performanceProfileRaw) { newRaw in
-                        let newProfile = PerformanceProfile(rawValue: newRaw) ?? .balanced
-                        dockPreviewSpeed = newProfile.hoverDelay
-                        dockPreviewFade = newProfile.fadeOutDuration
-                    }
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Profile: \(selectedProfile.rawValue)")
-                            .font(.headline)
-                        Text("How quickly the Dock preview appears and fades out when you hover.\n")
+                        .pickerStyle(.segmented)
+                        .help("Choose what happens when you click the green maximize button in window previews.")
+
+                        Text(maximizeBehavior.explanation)
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        HStack {
-                            Text("Preview delay: \(String(format: "%.2f", selectedProfile.hoverDelay))s")
-                            Text("Fade out: \(String(format: "%.2f", selectedProfile.fadeOutDuration))s")
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.top, 2)
+                            .frame(maxWidth: 340, alignment: .leading)
+                    }
+                    .padding(.top, 2)
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        Picker("Dock preview speed", selection: $performanceProfileRaw) {
+                            ForEach(PerformanceProfile.allCases) { profile in
+                                Text(profile.rawValue)
+                            }
                         }
+                        .pickerStyle(.segmented)
+                        .onChange(of: performanceProfileRaw) { newRaw in
+                            let newProfile = PerformanceProfile(rawValue: newRaw) ?? .balanced
+                            dockPreviewSpeed = newProfile.hoverDelay
+                            dockPreviewFade = newProfile.fadeOutDuration
+                        }
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Profile: \(selectedProfile.rawValue)").font(.headline)
+                            Text("How quickly the Dock preview appears and fades out when you hover.\n")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            HStack {
+                                Text("Preview delay: \(String(format: "%.2f", selectedProfile.hoverDelay))s")
+                                Text("Fade out: \(String(format: "%.2f", selectedProfile.fadeOutDuration))s")
+                            }
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 2)
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Toggle(isOn: $restoreAllOnDockClick) {
+                            Text("Dock click toggles all windows").font(.body)
+                        }
+                        .help("When enabled: Clicking an app’s Dock icon minimizes all its windows if any are visible, or restores all if they are all minimized. When disabled: Clicking the Dock icon minimizes only the current window when the app is frontmost; if all windows are minimized, it restores them all.")
+
+                        Text(
+                            restoreAllOnDockClick
+                            ? "Enabled: Clicking an app’s Dock icon will minimize all of its windows if any are visible, or restore all if they’re all minimized."
+                            : "Disabled: Clicking an app’s Dock icon will minimize only the current window when the app is frontmost. If all windows are minimized, it restores them all."
+                        )
                         .font(.caption)
                         .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: 340, alignment: .leading)
+                        .padding(.top, 2)
                     }
+                    .padding(.top, 2)
                 }
-                
+               
                 Section(header: Label("Window Switching Behavior", systemImage: "arrow.triangle.swap").font(.headline)) {
                     VStack(alignment: .leading, spacing: 24) {
-                        // Restore All Windows Demo
                         DemoSection(
                             toggle: Toggle(isOn: $restoreAllWindows) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Restore all minimized windows on app switch")
-                                        .font(.body)
+                                    Text("Restore all minimized windows on app switch").font(.body)
                                     if !restoreAllWindows {
                                         Text("When disabled, only the most recently minimized window will be restored.")
                                             .foregroundColor(.secondary)
@@ -177,13 +218,10 @@ struct GeneralSettingsTab: View {
                             maxWidth: helpTextMaxWidth,
                             maxHeight: helpTextMaxHeight
                         )
-
-                        // Open New Window Demo
                         DemoSection(
                             toggle: Toggle(isOn: $openNewWindow) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Automatically open a window for apps with no windows")
-                                        .font(.body)
+                                    Text("Automatically open a window for apps with no windows").font(.body)
                                     if !openNewWindow {
                                         Text("When disabled, switching to an app without windows won't open a new window.")
                                             .foregroundColor(.secondary)
@@ -208,13 +246,10 @@ struct GeneralSettingsTab: View {
                             maxWidth: helpTextMaxWidth,
                             maxHeight: helpTextMaxHeight
                         )
-
-                        // Minimize Previous Window Demo
                         DemoSection(
                             toggle: Toggle(isOn: $minimizePreviousWindow) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Minimize previous window on app switch")
-                                        .font(.body)
+                                    Text("Minimize previous window on app switch").font(.body)
                                     if !minimizePreviousWindow {
                                         Text("When disabled, switching to another app won't automatically minimize the previous one's window(s).")
                                             .foregroundColor(.secondary)
@@ -250,7 +285,6 @@ struct GeneralSettingsTab: View {
             }
             .modifier(FormViewModifier())
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-
             FooterView(isHoveringQuit: $isHoveringQuit)
         }
         .onAppear {
@@ -617,6 +651,7 @@ struct SupportTab: View {
                     Form {
                         Section {
                             AccessibilityPermissionCheckView()
+                            ShieldBannerSettings()
                         }
                         Section {
                             CheckForUpdatesView()
@@ -852,5 +887,15 @@ struct DockKeyCap: View {
             )
             .shadow(color: Color.accentColor.opacity(0.09), radius: 1, x: 0, y: 1)
             .frame(width: 40, height: 40)
+    }
+}
+
+struct ShieldBannerSettings: View {
+    @AppStorage("showShieldBanner") private var showShieldBanner: Bool = true
+
+    var body: some View {
+        Toggle("Show accessibility shield tips", isOn: $showShieldBanner)
+            .toggleStyle(.switch)
+            .help("Show a brief tip when macOS temporarily blocks Accessibility after unlock/wake.")
     }
 }

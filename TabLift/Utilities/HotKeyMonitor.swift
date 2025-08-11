@@ -6,6 +6,10 @@ class HotkeyMonitor {
     private var runLoopSource: CFRunLoopSource?
 
     init() {
+        setupEventTap()
+    }
+
+    private func setupEventTap() {
         let eventMask = (1 << CGEventType.keyDown.rawValue)
 
         eventTap = CGEvent.tapCreate(
@@ -35,6 +39,19 @@ class HotkeyMonitor {
         } else {
             print("Failed to create global event tap!")
         }
+    }
+
+    func refresh() {
+        if let eventTap = eventTap {
+            CGEvent.tapEnable(tap: eventTap, enable: false)
+            CFMachPortInvalidate(eventTap)
+            self.eventTap = nil
+        }
+        if let runLoopSource = runLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
+            self.runLoopSource = nil
+        }
+        setupEventTap()
     }
 
     deinit {
