@@ -10,18 +10,12 @@ class DockIconHoverMonitor {
         let shouldHighlight: Bool
     }
 
-    private var dockPreviewDelay: Double {
-        UserDefaults.standard.double(forKey: "dockPreviewSpeed")
-    }
+    private var dockPreviewDelay: Double { UserDefaults.standard.double(forKey: "dockPreviewSpeed") }
     private var mouseUpdateInterval: Double { 0.016 }
     private let artifactTimeThreshold: TimeInterval = 0.05
     private let schedulingMouseDriftThreshold: CGFloat = 100
-    private var lateralMovementEnabled: Bool {
-        UserDefaults.standard.bool(forKey: "lateralMovement")
-    }
-    private var bufferFromDock: CGFloat {
-        CGFloat(UserDefaults.standard.double(forKey: "bufferFromDock"))
-    }
+    private var lateralMovementEnabled: Bool { UserDefaults.standard.bool(forKey: "lateralMovement") }
+    private var bufferFromDock: CGFloat { CGFloat(UserDefaults.standard.double(forKey: "bufferFromDock")) }
 
     private var axObserver: AXObserver?
     private var dockPID: pid_t = 0
@@ -61,11 +55,8 @@ class DockIconHoverMonitor {
         (NSApplication.shared.delegate as? AppDelegate)?.dockClickMonitor
     }
 
-    private var showDockPopups: Bool {
-        UserDefaults.standard.bool(forKey: "showDockPopups")
-    }
+    private var showDockPopups: Bool { UserDefaults.standard.bool(forKey: "showDockPopups") }
 
-    // Throttle (leading + trailing) for updateDockPreviewContent
     private let updateThrottleInterval: TimeInterval = 0.08
     private var lastUpdateTime: TimeInterval = 0
     private var pendingThrottleWork: DispatchWorkItem?
@@ -84,23 +75,15 @@ class DockIconHoverMonitor {
         )
     }
 
-    deinit {
-        cleanupAll()
-    }
+    deinit { cleanupAll() }
 
     private func cleanupAll() {
         if let observer = axObserver {
             CFRunLoopRemoveSource(CFRunLoopGetCurrent(), AXObserverGetRunLoopSource(observer), .commonModes)
         }
-        if let clickMonitor = clickMonitor {
-            NSEvent.removeMonitor(clickMonitor)
-        }
-        if let m = localClickMonitorDown {
-            NSEvent.removeMonitor(m)
-        }
-        if let m = localClickMonitorUp {
-            NSEvent.removeMonitor(m)
-        }
+        if let clickMonitor = clickMonitor { NSEvent.removeMonitor(clickMonitor) }
+        if let m = localClickMonitorDown { NSEvent.removeMonitor(m) }
+        if let m = localClickMonitorUp { NSEvent.removeMonitor(m) }
         localClickMonitorDown = nil
         localClickMonitorUp = nil
         NotificationCenter.default.removeObserver(self)
@@ -127,9 +110,7 @@ class DockIconHoverMonitor {
         let callback: AXObserverCallback = { _, _, _, refcon in
             guard let refcon = refcon else { return }
             let monitor = Unmanaged<DockIconHoverMonitor>.fromOpaque(refcon).takeUnretainedValue()
-            DispatchQueue.main.async {
-                monitor.handleDockSelectionChange()
-            }
+            DispatchQueue.main.async { monitor.handleDockSelectionChange() }
         }
 
         if AXObserverCreate(dockPID, callback, &observer) == .success, let observer = observer {
@@ -236,10 +217,16 @@ class DockIconHoverMonitor {
         guard AXUIElementCopyAttributeValue(dockElement, kAXChildrenAttribute as CFString, &children) == .success,
               let dockChildren = children as? [AXUIElement],
               let axList = dockChildren.first(where: { $0.role() == kAXListRole }) else { return false }
+
         var selectedChildren: AnyObject?
-        guard AXUIElementCopyAttributeValue(axList, kAXSelectedChildrenAttribute as CFString, &selectedChildren) == .success,
-              let selectedList = selectedChildren as? [AXUIElement], !selectedList.isEmpty else { return false }
-        return true
+        guard AXUIElementCopyAttributeValue(axList, kAXSelectedChildrenAttribute as CFString, &selectedChildren) == .success else { return false }
+
+        if let nested = selectedChildren as? [[AXUIElement]] {
+            return (nested.first?.first) != nil
+        } else if let flat = selectedChildren as? [AXUIElement] {
+            return !flat.isEmpty
+        }
+        return false
     }
 
     private func handleMouseAndHideIfNeeded() {
@@ -263,10 +250,7 @@ class DockIconHoverMonitor {
     }
 
     func handleDockSelectionChange() {
-        if !showDockPopups {
-            hidePreview()
-            return
-        }
+        if !showDockPopups { hidePreview(); return }
         if isProcessing { return }
         isProcessing = true
         defer { isProcessing = false }
@@ -406,9 +390,9 @@ class DockIconHoverMonitor {
             appDisplayName: appDisplayName,
             appIcon: appIcon,
             windowInfos: windowInfos,
-            onTitleClick: { [weak self] title in
+            onTitleClick: { [weak self] index, title in
                 guard let self = self, !self.suppressTitleClickUntilMouseUp else { return }
-                self.focusWindowPreferMinimized(of: app, withTitle: title)
+                self.focusWindowPreferMinimized(of: app, atFilteredIndex: index, fallbackTitle: title)
             },
             onActionComplete: { [weak self] in
                 guard let self = self else { return }
@@ -428,7 +412,6 @@ class DockIconHoverMonitor {
                 if !isInteractingInsidePanel {
                     hosting.rootView = newContent
                     lastRenderedSnapshot = incomingSnapshot
-                } else {
                 }
             }
             adjustPanelHeightToFit(panel: panel, hosting: hosting, anchorY: panelRect.origin.y)
@@ -460,7 +443,6 @@ class DockIconHoverMonitor {
                 WindowSnapshot(title: $0.title, isMinimized: $0.isMinimized, shouldHighlight: $0.shouldHighlight)
             }
             adjustPanelHeightToFit(panel: panel, hosting: hosting, anchorY: panelRect.origin.y)
-            self.installLocalInteractionMonitors()
             self.startMouseTimer()
         }
     }
@@ -548,9 +530,9 @@ class DockIconHoverMonitor {
                 appDisplayName: appDisplayName,
                 appIcon: appIcon,
                 windowInfos: snapshot.map { ($0.title, $0.isMinimized, $0.shouldHighlight) },
-                onTitleClick: { [weak self] title in
+                onTitleClick: { [weak self] index, title in
                     guard let self = self, !self.suppressTitleClickUntilMouseUp else { return }
-                    self.focusWindowPreferMinimized(of: app, withTitle: title)
+                    self.focusWindowPreferMinimized(of: app, atFilteredIndex: index, fallbackTitle: title)
                 },
                 onActionComplete: { [weak self] in
                     guard let self = self else { return }
@@ -561,7 +543,6 @@ class DockIconHoverMonitor {
                 }
             )
             lastRenderedSnapshot = snapshot
-        } else if isInteractingInsidePanel {
         }
 
         adjustPanelHeightToFit(panel: panel, hosting: hosting, anchorY: anchorY)
@@ -581,6 +562,18 @@ class DockIconHoverMonitor {
         previousWindowCount = count
     }
 
+    // Focus by filtered index (UI order). Title fallback if list shifted.
+    private func focusWindowPreferMinimized(of app: NSRunningApplication, atFilteredIndex index: Int, fallbackTitle title: String) {
+        let filtered = axFilteredWindows(for: app)
+        if index >= 0 && index < filtered.count {
+            let window = filtered[index]
+            restoreAndFocus(window: window, app: app)
+            return
+        }
+        focusWindowPreferMinimized(of: app, withTitle: title)
+    }
+
+    // Title-based fallback
     private func focusWindowPreferMinimized(of app: NSRunningApplication?, withTitle title: String) {
         guard let app = app else { return }
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
@@ -595,9 +588,7 @@ class DockIconHoverMonitor {
             var t: AnyObject?
             _ = AXUIElementCopyAttributeValue(w, kAXTitleAttribute as CFString, &t)
             let wt = (t as? String) ?? ""
-            if !title.isEmpty {
-                if wt != title { continue }
-            }
+            if !title.isEmpty, wt != title { continue }
             var minRaw: AnyObject?
             let isMin = AXUIElementCopyAttributeValue(w, kAXMinimizedAttribute as CFString, &minRaw) == .success && (minRaw as? Bool ?? false)
             candidates.append((w, isMin))
@@ -605,7 +596,96 @@ class DockIconHoverMonitor {
 
         let target = candidates.first(where: { $0.isMin })?.element ?? candidates.first?.element
         guard let window = target else { return }
+        restoreAndFocus(window: window, app: app)
+    }
 
+    // Same filter used for UI order
+    private func axFilteredWindows(for app: NSRunningApplication) -> [AXUIElement] {
+        let appElement = AXUIElementCreateApplication(app.processIdentifier)
+
+        var windowsValue: AnyObject?
+        guard AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsValue) == .success,
+              let windows = windowsValue as? [AXUIElement] else { return [] }
+
+        var focusedWindowValue: AnyObject?
+        var focusedWindow: AXUIElement?
+        if AXUIElementCopyAttributeValue(appElement, kAXFocusedWindowAttribute as CFString, &focusedWindowValue) == .success,
+           focusedWindowValue != nil {
+            focusedWindow = focusedWindowValue as! AXUIElement
+        }
+
+        let frontmostPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
+        _ = (app.processIdentifier == frontmostPID)
+
+        let cgVisible = visibleCGWindowTitles(for: app)
+        let bundleID = app.bundleIdentifier ?? ""
+
+        var result: [AXUIElement] = []
+
+        for window in windows {
+            let role = window.role() ?? ""
+            if role != "AXWindow" { continue }
+
+            let subrole = window.subrole() ?? ""
+            if subrole == "AXPictureInPictureWindow" || subrole == "AXSystemDialog" { continue }
+
+            var minimizedRaw: AnyObject?
+            let isMinimized = AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedRaw) == .success && (minimizedRaw as? Bool ?? false)
+
+            var sizeValue: AnyObject?
+            var sizeOK = true
+            if AXUIElementCopyAttributeValue(window, kAXSizeAttribute as CFString, &sizeValue) == .success {
+                let axSize = sizeValue as! AXValue
+                var sz = CGSize.zero
+                AXValueGetValue(axSize, .cgSize, &sz)
+                if sz.width < 80 || sz.height < 80, !isMinimized {
+                    sizeOK = false
+                }
+            }
+            if !sizeOK { continue }
+
+            var t: AnyObject?
+            var title = ""
+            if AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &t) == .success, let ti = t as? String {
+                title = ti
+            }
+
+            if bundleID != "com.apple.Safari" {
+                if title.isEmpty || title == "(Untitled)" {
+                    if !isMinimized {
+                        if !cgVisible.contains(title) || title.isEmpty { continue }
+                    }
+                }
+            }
+
+            result.append(window)
+        }
+        return result
+    }
+
+    private func visibleCGWindowTitles(for app: NSRunningApplication) -> Set<String> {
+        var result = Set<String>()
+        guard let bundleID = app.bundleIdentifier else { return result }
+        let appProcs = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
+        let pids = Set(appProcs.map { $0.processIdentifier })
+
+        guard let infoList = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else {
+            return result
+        }
+
+        for dict in infoList {
+            guard
+                let ownerPID = dict[kCGWindowOwnerPID as String] as? pid_t,
+                pids.contains(ownerPID),
+                let title = dict[kCGWindowName as String] as? String,
+                !title.isEmpty
+            else { continue }
+            result.insert(title)
+        }
+        return result
+    }
+
+    private func restoreAndFocus(window: AXUIElement, app: NSRunningApplication) {
         var minimizedValue: AnyObject?
         let gotMin = AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedValue) == .success
         let isMinimized = gotMin ? ((minimizedValue as? Bool) ?? false) : false
@@ -625,8 +705,8 @@ class DockIconHoverMonitor {
             }
         }
         waitForAppToBeFrontmost(app: app, timeout: 1.5) {
-            let _ = AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
-            let _ = AXUIElementSetAttributeValue(window, kAXFocusedAttribute as CFString, kCFBooleanTrue)
+            _ = AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
+            _ = AXUIElementSetAttributeValue(window, kAXFocusedAttribute as CFString, kCFBooleanTrue)
             self.requestUpdateDockPreviewContentThrottled()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 self.requestUpdateDockPreviewContentThrottled()
@@ -638,9 +718,8 @@ class DockIconHoverMonitor {
         let deadline = Date().addingTimeInterval(timeout)
         func poll() {
             let frontmost = NSWorkspace.shared.frontmostApplication
-            if frontmost == app {
-                completion()
-            } else if Date() < deadline {
+            if frontmost == app { completion() }
+            else if Date() < deadline {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) { poll() }
             }
         }
@@ -649,9 +728,7 @@ class DockIconHoverMonitor {
 
     private func hidePreview() {
         stopMouseTimer()
-        if let panel = previewPanel {
-            panel.orderOut(nil)
-        }
+        if let panel = previewPanel { panel.orderOut(nil) }
         previewPanel = nil
         hostingView = nil
         lastPanelFrame = nil
@@ -671,11 +748,11 @@ class DockIconHoverMonitor {
         isInteractingInsidePanel = false
         suppressTitleClickUntilMouseUp = false
 
-        // Cancel any pending trailing update
         pendingThrottleWork?.cancel()
         pendingThrottleWork = nil
     }
 
+    // FIX: robust selected children handling — no optional chaining on non-optional
     private func getCurrentlySelectedDockIcon() -> AXUIElement? {
         guard let dockApp = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").first else { return nil }
         let dockElement = AXUIElementCreateApplication(dockApp.processIdentifier)
@@ -683,12 +760,14 @@ class DockIconHoverMonitor {
         guard AXUIElementCopyAttributeValue(dockElement, kAXChildrenAttribute as CFString, &children) == .success,
               let dockChildren = children as? [AXUIElement],
               let axList = dockChildren.first(where: { $0.role() == kAXListRole }) else { return nil }
+
         var selectedChildren: AnyObject?
-        guard AXUIElementCopyAttributeValue(axList, kAXSelectedChildrenAttribute as CFString, &selectedChildren) == .success,
-              let selectedList = selectedChildren as? [AXUIElement], !selectedList.isEmpty else { return nil }
-        let hoveredDockIcon = selectedChildren.flatMap { $0 as? [AXUIElement] }?.first ?? (selectedChildren as? [AXUIElement])?.first
-        if hoveredDockIcon?.subrole() == "AXApplicationDockItem" {
-            return hoveredDockIcon
+        guard AXUIElementCopyAttributeValue(axList, kAXSelectedChildrenAttribute as CFString, &selectedChildren) == .success else { return nil }
+
+        if let nested = selectedChildren as? [[AXUIElement]] {
+            if let first = nested.first?.first, first.subrole() == "AXApplicationDockItem" { return first }
+        } else if let flat = selectedChildren as? [AXUIElement], let first = flat.first {
+            if first.subrole() == "AXApplicationDockItem" { return first }
         }
         return nil
     }
@@ -740,8 +819,7 @@ class DockIconHoverMonitor {
             if role != "AXWindow" { continue }
 
             let subrole = window.subrole() ?? ""
-            if subrole == "AXPictureInPictureWindow" ||
-               subrole == "AXSystemDialog" { continue }
+            if subrole == "AXPictureInPictureWindow" || subrole == "AXSystemDialog" { continue }
 
             var minimizedRaw: AnyObject?
             let isMinimized = AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedRaw) == .success && (minimizedRaw as? Bool ?? false)
@@ -764,13 +842,10 @@ class DockIconHoverMonitor {
                 title = ti
             }
 
-            if bundleID == "com.apple.Safari" {
-            } else {
+            if bundleID != "com.apple.Safari" {
                 if title.isEmpty || title == "(Untitled)" {
                     if !isMinimized {
-                        if !cgVisible.contains(title) || title.isEmpty {
-                            continue
-                        }
+                        if !cgVisible.contains(title) || title.isEmpty { continue }
                     }
                 }
             }
@@ -785,96 +860,28 @@ class DockIconHoverMonitor {
         }
         return infos
     }
-
-    private func visibleCGWindowTitles(for app: NSRunningApplication) -> Set<String> {
-        var result = Set<String>()
-        guard let bundleID = app.bundleIdentifier else { return result }
-        let appProcs = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
-        let pids = Set(appProcs.map { $0.processIdentifier })
-
-        guard let infoList = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else {
-            return result
-        }
-
-        for dict in infoList {
-            guard
-                let ownerPID = dict[kCGWindowOwnerPID as String] as? pid_t,
-                pids.contains(ownerPID),
-                let title = dict[kCGWindowName as String] as? String,
-                !title.isEmpty
-            else { continue }
-            result.insert(title)
-        }
-        return result
-    }
-
     func refresh() {
-        cleanupAll()
-        setupDockObserver()
-        updateDockFrame()
-        setupClickOutsideMonitor()
-        startHealthCheckTimer()
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(updateDockFrame),
-            name: NSApplication.didChangeScreenParametersNotification,
-            object: nil
-        )
-    }
-
-    private func installLocalInteractionMonitors() {
-        if let m = localClickMonitorDown { NSEvent.removeMonitor(m) }
-        if let m = localClickMonitorUp { NSEvent.removeMonitor(m) }
-        localClickMonitorDown = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown]) { [weak self] event in
-            guard let self = self, let panel = self.previewPanel else { return event }
-            if event.window === panel {
-                self.isInteractingInsidePanel = true
-                let screenPoint = NSEvent.mouseLocation
-                let windowPoint = panel.convertPoint(fromScreen: screenPoint)
-                if let content = panel.contentView {
-                    let localPoint = content.convert(windowPoint, from: nil)
-                    if let hit = content.hitTest(localPoint) {
-                        self.suppressTitleClickUntilMouseUp = self.isTrafficLightArea(hit)
-                    } else {
-                        self.suppressTitleClickUntilMouseUp = false
-                    }
-                }
+            if let observer = axObserver {
+                CFRunLoopRemoveSource(CFRunLoopGetCurrent(), AXObserverGetRunLoopSource(observer), .commonModes)
+                axObserver = nil
             }
-            return event
+            if let clickMonitor = clickMonitor {
+                NSEvent.removeMonitor(clickMonitor)
+                self.clickMonitor = nil
+            }
+            NotificationCenter.default.removeObserver(self)
+            stopMouseTimer()
+            hidePreview()
+            setupDockObserver()
+            updateDockFrame()
+            setupClickOutsideMonitor()
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(updateDockFrame),
+                name: NSApplication.didChangeScreenParametersNotification,
+                object: nil
+            )
         }
-        localClickMonitorUp = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] event in
-            guard let self = self, let panel = self.previewPanel else { return event }
-            if event.window === panel {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
-                    self.isInteractingInsidePanel = false
-                    self.suppressTitleClickUntilMouseUp = false
-                    self.requestUpdateDockPreviewContentThrottled()
-                }
-            }
-            return event
-        }
-    }
-
-    private func isTrafficLightArea(_ view: NSView) -> Bool {
-        var v: NSView? = view
-        var foundButtonLike = false
-        var smallest = CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
-        var hasTLToolTip = false
-        while let curr = v {
-            if let tip = curr.toolTip, ["Close", "Minimize", "Maximize", "Maximise"].contains(tip) {
-                hasTLToolTip = true
-            }
-            if curr is NSButton || curr.className.lowercased().contains("button") {
-                foundButtonLike = true
-                let s = curr.bounds.size
-                smallest = CGSize(width: min(smallest.width, s.width), height: min(smallest.height, s.height))
-            }
-            v = curr.superview
-        }
-        if hasTLToolTip { return true }
-        if foundButtonLike && smallest.width <= 30 && smallest.height <= 30 { return true }
-        return false
-    }
 }
 
 private extension CGPoint {
@@ -884,3 +891,4 @@ private extension CGPoint {
         return sqrt(dx * dx + dy * dy)
     }
 }
+
