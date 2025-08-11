@@ -10,7 +10,6 @@
     --panel: rgba(248, 250, 252, 0.88);
   }
 
-  /* Reset + base layout */
   html, body { margin: 0; padding: 0; background: transparent; }
   body {
     font-family: var(--font-sans);
@@ -25,8 +24,7 @@
     padding: 0 16px;
   }
 
-  /* Typography */
-  h1:first-of-type { display: none; } /* hide duplicate title from generator */
+  h1:first-of-type { display: none; }
   h1, h2, h3 { letter-spacing: -0.015em; color: var(--text); }
   h1 { font-weight: 750; font-size: clamp(28px, 3.8vw, 36px); margin: 8px 0 16px; line-height: 1.22; }
   h2 { font-weight: 700; font-size: clamp(22px, 3vw, 28px); margin: 28px 0 10px; }
@@ -44,14 +42,12 @@
     border-radius: 6px;
   }
 
-  /* Media */
   .markdown-body img, img {
     max-width: 100%;
     height: auto;
     border-radius: 10px;
   }
 
-  /* Links */
   a, :link {
     color: var(--link);
     text-decoration: underline;
@@ -66,7 +62,6 @@
     border-radius: 6px;
   }
 
-  /* Code */
   code, pre, kbd, samp {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   }
@@ -84,7 +79,6 @@
     padding: 1px 6px;
   }
 
-  /* Utilities */
   .my-5 { margin: unset !important; }
   .changelog-sep {
     margin: 18px 0 8px;
@@ -93,7 +87,7 @@
     background: linear-gradient(to right, transparent, rgba(15, 23, 42, 0.1), transparent);
   }
 
-  /* Donation "button" (accessible anchor styled as button) */
+  /* Donation "button" (styled anchor) */
   .donation-link {
     position: relative;
     display: inline-flex;
@@ -174,16 +168,15 @@
   }
   .donation-link:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.35); /* indigo focus */
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.35);
   }
 
-  /* Dark mode tweaks */
   @media (prefers-color-scheme: dark) {
     :root {
-      --text: #e5e7eb;       /* gray-200 */
-      --muted: #9ca3af;      /* gray-400 */
-      --link: #60a5fa;       /* blue-400 */
-      --link-hover: #93c5fd; /* blue-300 */
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --link: #60a5fa;
+      --link-hover: #93c5fd;
       --border: rgba(148, 163, 184, 0.24);
       --panel: rgba(17, 24, 39, 0.7);
     }
@@ -197,17 +190,7 @@
 </style>
 
 <!-- Donation button (styled anchor) -->
-<p>&lt;a
-  class=&quot;donation-link&quot;
-  href=&quot;<a href="https://buymeacoffee.com/turtle.key">https://buymeacoffee.com/turtle.key</a>&quot;
-  role=&quot;button&quot;
-  target=&quot;_blank&quot;
-  rel=&quot;noopener noreferrer&quot;
-  aria-label=&quot;Support turtle-key on Buy Me a Coffee&quot;</p>
-<blockquote>
-</blockquote>
-<p>  <span>❤️ Support turtle-key</span>
-</a></p>
+<p><a class="donation-link" href="https://buymeacoffee.com/turtle.key" role="button" target="_blank" rel="noopener noreferrer" aria-label="Support turtle-key on Buy Me a Coffee"><span>❤️ Support turtle-key</span></a></p>
 <hr class="changelog-sep" />
 <!-- END TabLift changelog header -->
 
