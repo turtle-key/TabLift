@@ -35,7 +35,21 @@ final class AccessibilityShieldWatcher {
     private let coverageThreshold: CGFloat = 0.70      // require ≥70% coverage by very-high-layer windows
     private let ownerCoverageThreshold: CGFloat = 0.45 // if owner looks like a shield, ≥45% coverage is enough
     private let graceAfterClear: TimeInterval = 0.60
-    private let shieldLayerThreshold: Int = 1200       // very high layers typically ~2000+, use a conservative lower bound
+    /// The minimum fraction of the screen that must be covered by very-high-layer windows
+    /// to consider the shield active. Set to 0.70 (70%) based on empirical observation of
+    /// typical shield overlays, balancing sensitivity and false positives.
+    private let coverageThreshold: CGFloat = 0.70
+    /// If the window owner appears to be a shield, a lower coverage threshold is used.
+    /// Set to 0.45 (45%) to allow for partial overlays that still block user interaction,
+    /// based on observed behavior of some shield implementations.
+    private let ownerCoverageThreshold: CGFloat = 0.45
+    /// The grace period (in seconds) after the shield is cleared before considering the
+    /// screen effectively clear. Set to 0.60s to avoid flicker and allow for UI transitions.
+    private let graceAfterClear: TimeInterval = 0.60
+    /// The minimum window layer value to consider a window as "very high" (i.e., likely
+    /// to be a shield overlay). Set to 1200 as a conservative lower bound, since shield
+    /// overlays are typically at layer 2000 or higher, but some may use lower values.
+    private let shieldLayerThreshold: Int = 1200
 
     // Debug toggle via defaults: defaults write dev.tablift ShieldDebugLog -bool YES
     private var debugLog: Bool {
