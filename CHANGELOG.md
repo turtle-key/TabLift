@@ -1,11 +1,12 @@
 <!-- BEGIN TabLift changelog header -->
+<div id="tl-header">
 <style>
   :root {
-    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-    --text: #0f172a;        /* slate-900 */
-    --muted: #475569;       /* slate-600 */
-    --link: #2563eb;        /* blue-600 */
-    --link-hover: #1d4ed8;  /* blue-700 */
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    --text: #0f172a;
+    --muted: #475569;
+    --link: #2563eb;
+    --link-hover: #1d4ed8;
     --border: rgba(15, 23, 42, 0.10);
     --panel: rgba(248, 250, 252, 0.88);
   }
@@ -42,11 +43,7 @@
     border-radius: 6px;
   }
 
-  .markdown-body img, img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 10px;
-  }
+  .markdown-body img, img { max-width: 100%; height: auto; border-radius: 10px; }
 
   a, :link {
     color: var(--link);
@@ -56,38 +53,16 @@
     transition: color .2s ease, text-decoration-color .2s ease;
   }
   a:hover { color: var(--link-hover); }
-  a:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, .25);
-    border-radius: 6px;
-  }
+  a:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(37, 99, 235, .25); border-radius: 6px; }
 
-  code, pre, kbd, samp {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  }
-  pre {
-    background: rgba(15, 23, 42, 0.04);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-    overflow: auto;
-  }
-  code {
-    background: rgba(15, 23, 42, 0.04);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 1px 6px;
-  }
+  code, pre, kbd, samp { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+  pre { background: rgba(15, 23, 42, 0.04); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; overflow: auto; }
+  code { background: rgba(15, 23, 42, 0.04); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px; }
 
   .my-5 { margin: unset !important; }
-  .changelog-sep {
-    margin: 18px 0 8px;
-    border: 0;
-    height: 1px;
-    background: linear-gradient(to right, transparent, rgba(15, 23, 42, 0.1), transparent);
-  }
+  .changelog-sep { margin: 18px 0 8px; border: 0; height: 1px; background: linear-gradient(to right, transparent, rgba(15, 23, 42, 0.1), transparent); }
 
-  /* Donation "button" (styled anchor) */
+  /* Button */
   .donation-link {
     position: relative;
     display: inline-flex;
@@ -112,11 +87,7 @@
     backdrop-filter: blur(4px);
     letter-spacing: 0.02em;
   }
-  .donation-link > span {
-    position: relative;
-    z-index: 2; /* keep text above overlays */
-    transition: color .35s ease, filter .35s ease;
-  }
+  .donation-link > span { position: relative; z-index: 2; transition: color .35s ease, filter .35s ease; }
   .donation-link::before {
     content: '';
     position: absolute;
@@ -162,14 +133,8 @@
       inset 0 1px 0 rgba(255,255,255,0.25);
     border-color: rgba(209, 213, 219, 0.75);
   }
-  .donation-link:hover > span {
-    color: #ffffff; /* readable on rainbow overlay */
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
-  }
-  .donation-link:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.35);
-  }
+  .donation-link:hover > span { color: #ffffff; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
+  .donation-link:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.35); }
 
   @media (prefers-color-scheme: dark) {
     :root {
@@ -182,18 +147,32 @@
     }
     pre, code { background: rgba(148, 163, 184, 0.08); }
     blockquote { background: rgba(148, 163, 184, 0.08); }
-    .donation-link {
-      background: linear-gradient(135deg, rgba(17,24,39,0.72) 0%, rgba(31,41,55,0.72) 100%);
-      color: #f3f4f6 !important;
-    }
+    .donation-link { background: linear-gradient(135deg, rgba(17,24,39,0.72) 0%, rgba(31,41,55,0.72) 100%); color: #f3f4f6 !important; }
   }
 </style>
 
-<!-- Donation button (styled anchor) -->
 <a class="donation-link" href="https://buymeacoffee.com/turtle.key" role="button" target="_blank" rel="noopener noreferrer" aria-label="Support turtle-key on Buy Me a Coffee"><span>❤️ Support turtle-key</span></a>
-
 <hr class="changelog-sep" />
+</div>
 <!-- END TabLift changelog header -->
+
+<a id="v2.0"></a>
+# [TabLift v2.0](https://github.com/turtle-key/TabLift/releases/tag/v2.0) - 2025-08-11
+
+## What’s Changed
+
+- ⚡ New: Window switcher overlay: A compact, fast panel appears while cycling with ⌘+` so you can see all windows of the current app and jump instantly.
+- ⚡ New: Dock previews with window controls: Hover the Dock to see live, clickable previews with the red/yellow/green buttons and smoother motion that stays in sync as things change.
+- Smarter Dock click behavior: Optional toggle to minimize all when windows are up, restore all when they’re down, and just focus when the app isn’t frontmost.
+- More reliable everyday use: Handles brief macOS “not ready yet” moments (like right after wake or screen locks) so actions happen when they’ll actually work.
+- 🪲 Performance and stability: Smoother animations, better title scrolling for long names, fewer edge‑case glitches, and improved consistency across displays and restarts.
+
+---
+
+Thanks for using TabLift! If you spot anything odd or have ideas, feedback is always welcome.
+
+[Changes][v2.0]
+
 
 <a id="v1.9"></a>
 # [TabLift v1.9](https://github.com/turtle-key/TabLift/releases/tag/v1.9) - 2025-08-05
@@ -466,6 +445,7 @@ Perfect for anyone who wants a more intuitive and efficient window management ex
 [Changes][v1.0]
 
 
+[v2.0]: https://github.com/turtle-key/TabLift/compare/v1.9...v2.0
 [v1.9]: https://github.com/turtle-key/TabLift/compare/v1.8...v1.9
 [v1.8]: https://github.com/turtle-key/TabLift/compare/v1.7...v1.8
 [v1.7]: https://github.com/turtle-key/TabLift/compare/v1.6.1...v1.7
