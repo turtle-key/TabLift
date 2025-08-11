@@ -230,13 +230,14 @@ fileprivate struct RowWithTrafficLights: View {
     @State private var backingScale: CGFloat = NSScreen.main?.backingScaleFactor ?? 2.0
     private var hairlineWidth: CGFloat { 2.5 / max(backingScale, 1.0) }
     private var borderColor: Color {
-        // Subtle by default, brighter when hovered/highlighted
         if row.shouldHighlight { return Color.white.opacity(0) }
         if isHovered { return Color.accentColor.opacity(0.50) }
         return Color(nsColor: .separatorColor).opacity(0.65)
     }
+
     var body: some View {
         ZStack(alignment: .topTrailing) {
+            // Title row button (underlay)
             Button(action: { onTitleClick(row.title) }) {
                 HStack {
                     MarqueeText(text: row.title.isEmpty ? "(Untitled)" : row.title, maxWidth: 185).id(row.id)
@@ -256,7 +257,7 @@ fileprivate struct RowWithTrafficLights: View {
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .inset(by: hairlineWidth / 2) // keeps stroke fully inside the clip
+                        .inset(by: hairlineWidth / 2)
                         .stroke(borderColor, lineWidth: hairlineWidth)
                 )
                 .onAppear { backingScale = NSScreen.main?.backingScaleFactor ?? backingScale }
@@ -266,7 +267,9 @@ fileprivate struct RowWithTrafficLights: View {
                 .scaleEffect(row.shouldHighlight ? 1.02 : 1.0)
             }
             .buttonStyle(.plain)
+            .zIndex(0)
 
+            // Traffic light buttons (overlay)
             if isHovered {
                 TrafficLightButtons(
                     onClose: {
@@ -288,6 +291,10 @@ fileprivate struct RowWithTrafficLights: View {
                 )
                 .padding(.trailing, 6)
                 .padding(.top, 4)
+                .zIndex(1000)                     // Ensure above the title button
+                .allowsHitTesting(true)           // Always accept hits while shown
+                .contentShape(Rectangle())        // Single top-level hit area for the cluster
+                .onTapGesture { }                 // Absorb any taps in gaps between circles
                 .transition(.move(edge: .top).combined(with: .opacity))
                 .animation(.easeInOut(duration: 0.18), value: isHovered)
             }
@@ -307,12 +314,16 @@ struct TrafficLightButtons: View {
 
     var body: some View {
         ZStack {
+            // Backplate blocks pass-through and defines a single hit area
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(.ultraThinMaterial)
                 .frame(width: isMinimized ? 58 : 85, height: 28)
                 .shadow(radius: 3, y: 1)
+                .contentShape(RoundedRectangle(cornerRadius: 12)) // backplate hit area
 
+            // Foreground controls
             HStack(spacing: 9) {
+                // Close
                 Button(action: { onClose() }) {
                     ZStack {
                         Circle()
@@ -325,10 +336,10 @@ struct TrafficLightButtons: View {
                     }
                 }
                 .buttonStyle(.plain)
-                .contentShape(Circle().inset(by: -6))
-                .padding(2)
+                .contentShape(Circle().inset(by: -6)) // enlarge hit area
                 .help("Close")
 
+                // Minimize
                 if !isMinimized {
                     Button(action: { onMinimize() }) {
                         ZStack {
@@ -343,10 +354,10 @@ struct TrafficLightButtons: View {
                     }
                     .buttonStyle(.plain)
                     .contentShape(Circle().inset(by: -6))
-                    .padding(2)
                     .help("Minimize")
                 }
 
+                // Fullscreen
                 Button(action: { onFullscreen() }) {
                     ZStack {
                         Circle()
@@ -360,13 +371,13 @@ struct TrafficLightButtons: View {
                 }
                 .buttonStyle(.plain)
                 .contentShape(Circle().inset(by: -6))
-                .padding(2)
                 .help("Maximize")
             }
             .frame(height: 28)
-            .contentShape(Rectangle())
         }
         .frame(width: isMinimized ? 58 : 85, height: 28)
+        .zIndex(1000)
+        .allowsHitTesting(true) // Do not gate hit-testing by internal hover state
     }
 }
 

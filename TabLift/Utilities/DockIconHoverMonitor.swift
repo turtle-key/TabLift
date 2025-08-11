@@ -4,8 +4,6 @@ import ApplicationServices
 import UniformTypeIdentifiers
 
 class DockIconHoverMonitor {
-
-    // Use an Equatable snapshot type so we can compare arrays safely (fast diff to avoid unnecessary re-renders)
     private struct WindowSnapshot: Equatable {
         let title: String
         let isMinimized: Bool
@@ -15,12 +13,21 @@ class DockIconHoverMonitor {
     private var dockPreviewDelay: Double {
         UserDefaults.standard.double(forKey: "dockPreviewSpeed")
     }
-
-    // Run the update loop at ~60 Hz for snappy movement
     private var mouseUpdateInterval: Double { 0.016 }
+    private let artifactTimeThreshold: TimeInterval = 0.05
+    private let schedulingMouseDriftThreshold: CGFloat = 100
+    private var lateralMovementEnabled: Bool {
+        UserDefaults.standard.bool(forKey: "lateralMovement")
+    }
+    private var bufferFromDock: CGFloat {
+        CGFloat(UserDefaults.standard.double(forKey: "bufferFromDock"))
+    }
 
     private var axObserver: AXObserver?
     private var dockPID: pid_t = 0
+    private var currentDockPID: pid_t?
+    private var healthCheckTimer: Timer?
+
     private var previewPanel: NSPanel?
     private var hostingView: NSHostingView<DockPreviewPanel>?
     private var lastBundleIdentifier: String?
@@ -36,20 +43,19 @@ class DockIconHoverMonitor {
     private var lastHoveredDockIcon: AXUIElement?
     private var lastHoveredBundleIdentifier: String?
 
-    // Sticky behavior: lock to AXUIElement (icon) until AX changes
     private var lockedHoveredIcon: AXUIElement?
     private var lockedIconFrame: CGRect?
     private var lockedBundleIdentifier: String?
     private var showPanelTimer: Timer?
 
-    // Anchor used to place the panel; updated on app change
     private var anchorX: CGFloat?
-
-    // Interaction guard: avoid swapping content while the user is pressing a button
     private var isInteractingInsidePanel = false
-
-    // Snapshot of what is currently rendered to avoid unnecessary re-renders
     private var lastRenderedSnapshot: [WindowSnapshot] = []
+    private var lastNotificationTime: TimeInterval = 0
+    private var lastNotificationId: String = ""
+    private var isProcessing: Bool = false
+
+    private var suppressTitleClickUntilMouseUp = false
 
     private var dockClickMonitor: DockClickMonitor? {
         (NSApplication.shared.delegate as? AppDelegate)?.dockClickMonitor
@@ -59,22 +65,12 @@ class DockIconHoverMonitor {
         UserDefaults.standard.bool(forKey: "showDockPopups")
     }
 
-    // Behavior flags for faster lateral movement (like DockDoor)
-    private var lateralMovementEnabled: Bool {
-        UserDefaults.standard.bool(forKey: "lateralMovement")
-    }
-    private let artifactTimeThreshold: TimeInterval = 0.05
-    private var lastNotificationTime: TimeInterval = 0
-    private var lastNotificationId: String = ""
-
     init() {
-        guard AXIsProcessTrusted() else {
-            NSLog("Accessibility permissions NOT granted. Dock popups will not work.")
-            return
-        }
+        guard AXIsProcessTrusted() else { return }
         setupDockObserver()
         updateDockFrame()
         setupClickOutsideMonitor()
+        startHealthCheckTimer()
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(updateDockFrame),
@@ -103,6 +99,8 @@ class DockIconHoverMonitor {
         localClickMonitorDown = nil
         localClickMonitorUp = nil
         NotificationCenter.default.removeObserver(self)
+        healthCheckTimer?.invalidate()
+        healthCheckTimer = nil
         stopMouseTimer()
         showPanelTimer?.invalidate()
         showPanelTimer = nil
@@ -112,8 +110,9 @@ class DockIconHoverMonitor {
     private func setupDockObserver() {
         guard let dockApp = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").first else { return }
         dockPID = dockApp.processIdentifier
-        let dockElement = AXUIElementCreateApplication(dockPID)
+        currentDockPID = dockPID
 
+        let dockElement = AXUIElementCreateApplication(dockPID)
         var children: AnyObject?
         guard AXUIElementCopyAttributeValue(dockElement, kAXChildrenAttribute as CFString, &children) == .success,
               let dockChildren = children as? [AXUIElement],
@@ -133,6 +132,33 @@ class DockIconHoverMonitor {
             let refcon = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
             AXObserverAddNotification(observer, axList, kAXSelectedChildrenChangedNotification as CFString, refcon)
             CFRunLoopAddSource(CFRunLoopGetCurrent(), AXObserverGetRunLoopSource(observer), .commonModes)
+        }
+    }
+
+    private func teardownObserver() {
+        if let observer = axObserver {
+            CFRunLoopRemoveSource(CFRunLoopGetCurrent(), AXObserverGetRunLoopSource(observer), .commonModes)
+        }
+        axObserver = nil
+        currentDockPID = nil
+    }
+
+    private func startHealthCheckTimer() {
+        healthCheckTimer?.invalidate()
+        healthCheckTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+            self?.performHealthCheck()
+        }
+    }
+
+    private func performHealthCheck() {
+        guard let current = currentDockPID else {
+            setupDockObserver()
+            return
+        }
+        let runningDock = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").first
+        if runningDock?.processIdentifier != current {
+            teardownObserver()
+            setupDockObserver()
         }
     }
 
@@ -193,14 +219,7 @@ class DockIconHoverMonitor {
         let isInPopup = mouseIsInsidePreview()
         let isOverDockIcon = isMouseOverDockIcon()
         if !isInPopup && !isOverDockIcon {
-            lastHoveredDockIcon = nil
-            lastHoveredBundleIdentifier = nil
-            lockedHoveredIcon = nil
-            lockedIconFrame = nil
-            lockedBundleIdentifier = nil
-            anchorX = nil
-            showPanelTimer?.invalidate()
-            showPanelTimer = nil
+            clearHoverState()
             hidePreview()
         }
     }
@@ -222,16 +241,20 @@ class DockIconHoverMonitor {
         let isInPopup = mouseIsInsidePreview()
         let isOverDockIcon = isMouseOverDockIcon()
         if !isInPopup && !isOverDockIcon {
-            lastHoveredDockIcon = nil
-            lastHoveredBundleIdentifier = nil
-            lockedHoveredIcon = nil
-            lockedIconFrame = nil
-            lockedBundleIdentifier = nil
-            anchorX = nil
-            showPanelTimer?.invalidate()
-            showPanelTimer = nil
+            clearHoverState()
             hidePreview()
         }
+    }
+
+    private func clearHoverState() {
+        lastHoveredDockIcon = nil
+        lastHoveredBundleIdentifier = nil
+        lockedHoveredIcon = nil
+        lockedIconFrame = nil
+        lockedBundleIdentifier = nil
+        anchorX = nil
+        showPanelTimer?.invalidate()
+        showPanelTimer = nil
     }
 
     func handleDockSelectionChange() {
@@ -239,8 +262,10 @@ class DockIconHoverMonitor {
             hidePreview()
             return
         }
+        if isProcessing { return }
+        isProcessing = true
+        defer { isProcessing = false }
 
-        // Ignore Dock deselection caused by moving from Dock to our popup.
         let isInPopup = mouseIsInsidePreview()
 
         guard let hoveredIcon = getCurrentlySelectedDockIcon(),
@@ -262,7 +287,6 @@ class DockIconHoverMonitor {
             return
         }
 
-        // Suppress duplicate/rapid notifications for the same app (prevents thrash)
         let now = ProcessInfo.processInfo.systemUptime
         if lastNotificationId == bundleIdentifier, (now - lastNotificationTime) < artifactTimeThreshold {
             return
@@ -270,13 +294,11 @@ class DockIconHoverMonitor {
         lastNotificationId = bundleIdentifier
         lastNotificationTime = now
 
-        // If app changed, hide the old preview first to prevent stale interactions
         let showingBundle = lockedBundleIdentifier ?? lastBundleIdentifier
         if let current = showingBundle, current != bundleIdentifier {
             hidePreview()
         }
 
-        // Only update lock if hovered icon actually changed
         if let locked = lockedHoveredIcon, CFEqual(hoveredIcon, locked), previewPanel != nil {
             if let (liveFrame, _) = getDockIconInfo(element: hoveredIcon) {
                 lockedIconFrame = liveFrame
@@ -291,7 +313,6 @@ class DockIconHoverMonitor {
         lockedBundleIdentifier = bundleIdentifier
         lockedIconFrame = iconFrame
 
-        // Reset anchorX on app change
         if anchorX == nil || bundleIdentifier != lastBundleIdentifier {
             anchorX = iconFrame.midX
             lastBundleIdentifier = bundleIdentifier
@@ -302,7 +323,6 @@ class DockIconHoverMonitor {
         let bundleIdentifierCopy = bundleIdentifier
         let appCopy = app
 
-        // If we already have a preview shown or lateral movement is enabled, bypass delay
         let shouldBypassDelay = (previewPanel != nil) || lateralMovementEnabled
         let delay = shouldBypassDelay ? 0.0 : dockPreviewDelay
         let capturedMouse = NSEvent.mouseLocation
@@ -310,8 +330,7 @@ class DockIconHoverMonitor {
         showPanelTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
             guard let self = self else { return }
 
-            // If mouse moved far from where we scheduled, drop this show (stale)
-            if capturedMouse.distance(to: NSEvent.mouseLocation) > 100 { return }
+            if capturedMouse.distance(to: NSEvent.mouseLocation) > self.schedulingMouseDriftThreshold { return }
 
             if let locked = self.lockedHoveredIcon, CFEqual(hoveredIconCopy, locked) {
                 if let (liveFrame, _) = self.getDockIconInfo(element: hoveredIconCopy) {
@@ -319,7 +338,9 @@ class DockIconHoverMonitor {
                 }
 
                 let allWindowInfos = self.filteredWindowInfos(for: appCopy)
-                let infoTuples = allWindowInfos.map { ($0.title, $0.isMinimized, $0.shouldHighlight) }
+                let infoTuples: [(title: String, isMinimized: Bool, shouldHighlight: Bool)] =
+                    allWindowInfos.map { ($0.title, $0.isMinimized, $0.shouldHighlight) }
+
                 if infoTuples.isEmpty {
                     self.hidePreview()
                     self.lastPanelFrame = nil
@@ -336,7 +357,8 @@ class DockIconHoverMonitor {
 
                 let panelWidth: CGFloat = 280
                 let anchorCenterX = self.anchorX ?? (self.lockedIconFrame?.midX ?? iconFrameCopy.midX)
-                let anchorY = (self.lockedIconFrame?.maxY ?? iconFrameCopy.maxY) + 9
+                var anchorY = (self.lockedIconFrame?.maxY ?? iconFrameCopy.maxY) + 9
+                anchorY += self.bufferFromDock
                 let initialHeight = CGFloat(82 + max(24, infoTuples.count * 32))
                 let panelRect = CGRect(
                     x: anchorCenterX - panelWidth/2,
@@ -380,11 +402,11 @@ class DockIconHoverMonitor {
             appIcon: appIcon,
             windowInfos: windowInfos,
             onTitleClick: { [weak self] title in
-                self?.focusWindowPreferMinimized(of: app, withTitle: title)
+                guard let self = self, !self.suppressTitleClickUntilMouseUp else { return }
+                self.focusWindowPreferMinimized(of: app, withTitle: title)
             },
             onActionComplete: { [weak self] in
                 guard let self = self else { return }
-                // Refresh immediately after an action (e.g., minimize/restore) and one extra pass for async state
                 self.updateDockPreviewContent()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                     self.updateDockPreviewContent()
@@ -394,7 +416,6 @@ class DockIconHoverMonitor {
         )
 
         if let panel = self.previewPanel, let hosting = self.hostingView {
-            // Only re-render SwiftUI content if data actually changed OR if we have no snapshot
             let incomingSnapshot: [WindowSnapshot] = windowInfos.map {
                 WindowSnapshot(title: $0.title, isMinimized: $0.isMinimized, shouldHighlight: $0.shouldHighlight)
             }
@@ -404,7 +425,6 @@ class DockIconHoverMonitor {
                     lastRenderedSnapshot = incomingSnapshot
                 }
             }
-            // Snap to actual content height (no animation), and reposition immediately
             adjustPanelHeightToFit(panel: panel, hosting: hosting, anchorY: panelRect.origin.y)
             panel.setFrameOrigin(panelRect.origin)
         } else {
@@ -416,13 +436,15 @@ class DockIconHoverMonitor {
             panel.isFloatingPanel = true
             panel.level = .statusBar
             panel.backgroundColor = .clear
+            panel.isOpaque = false
             panel.hasShadow = true
-            panel.ignoresMouseEvents = false // Capture clicks; background clicks won't pass through
+            panel.ignoresMouseEvents = false
             panel.hidesOnDeactivate = false
             panel.becomesKeyOnlyIfNeeded = true
             panel.worksWhenModal = true
             panel.isReleasedWhenClosed = false
             panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            panel.acceptsMouseMovedEvents = true
             panel.setFrameOrigin(panelRect.origin)
             panel.setContentSize(panelRect.size)
             panel.orderFrontRegardless()
@@ -431,33 +453,26 @@ class DockIconHoverMonitor {
             lastRenderedSnapshot = windowInfos.map {
                 WindowSnapshot(title: $0.title, isMinimized: $0.isMinimized, shouldHighlight: $0.shouldHighlight)
             }
-            // Correct height to the real content (no animation)
             adjustPanelHeightToFit(panel: panel, hosting: hosting, anchorY: panelRect.origin.y)
             self.installLocalInteractionMonitors()
             self.startMouseTimer()
         }
     }
 
-    // No animation: bottom anchored height adjustment that never lets the Dock occlude the panel.
     private func adjustPanelHeightToFit(panel: NSPanel, hosting: NSHostingView<DockPreviewPanel>, anchorY: CGFloat) {
         hosting.layoutSubtreeIfNeeded()
         var targetSize = hosting.fittingSize
         if targetSize.width.isZero || targetSize.height.isZero {
-            // Safety defaults during first pass
             targetSize = CGSize(width: max(panel.frame.width, 280), height: max(panel.frame.height, 120))
         }
-
-        // Cap height to the available space above the Dock
         let screen = NSScreen.main ?? NSScreen.screens.first
         let maxTop = screen?.visibleFrame.maxY ?? (panel.frame.origin.y + 900)
-        let available = max(60, maxTop - anchorY - 8) // small headroom
+        let available = max(60, maxTop - anchorY - 8)
         let targetHeight = min(targetSize.height, available)
-
         let newFrame = CGRect(x: panel.frame.origin.x,
-                              y: anchorY,                 // keep bottom on Dock edge
+                              y: anchorY,
                               width: panel.frame.width,
-                              height: targetHeight)       // grow/shrink only the top edge
-
+                              height: targetHeight)
         panel.setFrame(newFrame, display: true)
         panel.setContentSize(CGSize(width: newFrame.width, height: newFrame.height))
     }
@@ -480,19 +495,17 @@ class DockIconHoverMonitor {
             return
         }
 
-        // Make an Equatable snapshot for change detection
         let snapshot: [WindowSnapshot] = windowInfosFull.map {
             WindowSnapshot(title: $0.title, isMinimized: $0.isMinimized, shouldHighlight: $0.shouldHighlight)
         }
 
-        // Update position immediately
         let panelWidth: CGFloat = 280
         if anchorX == nil || bundleIdentifier != lastBundleIdentifier {
             anchorX = lockedFrame.midX
             lastBundleIdentifier = bundleIdentifier
         }
         let anchorCenterX = anchorX ?? lockedFrame.midX
-        let anchorY = lockedFrame.maxY + 9
+        let anchorY = lockedFrame.maxY + 9 + bufferFromDock
         let guessedHeight = CGFloat(82 + max(24, snapshot.count * 32))
         let targetRect = CGRect(
             x: anchorCenterX - panelWidth/2,
@@ -502,7 +515,6 @@ class DockIconHoverMonitor {
         )
         panel.setFrame(targetRect, display: true)
 
-        // Only replace SwiftUI content if it actually changed and we are not in the middle of a click
         if !isInteractingInsidePanel && snapshot != lastRenderedSnapshot {
             let appDisplayName = app.localizedName ?? bundleIdentifier
             let appIcon = app.icon ?? NSWorkspace.shared.icon(for: .application)
@@ -512,7 +524,8 @@ class DockIconHoverMonitor {
                 appIcon: appIcon,
                 windowInfos: snapshot.map { ($0.title, $0.isMinimized, $0.shouldHighlight) },
                 onTitleClick: { [weak self] title in
-                    self?.focusWindowPreferMinimized(of: app, withTitle: title)
+                    guard let self = self, !self.suppressTitleClickUntilMouseUp else { return }
+                    self.focusWindowPreferMinimized(of: app, withTitle: title)
                 },
                 onActionComplete: { [weak self] in
                     guard let self = self else { return }
@@ -525,7 +538,6 @@ class DockIconHoverMonitor {
             lastRenderedSnapshot = snapshot
         }
 
-        // Always correct height to the new content size (no animation)
         adjustPanelHeightToFit(panel: panel, hosting: hosting, anchorY: anchorY)
     }
 
@@ -543,7 +555,6 @@ class DockIconHoverMonitor {
         previousWindowCount = count
     }
 
-    // Prefer a minimized window when multiple windows share a title, so each click restores one instance
     private func focusWindowPreferMinimized(of app: NSRunningApplication?, withTitle title: String) {
         guard let app = app else { return }
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
@@ -556,19 +567,19 @@ class DockIconHoverMonitor {
         for w in windows {
             guard w.role() == "AXWindow" else { continue }
             var t: AnyObject?
-            if AXUIElementCopyAttributeValue(w, kAXTitleAttribute as CFString, &t) != .success { continue }
+            _ = AXUIElementCopyAttributeValue(w, kAXTitleAttribute as CFString, &t)
             let wt = (t as? String) ?? ""
-            if wt != title { continue }
+            if !title.isEmpty {
+                if wt != title { continue }
+            }
             var minRaw: AnyObject?
             let isMin = AXUIElementCopyAttributeValue(w, kAXMinimizedAttribute as CFString, &minRaw) == .success && (minRaw as? Bool ?? false)
             candidates.append((w, isMin))
         }
 
-        // Pick a minimized one first; otherwise fallback to first matching
         let target = candidates.first(where: { $0.isMin })?.element ?? candidates.first?.element
         guard let window = target else { return }
 
-        // If minimized, restore it; otherwise just focus it
         var minimizedValue: AnyObject?
         let gotMin = AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedValue) == .success
         let isMinimized = gotMin ? ((minimizedValue as? Bool) ?? false) : false
@@ -590,7 +601,6 @@ class DockIconHoverMonitor {
         waitForAppToBeFrontmost(app: app, timeout: 1.5) {
             let _ = AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
             let _ = AXUIElementSetAttributeValue(window, kAXFocusedAttribute as CFString, kCFBooleanTrue)
-            // Refresh quickly to reflect the new state
             self.updateDockPreviewContent()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 self.updateDockPreviewContent()
@@ -633,6 +643,7 @@ class DockIconHoverMonitor {
         localClickMonitorDown = nil
         localClickMonitorUp = nil
         isInteractingInsidePanel = false
+        suppressTitleClickUntilMouseUp = false
     }
 
     private func getCurrentlySelectedDockIcon() -> AXUIElement? {
@@ -645,7 +656,7 @@ class DockIconHoverMonitor {
         var selectedChildren: AnyObject?
         guard AXUIElementCopyAttributeValue(axList, kAXSelectedChildrenAttribute as CFString, &selectedChildren) == .success,
               let selectedList = selectedChildren as? [AXUIElement], !selectedList.isEmpty else { return nil }
-        let hoveredDockIcon = selectedList.first
+        let hoveredDockIcon = selectedChildren.flatMap { $0 as? [AXUIElement] }?.first ?? (selectedChildren as? [AXUIElement])?.first
         if hoveredDockIcon?.subrole() == "AXApplicationDockItem" {
             return hoveredDockIcon
         }
@@ -690,36 +701,47 @@ class DockIconHoverMonitor {
         let isFrontmostApp = (app.processIdentifier == frontmostPID)
 
         let cgVisible = visibleCGWindowTitles(for: app)
+        let bundleID = app.bundleIdentifier ?? ""
 
         var infos: [WindowInfo] = []
 
         for (idx, window) in windows.enumerated() {
             let role = window.role() ?? ""
-            let subrole = window.subrole() ?? ""
             if role != "AXWindow" { continue }
-            if subrole != "AXStandardWindow" && subrole != "" { continue }
-            if isProbablyPictureInPicture(window: window) { continue }
+
+            let subrole = window.subrole() ?? ""
+            if subrole == "AXPictureInPictureWindow" ||
+               subrole == "AXSystemDialog" { continue }
+
+            var minimizedRaw: AnyObject?
+            let isMinimized = AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedRaw) == .success && (minimizedRaw as? Bool ?? false)
 
             var sizeValue: AnyObject?
-            var skip = false
+            var sizeOK = true
             if AXUIElementCopyAttributeValue(window, kAXSizeAttribute as CFString, &sizeValue) == .success {
                 let axSize = sizeValue as! AXValue
                 var sz = CGSize.zero
                 AXValueGetValue(axSize, .cgSize, &sz)
-                if sz.width < 80 || sz.height < 80 { skip = true }
+                if sz.width < 80 || sz.height < 80, !isMinimized {
+                    sizeOK = false
+                }
             }
-            if skip { continue }
+            if !sizeOK { continue }
 
             var t: AnyObject?
             var title = ""
             if AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &t) == .success, let ti = t as? String {
                 title = ti
             }
-            var minimizedRaw: AnyObject?
-            let isMinimized = AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedRaw) == .success && (minimizedRaw as? Bool ?? false)
-            if title.isEmpty || title == "(Untitled)" {
-                if !(isMinimized || (cgVisible.contains(title) && !title.isEmpty)) {
-                    continue
+
+            if bundleID == "com.apple.Safari" {
+            } else {
+                if title.isEmpty || title == "(Untitled)" {
+                    if !isMinimized {
+                        if !cgVisible.contains(title) || title.isEmpty {
+                            continue
+                        }
+                    }
                 }
             }
 
@@ -756,35 +778,12 @@ class DockIconHoverMonitor {
         return result
     }
 
-    private func isProbablyPictureInPicture(window: AXUIElement) -> Bool {
-        let subrole = window.subrole() ?? ""
-        if subrole == "AXPictureInPictureWindow" ||
-           subrole == "AXFloatingWindow" ||
-           subrole == "AXPanel" ||
-           subrole == "AXSystemDialog"
-        {
-            return true
-        }
-        var sizeValue: AnyObject?
-        if AXUIElementCopyAttributeValue(window, kAXSizeAttribute as CFString, &sizeValue) == .success {
-            let axSize = sizeValue as! AXValue
-            var sz = CGSize.zero
-            AXValueGetValue(axSize, .cgSize, &sz)
-            if sz.width < 80 || sz.height < 80 {
-                let title = window.title() ?? ""
-                if title.isEmpty {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
     func refresh() {
         cleanupAll()
         setupDockObserver()
         updateDockFrame()
         setupClickOutsideMonitor()
+        startHealthCheckTimer()
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(updateDockFrame),
@@ -793,34 +792,60 @@ class DockIconHoverMonitor {
         )
     }
 
-    // Install a local event monitor so clicks inside the panel don't get disrupted by live updates.
-    // We don't swallow events; we only mark interaction spans to pause content replacement.
     private func installLocalInteractionMonitors() {
-        // Clean old ones (if any)
         if let m = localClickMonitorDown { NSEvent.removeMonitor(m) }
         if let m = localClickMonitorUp { NSEvent.removeMonitor(m) }
-        localClickMonitorDown = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]) { [weak self] event in
+        localClickMonitorDown = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown]) { [weak self] event in
             guard let self = self, let panel = self.previewPanel else { return event }
             if event.window === panel {
                 self.isInteractingInsidePanel = true
+                let screenPoint = NSEvent.mouseLocation
+                let windowPoint = panel.convertPoint(fromScreen: screenPoint)
+                if let content = panel.contentView {
+                    let localPoint = content.convert(windowPoint, from: nil)
+                    if let hit = content.hitTest(localPoint) {
+                        self.suppressTitleClickUntilMouseUp = self.isTrafficLightArea(hit)
+                    } else {
+                        self.suppressTitleClickUntilMouseUp = false
+                    }
+                }
             }
             return event
         }
-        localClickMonitorUp = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseUp, .rightMouseUp, .otherMouseUp]) { [weak self] event in
+        localClickMonitorUp = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] event in
             guard let self = self, let panel = self.previewPanel else { return event }
             if event.window === panel {
-                // Let SwiftUI finish handling, then resume live updates
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
                     self.isInteractingInsidePanel = false
+                    self.suppressTitleClickUntilMouseUp = false
                     self.updateDockPreviewContent()
                 }
             }
             return event
         }
     }
-}
 
-// MARK: - Utilities
+    private func isTrafficLightArea(_ view: NSView) -> Bool {
+        var v: NSView? = view
+        var foundButtonLike = false
+        var smallest = CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+        var hasTLToolTip = false
+        while let curr = v {
+            if let tip = curr.toolTip, ["Close", "Minimize", "Maximize", "Maximise"].contains(tip) {
+                hasTLToolTip = true
+            }
+            if curr is NSButton || curr.className.lowercased().contains("button") {
+                foundButtonLike = true
+                let s = curr.bounds.size
+                smallest = CGSize(width: min(smallest.width, s.width), height: min(smallest.height, s.height))
+            }
+            v = curr.superview
+        }
+        if hasTLToolTip { return true }
+        if foundButtonLike && smallest.width <= 30 && smallest.height <= 30 { return true }
+        return false
+    }
+}
 
 private extension CGPoint {
     func distance(to other: CGPoint) -> CGFloat {
