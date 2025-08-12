@@ -37,9 +37,8 @@
   <p align="center">
     <a href="https://tablift.dev"><b>🌐 Visit the TabLift website</b></a>
   </p>
-  
-  ---
 
+---
 ## Features
 
 - **Instantly restores minimized windows** when you switch to an app using `⌘ + Tab` or ``⌘ + ` ``
@@ -50,11 +49,9 @@
 - **Runs quietly in the background** with minimal resource usage
 - **Compatible** with Mission Control, multiple desktops, and most macOS versions
 - **Website** included in the repo, for documentation and SEO
-- **Dock popups with live window previews:** Shows a beautiful popup when you hover Dock icons, including a diamond indicator for minimized windows.
-<p align="center">
-    <img src="Images/tablift-dock.png" alt="Dock Window Preview" width="320"/>
-</p>
----
+- <img align="right" src="Images/tablift-dock.png" alt="Dock Window Preview" width="320">
+  <strong>Dock popups with live window previews:</strong> Shows a beautiful popup when you hover Dock icons, including a diamond indicator for minimized windows.
+  <br clear="right">
 
 ## How It Works
 
