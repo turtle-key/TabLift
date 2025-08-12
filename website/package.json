@@ -10,7 +10,7 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"deploy": "cp /Users/mihai-edi/Projects/TabLift/Updates/appcast.xml build/ && touch build/.nojekyll && echo 'tablift.dev' > build/CNAME && cp /Users/mihai-edi/Projects/TabLift/Updates/sitemap.xml build/ && gh-pages -d build --dotfiles"
+		"deploy": "cp /Users/mihai-edi/Projects/TabLift/Updates/appcast.xml build/ && touch build/.nojekyll && echo 'tablift.dev' > build/CNAME && cp /Users/mihai-edi/Projects/TabLift/Updates/sitemap.xml build/ && curl -fsSL https://raw.githubusercontent.com/turtle-key/TabLift/gh-pages/CHANGELOG.md | npx marked > build/CHANGELOG.html && gh-pages -d build --dotfiles"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^6.0.0",
