@@ -1,168 +1,227 @@
-name: Update changelog on published release
+name: Update changelog on release published
+
 on:
   release:
     types: [published]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
+concurrency:
+  group: changelog-gh-pages
+  cancel-in-progress: false
+
 jobs:
   changelog:
     name: Update changelog
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
       - name: Checkout gh-pages branch
-        run: git checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update changelog from release
+      - name: Update CHANGELOG.md from latest release (no HTML header here)
         uses: rhysd/changelog-from-release/action@v3
         with:
           file: CHANGELOG.md
           github_token: ${{ secrets.GITHUB_TOKEN }}
           commit_summary_template: "chore: update changelog for %s"
-          header: |
-            <style>
-              h1:first-of-type {
-                display: none;
-              }
-              .my-5 {
-                margin: unset !important;
-              }
-              .markdown-body img {
-                max-width: 50%;
-              }
-              @media (prefers-color-scheme: dark) {
-                body {
-                  color-scheme: dark;
-                  color: white;
-                  background: transparent;
-                }
-                a, :link {
-                  color: #419cff;
-                }
-                a:active, link:active {
-                  color: #ff1919;
-                }
-              }
-              .donation-link {
-                position: relative;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                padding: 8px 16px;
-                min-width: 180px;
-                border-radius: 8px;
-                background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.8) 100%);
-                color: #000 !important;
-                font-size: 0.9em;
-                font-weight: bold;
-                text-decoration: none;
-                border: 1px solid rgba(209, 213, 219, 0.6);
-                box-shadow: 
-                  0 4px 20px rgba(0,0,0,0.08),
-                  0 1px 3px rgba(0,0,0,0.1),
-                  inset 0 1px 0 rgba(255,255,255,0.6);
-                overflow: hidden;
-                transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-                backdrop-filter: blur(4px);
-                letter-spacing: 0.025em;
-              }
-              
-              /* Rainbow overlay animation */
-              .donation-link::before {
-                content: '';
-                position: absolute;
-                top: 0; left: 0; right: 0; bottom: 0;
-                background: linear-gradient(
-                  to bottom,
-                  #61BB46 0%,
-                  #61BB46 16.66%,
-                  #FDB827 16.66%,
-                  #FDB827 33.33%,
-                  #F5821F 33.33%,
-                  #F5821F 50%,
-                  #E03A3E 50%,
-                  #E03A3E 66.66%,
-                  #963D97 66.66%,
-                  #963D97 83.33%,
-                  #009DDC 83.33%,
-                  #009DDC 100%
-                );
-                transform: translateY(-100%);
-                transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-                z-index: 1;
-                border-radius: inherit;
-                opacity: 0.95;
-              }
-              
-              .donation-link:hover::before {
-                transform: translateY(0%);
-              }
-              
-              .donation-link:not(:hover)::before {
-                transform: translateY(100%);
-              }
-              
-              /* Glow effect */
-              .donation-link::after {
-                content: '';
-                position: absolute;
-                top: -2px; left: -2px; right: -2px; bottom: -2px;
-                background: linear-gradient(
-                  45deg,
-                  #61BB46,
-                  #FDB827,
-                  #F5821F,
-                  #E03A3E,
-                  #963D97,
-                  #009DDC
-                );
-                border-radius: inherit;
-                z-index: -1;
-                opacity: 0;
-                filter: blur(8px);
-                transition: opacity 0.5s ease;
-              }
-              
-              .donation-link:hover::after {
-                opacity: 0.3;
-              }
-              
-              .donation-link:hover {
-                transform: translateY(-1px);
-                box-shadow: 
-                  0 8px 30px rgba(0,0,0,0.12),
-                  0 4px 12px rgba(0,0,0,0.08),
-                  inset 0 1px 0 rgba(255,255,255,0.2);
-                border-color: rgba(209, 213, 219, 0.8);
-                color: white !important;
-              }
-              
-              .donation-link span {
-                position: relative;
-                z-index: 10;
-                transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-              }
-              
-              .donation-link:hover span {
-                filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
-              }
-            </style>
-            <div class="donation-link" target="_blank">❤️ Support turtle-key at https://buymeacoffee.com/turtle.key</div>
 
-      - name: Set file permissions
-        run: sudo chown -R $(whoami) .
-
-      - name: Commit changes
+      - name: Fix workspace permissions
         run: |
-          git config --global user.name "Mihai Ghețu"
-          git config --global user.email "turtle-key@users.noreply.github.com"
-          git add CHANGELOG.md
-          git commit -m "chore: update changelog for ${{ github.event.release.tag_name || 'manual trigger' }}" || echo "No changes to commit"
+          sudo chown -R $USER:$USER .
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      - name: Push changes
-        run: git push origin main
+      - name: Verify CHANGELOG.md exists
+        run: |
+          test -s CHANGELOG.md || { echo "CHANGELOG.md was not generated or is empty"; exit 1; }
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate content.html from Markdown
+        run: |
+          npx --yes marked@12.0.2 --gfm CHANGELOG.md > content.html
+          test -s content.html || { echo "content.html generation failed"; exit 1; }
+
+      - name: Write header.html (raw HTML, not parsed by Markdown)
+        shell: bash
+        run: |
+          cat > header.html <<'HTML'
+          <!-- BEGIN TabLift changelog header -->
+          <style>
+            :root {
+              --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+              --text: #0f172a;
+              --muted: #475569;
+              --link: #2563eb;
+              --link-hover: #1d4ed8;
+              --border: rgba(15, 23, 42, 0.10);
+              --panel: rgba(248, 250, 252, 0.88);
+            }
+            html, body { margin: 0; padding: 0; background: transparent; }
+            body {
+              font-family: var(--font-sans);
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
+              color: var(--text);
+              font-size: 16px;
+              line-height: 1.65;
+              max-width: 860px;
+              margin: 24px auto;
+              padding: 0 16px;
+            }
+            h1:first-of-type { display: none; }
+            h1, h2, h3 { letter-spacing: -0.015em; color: var(--text); }
+            h1 { font-weight: 750; font-size: clamp(28px, 3.8vw, 36px); margin: 8px 0 16px; line-height: 1.22; }
+            h2 { font-weight: 700; font-size: clamp(22px, 3vw, 28px); margin: 28px 0 10px; }
+            h3 { font-weight: 650; font-size: 20px; margin: 20px 0 8px; }
+            p  { margin: 10px 0 14px; }
+            strong { font-weight: 650; }
+            ul, ol { margin: 8px 0 16px; padding-left: 1.25rem; }
+            li { margin: 6px 0; }
+            blockquote {
+              margin: 12px 0;
+              padding: 8px 12px;
+              border-left: 3px solid var(--border);
+              color: var(--muted);
+              background: rgba(15, 23, 42, 0.03);
+              border-radius: 6px;
+            }
+            .markdown-body img, img { max-width: 100%; height: auto; border-radius: 10px; }
+            a, :link {
+              color: var(--link);
+              text-decoration: underline;
+              text-underline-offset: 2px;
+              text-decoration-thickness: 1px;
+              transition: color .2s ease, text-decoration-color .2s ease;
+            }
+            a:hover { color: var(--link-hover); }
+            a:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(37, 99, 235, .25); border-radius: 6px; }
+            code, pre, kbd, samp { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+            pre { background: rgba(15, 23, 42, 0.04); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; overflow: auto; }
+            code { background: rgba(15, 23, 42, 0.04); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px; }
+            .my-5 { margin: unset !important; }
+            .changelog-sep { margin: 18px 0 8px; border: 0; height: 1px; background: linear-gradient(to right, transparent, rgba(15, 23, 42, 0.1), transparent); }
+            .donation-link {
+              position: relative;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+              padding: 10px 16px;
+              min-width: 190px;
+              border-radius: 10px;
+              background: linear-gradient(135deg, rgba(255,255,255,0.92) 0%, var(--panel) 100%);
+              color: #0b1324 !important;
+              font-size: 0.95em;
+              font-weight: 700;
+              text-decoration: none;
+              border: 1px solid var(--border);
+              box-shadow:
+                0 6px 24px rgba(0,0,0,0.10),
+                0 1px 3px rgba(0,0,0,0.08),
+                inset 0 1px 0 rgba(255,255,255,0.65);
+              overflow: hidden;
+              transition: transform .35s cubic-bezier(.25,.46,.45,.94), box-shadow .35s cubic-bezier(.25,.46,.45,.94), border-color .35s ease;
+              backdrop-filter: blur(4px);
+              letter-spacing: 0.02em;
+            }
+            .donation-link > span { position: relative; z-index: 2; transition: color .35s ease, filter .35s ease; }
+            .donation-link::before {
+              content: '';
+              position: absolute;
+              inset: 0;
+              background: linear-gradient(
+                to bottom,
+                #61BB46 0%,
+                #61BB46 16.66%,
+                #FDB827 16.66%,
+                #FDB827 33.33%,
+                #F5821F 33.33%,
+                #F5821F 50%,
+                #E03A3E 50%,
+                #E03A3E 66.66%,
+                #963D97 66.66%,
+                #963D97 83.33%,
+                #009DDC 83.33%,
+                #009DDC 100%
+              );
+              transform: translateY(100%);
+              transition: transform .45s cubic-bezier(.25,.46,.45,.94);
+              z-index: 1;
+              opacity: 0.95;
+            }
+            .donation-link::after {
+              content: '';
+              position: absolute;
+              inset: -2px;
+              background: linear-gradient(45deg,#61BB46,#FDB827,#F5821F,#E03A3E,#963D97,#009DDC);
+              border-radius: inherit;
+              z-index: 0;
+              opacity: 0;
+              filter: blur(10px);
+              transition: opacity .45s ease;
+            }
+            .donation-link:hover::before { transform: translateY(0%); }
+            .donation-link:hover::after  { opacity: .28; }
+            .donation-link:hover {
+              transform: translateY(-1px);
+              box-shadow:
+                0 10px 32px rgba(0,0,0,0.14),
+                0 4px 12px rgba(0,0,0,0.10),
+                inset 0 1px 0 rgba(255,255,255,0.25);
+              border-color: rgba(209, 213, 219, 0.75);
+            }
+            .donation-link:hover > span { color: #ffffff; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
+            .donation-link:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.35); }
+            @media (prefers-color-scheme: dark) {
+              :root {
+                --text: #e5e7eb;
+                --muted: #9ca3af;
+                --link: #60a5fa;
+                --link-hover: #93c5fd;
+                --border: rgba(148, 163, 184, 0.24);
+                --panel: rgba(17, 24, 39, 0.7);
+              }
+              pre, code { background: rgba(148, 163, 184, 0.08); }
+              blockquote { background: rgba(148, 163, 184, 0.08); }
+              .donation-link {
+                background: linear-gradient(135deg, rgba(17,24,39,0.72) 0%, rgba(31,41,55,0.72) 100%);
+                color: #f3f4f6 !important;
+              }
+            }
+          </style>
+
+          <a class="donation-link" href="https://buymeacoffee.com/turtle.key" role="button" target="_blank" rel="noopener noreferrer" aria-label="Support turtle-key on Buy Me a Coffee"><span>❤️ Support turtle-key</span></a>
+          <hr class="changelog-sep" />
+          <!-- END TabLift changelog header -->
+          HTML
+
+      - name: Combine header + content into CHANGELOG.html
+        run: |
+          cat header.html content.html > CHANGELOG.html
+          test -s CHANGELOG.html || { echo "CHANGELOG.html is empty"; exit 1; }
+
+      - name: Commit and push to gh-pages
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name || 'manual trigger' }}
+        run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git add CHANGELOG.md CHANGELOG.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git pull --rebase origin gh-pages || true
+          git commit -m "chore: update changelog for ${TAG_NAME}"
+          git push origin gh-pages
