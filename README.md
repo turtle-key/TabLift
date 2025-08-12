@@ -50,7 +50,9 @@
 - <img align="right" src="Images/tablift-dock.png" alt="Dock Window Preview" width="320">
   <strong>Dock popups with live window previews:</strong> Shows a beautiful popup when you hover Dock icons, including a diamond indicator for minimized windows.
   <br clear="right">
-- **App Window Switcher** that displays the windows of the same app and is activated by the ``⌘ + ` `` shortcut
+- <img align="right" src="Images/tablift-tilda.png" alt="Dock Window Preview" width="320">
+  <strong>App Window Switcher</strong> that displays the windows of the same app and is activated by the ``⌘ + ` `` shortcut
+  <br clear="right">
 ---
 ## How It Works
 
