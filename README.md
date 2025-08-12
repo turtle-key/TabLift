@@ -54,22 +54,6 @@
   <strong>App Window Switcher</strong> that displays the windows of the same app and is activated by the <code>⌘ + `</code> shortcut
   <br clear="right">
 ---
-## How It Works
-
-TabLift uses public Apple APIs to monitor when you activate a different app (via [`NSWorkspace`](https://developer.apple.com/documentation/appkit/nsworkspace) notifications).  
-As soon as an app is activated, TabLift checks for minimized windows via the Accessibility API (`AXUIElement`).  
-If a minimized window is found, it is instantly restored for you, either restoring all or just the most recently minimized window (configurable).
-
-**Technical flow:**
-
-1. **Listening:** `AppMonitor.swift` listens for app activation events.
-2. **Restoring:** `WindowManager.swift` inspects the app's window list. If any window is minimized, it sets the `AXMinimized` attribute to `false`. The behavior (restore all or just the latest) is determined by a global toggle.
-3. **Menu Bar:** `MenuBarManager.swift` provides a menu bar icon and popover with a quick settings toggle, open settings, and quit.
-4. **Permissions:** On first launch, `PermissionsService.swift` prompts you to grant Accessibility permissions, which are required for window management.
-5. **UI:** The `SettingsView.swift` (tabbed, includes About tab) provides quick links and info, including clickable version and license links, and toggles for behavior and launch at login.
-6. **Updates:** The app checks for updates with Sparkle, customizable via the settings.
-7. **Dock Popup:** `DockIconHoverMonitor.swift` and `DockPreviewPanel.swift` manage live Dock popups. These show all app windows, with a diamond icon for minimized windows. The feature can be enabled or disabled in Settings.
----
   
   ## Quick Start
   
