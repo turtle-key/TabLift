@@ -101,17 +101,9 @@
   ## UI Preview
   
   <p align="center">
-    <img src="Images/tablift-shot-light.png" alt="App Screenshot" width="320"/>
-    <img src="Images/tablift-shot-dark.png" alt="App Screenshot" width="320"/>
-  </p>
-  <p align="center">
-  TabLift has a simple, modern Settings/About window with helpful links:
-  </p>
-  <p align="center">
-    <a href="https://tablift.dev">Know more about TabLift</a> •
-    <a href="https://coff.ee/turtle.key">Buy me a coffee</a> •
-    <a href="https://github.com/turtle-key/TabLift">Source code on GitHub</a> •
-    <a href="mailto:ghetumihaieduard@gmail.com">Email support</a>
+    <img src="Images/tablift-about.png" alt="App About Tab" width="320"/>
+    <img src="Images/tablift-general.png" alt="App General Tab" width="320"/>
+    <img src="Images/tablift-support.png" alt="App Support Tab" width="320"/>
   </p>
   
   ---
