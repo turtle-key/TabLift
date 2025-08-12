@@ -137,23 +137,6 @@ TabLift/
 ├── Sparkle/
 └── TabLift.xcodeproj
 ```
-  
-  ---
-  
-  ## Tech Stack
-  
-  | Component            | Technology                                         |
-  |----------------------|----------------------------------------------------|
-  | macOS App Language   | Swift                                              |
-  | macOS UI Frameworks  | SwiftUI (Settings/About window), AppKit (core)     |
-  | macOS APIs Used      | Accessibility API (`AXUIElement`), NSWorkspace     |
-  | Platform             | macOS 13.0 Ventura and later                       |
-  | macOS Packaging      | `.app` bundle (no kernel extensions)               |
-  | Website Framework    | SvelteKit (Svelte, TypeScript, Vite)               |
-  | Website Styling      | CSS, HTML5                                         |
-  | Website Hosting      | Static (exportable, deploy anywhere)               |
-  | Other                | Open Graph, Twitter Cards, SEO meta, robots.txt    |
-  
   ---
   
   ## Contributing
