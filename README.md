@@ -43,7 +43,6 @@
 ## Features
 
 - **Instantly restores minimized windows** when you switch to an app using `⌘ + Tab` or ``⌘ + ` ``
-- **No** need to press **extra keys** — just switch!
 - **Menu bar icon** with quick popover for access and control
 - **One-click toggle** for restoring all minimized windows or just the last minimized window, from the menu bar or settings
 - **Modern Settings & About window** with clickable version and license links
@@ -52,6 +51,7 @@
 - **Compatible** with Mission Control, multiple desktops, and most macOS versions
 - **Website** included in the repo, for documentation and SEO
 - **Dock popups with live window previews:** Shows a beautiful popup when you hover Dock icons, including a diamond indicator for minimized windows.
+
 
 ---
 
@@ -70,6 +70,9 @@ If a minimized window is found, it is instantly restored for you, either restori
 5. **UI:** The `SettingsView.swift` (tabbed, includes About tab) provides quick links and info, including clickable version and license links, and toggles for behavior and launch at login.
 6. **Updates:** The app checks for updates with Sparkle, customizable via the settings.
 7. **Dock Popup:** `DockIconHoverMonitor.swift` and `DockPreviewPanel.swift` manage live Dock popups. These show all app windows, with a diamond icon for minimized windows. The feature can be enabled or disabled in Settings.
+<p align="center">
+    <img src="Images/tablift-dock.png" alt="Dock Window Preview" width="320"/>
+</p>
 ---
   
   ## Quick Start
