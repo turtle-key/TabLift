@@ -37,25 +37,21 @@
   <p align="center">
     <a href="https://tablift.dev"><b>🌐 Visit the TabLift website</b></a>
   </p>
-  
-  ---
 
+---
 ## Features
 
 - **Instantly restores minimized windows** when you switch to an app using `⌘ + Tab` or ``⌘ + ` ``
 - **Menu bar icon** with quick popover for access and control
-- **One-click toggle** for restoring all minimized windows or just the last minimized window, from the menu bar or settings
-- **Modern Settings & About window** with clickable version and license links
-- **Sparkle-powered update checker**
+- **Multiple settings** for customizing the window, dock & app management
 - **Runs quietly in the background** with minimal resource usage
 - **Compatible** with Mission Control, multiple desktops, and most macOS versions
 - **Website** included in the repo, for documentation and SEO
-- **Dock popups with live window previews:** Shows a beautiful popup when you hover Dock icons, including a diamond indicator for minimized windows.
-<p align="center">
-    <img src="Images/tablift-dock.png" alt="Dock Window Preview" width="320"/>
-</p>
+- <img align="right" src="Images/tablift-dock.png" alt="Dock Window Preview" width="320">
+  <strong>Dock popups with live window previews:</strong> Shows a beautiful popup when you hover Dock icons, including a diamond indicator for minimized windows.
+  <br clear="right">
+- **App Window Switcher** that displays the windows of the same app and is activated by the ``⌘ + ` `` shortcut
 ---
-
 ## How It Works
 
 TabLift uses public Apple APIs to monitor when you activate a different app (via [`NSWorkspace`](https://developer.apple.com/documentation/appkit/nsworkspace) notifications).  
