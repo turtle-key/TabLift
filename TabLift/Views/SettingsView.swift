@@ -111,7 +111,7 @@ struct GeneralSettingsTab: View {
     @State private var hoveredDemo: DemoType? = nil
     enum DemoType { case restore, opennew, minimizeprev }
     private let helpTextMaxWidth: CGFloat = 320
-    private let helpTextMaxHeight: CGFloat = 46
+    private let helpTextMaxHeight: CGFloat = 5
     @AppStorage("performanceProfile") var performanceProfileRaw: String = PerformanceProfile.balanced.rawValue
     @AppStorage("dockPreviewSpeed") var dockPreviewSpeed: Double = PerformanceProfile.balanced.hoverDelay
     @AppStorage("dockPreviewFade") var dockPreviewFade: Double = PerformanceProfile.balanced.fadeOutDuration
