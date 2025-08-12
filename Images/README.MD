@@ -6,7 +6,7 @@ The TabLift.dmg is created by using the following command:
   --window-size 835 650 \
   --icon-size 100 \
   --hide-extension "TabLift.app" \
-  --background "tablift-bg.png" \
+  --background "tablift-dmg-bg.png" \
   --icon "TabLift.app" 250 250 \
   --app-drop-link 600 250 \
   "TabLift.dmg" \
