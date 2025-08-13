@@ -85,7 +85,7 @@ final class ShieldNoticeManager {
             let p = NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
             p.isOpaque = false
             p.backgroundColor = .clear
-            p.hasShadow = false   // we draw our own shadow in SwiftUI to avoid NSPanel shadow artifacts
+            p.hasShadow = true
             p.level = .statusBar
             p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
             p.ignoresMouseEvents = false
