@@ -115,6 +115,7 @@
 </script>
 
 <svelte:head>
+  <link rel="icon" href="https://bucket.tablift.dev/app-icon-168.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
