@@ -29,7 +29,7 @@
   </p>
   
   <p align="center">
-    TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with <code>⌘+Tab</code> or <code>⌘+`</code>.<br>
+    TabLift is a lightweight macOS utility that restores minimized apps instantly when switching with <code>⌘ Tab</code> or <code>⌘ `</code>.<br>
     By default, macOS ignores minimized windows unless you hold the <code>Option</code> key.<br>
     TabLift fixes this behavior, making app switching intuitive and seamless — no extra keys needed.
   </p>
@@ -41,18 +41,21 @@
 ---
 ## Features
 
-- **Instantly restores minimized windows** when you switch to an app using `⌘ + Tab` or ``⌘ + ` ``
-- **Menu bar icon** with quick popover for access and control
+- **Instantly restores minimized windows** when you switch to an app using <code>⌘ Tab</code> or <code>⌘ `</code>
 - **Multiple settings** for customizing the window, dock & app management
+- <img align="right" src="Images/tablift-accessibility.png" alt="Accessibility pop-up" width="320">
+  <strong>Accessibility pop-up</strong> that warns the users when the macOS API is unavailable and what to do.
+  <br clear="right">
+- <img align="right" src="Images/tablift-dock.png" alt="Dock Window Preview" width="320">
+  <strong>Dock pop-ups with live window previews:</strong> Shows a beautiful pop-up when you hover Dock icons, including a diamond indicator for minimized windows.
+  <br clear="right">
+- <img align="right" src="Images/tablift-tilda.png" alt="Dock Window Preview" width="320">
+  <strong>App Window Switcher</strong> that displays the windows of the same app and is activated by the <code>⌘ `</code> shortcut
+  <br clear="right">
+- **Menu bar icon** with quick popover for access and control
 - **Runs quietly in the background** with minimal resource usage
 - **Compatible** with Mission Control, multiple desktops, and most macOS versions
 - **Website** included in the repo, for documentation and SEO
-- <img align="right" src="Images/tablift-dock.png" alt="Dock Window Preview" width="320">
-  <strong>Dock popups with live window previews:</strong> Shows a beautiful popup when you hover Dock icons, including a diamond indicator for minimized windows.
-  <br clear="right">
-- <img align="right" src="Images/tablift-tilda.png" alt="Dock Window Preview" width="320">
-  <strong>App Window Switcher</strong> that displays the windows of the same app and is activated by the <code>⌘ + `</code> shortcut
-  <br clear="right">
 ---
   
   ## Quick Start
