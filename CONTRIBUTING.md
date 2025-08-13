@@ -43,9 +43,9 @@ We welcome all contributions, including bug reports, feature requests, code, doc
 
 ### 5. Project Structure
 
-- **macOS app code:** in `Sources/`
+- **macOS app code:** in `TabLift/`
 - **Website:** in `website/`
-- **Images:** in `Images/`
+- **Resources(Images+Videos included in App):** in `Resources/`
 - See [README.md](README.md) for more details.
 
 ### 6. Code of Conduct
