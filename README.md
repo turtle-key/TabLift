@@ -120,7 +120,7 @@
   
   ## Contributing
   
-  Pull requests are welcome! Give the repo a star to help TabLift reach more people who need it.
+  Pull requests are welcome!
   If you have suggestions, bug reports, or want to help improve TabLift:
   
   1. Fork the repo
@@ -129,19 +129,22 @@
      git checkout -b feature/your-feature-name
      ```
   3. Push and open a PR
-  
-  ---
-  
-  ## License
-  
-  **AGPL-3.0 License**  
-  © Mihai-Eduard Ghețu – See [`LICENSE`](LICENSE) for details.
-  
-  ## Credits
-  
-  Built for macOS power users frustrated with Apple's default app switching.  
-  Thanks to the accessibility community and everyone who contributed feedback.
-  
-  ---
-  
-  > TabLift – *Lift your windows. Free your workflow.*
+
+  ### Support Development
+- **[Buy me a coffee](https://www.buymeacoffee.com/turtle.key)** to fuel development
+- **[Star the repo](https://github.com/turtle-key/TabLift)** to help others discover TabLift
+---
+
+## License
+
+**AGPL-3.0 License**  
+© Mihai-Eduard Ghețu – See [`LICENSE`](LICENSE) for details.
+
+## Credits
+
+Built for macOS power users frustrated with Apple's default app switching.  
+Thanks to the accessibility community and everyone who contributed feedback.
+
+---
+
+> TabLift – *Lift your windows. Free your workflow.*
