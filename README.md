@@ -1,5 +1,5 @@
   <p align="center">
-    <img src="Images/banner-wbg.png" alt="TabLift Banner" width="400"/>
+    <img src="https://bucket.tablift.dev/banner.png" alt="TabLift Banner" width="400"/>
   </p>
   
   <p align="center">
