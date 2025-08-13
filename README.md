@@ -140,7 +140,7 @@
   ## Credits
   
   Built for macOS power users frustrated with Apple's default app switching.  
-  Thanks to the accessibility community and everyone who contributed feedback(the voices in my head).
+  Thanks to the accessibility community and everyone who contributed feedback.
   
   ---
   
