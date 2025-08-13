@@ -590,7 +590,7 @@ struct TabliftCheatSheetView: View {
             VStack(spacing: 8) {
                 CheatSheetRow(keys: ["⌘", "⇧", "M"], description: "Minimize all windows of the frontmost app")
                 CheatSheetRowMouseDock(description: "Restore or minimize windows by clicking the Dock icon")
-                CheatSheetRow(keys: ["⌘", "`"], description: "Restore next minimized window in the frontmost app")
+                CheatSheetRow(keys: ["⌘", "`"], description: "Restore next window in the frontmost app & show the Windows Preview")
                 CheatSheetRow(keys: ["⌘", "Tab"], description: "Switch between running apps")
             }
             .padding(.top, 4)
