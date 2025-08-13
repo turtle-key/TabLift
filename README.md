@@ -77,6 +77,10 @@
   Then build and run in Xcode.  
   You'll be prompted to grant Accessibility permission.
   
+  ### System Requirements
+  - **macOS 13.0 Ventura** or later
+  - **Apple Silicon & Intel** support
+  
   ### Website
   
   The website sources are in the `website/` folder, powered by SvelteKit.  
@@ -110,41 +114,13 @@
   </p>
   
   ---
+  ## Star History
   
-  ## File Structure
-
-```
-TabLift/
-├── Sources/
-│   ├── TabLiftApp.swift
-│   ├── AppMonitor.swift
-│   ├── WindowManager.swift
-│   ├── MenuBarManager.swift
-│   ├── DockIconHoverMonitor.swift   
-│   ├── DockPreviewPanel.swift      
-│   ├── SettingsView.swift
-│   ├── AccessibilityPermissionWindow.swift
-│   └── ... other Swift files
-├── website/
-│   ├── src/
-│   ├── static/
-│   └── ...
-├── Images/
-│   ├── banner.png
-│   ├── banner-wbg.png
-│   ├── tablift-shot-light.png
-│   ├── tablift-shot-dark.png
-│   └── ...
-├── Assets.xcassets/
-├── Info.plist
-├── Sparkle/
-└── TabLift.xcodeproj
-```
-  ---
+  [![Star History Chart](https://api.star-history.com/svg?repos=turtle-key/TabLift&type=Date)](https://www.star-history.com/#turtle-key/TabLift&Date)
   
   ## Contributing
   
-  Pull requests are welcome!  
+  Pull requests are welcome! Give the repo a star to help TabLift reach more people who need it.
   If you have suggestions, bug reports, or want to help improve TabLift:
   
   1. Fork the repo
