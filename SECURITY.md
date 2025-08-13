@@ -7,8 +7,8 @@ TabLift is actively maintained. The following table describes which versions cur
 | Version | Supported          |
 | ------- | ------------------ |
 | main    | :white_check_mark: |
-| 1.x     | :white_check_mark: |
-| < 1.0   | :x:                |
+| 2.x     | :white_check_mark: |
+| < 2.0   | :x:                |
 
 > Only the latest stable release and the main development branch are supported with security updates.
 

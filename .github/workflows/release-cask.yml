@@ -1,0 +1,315 @@
+name: Generate and PR Homebrew Cask on release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+concurrency:
+  group: cask-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  # REQUIRED: your tap repository (owner/name)
+  TAP_REPO: "turtle-key/homebrew-tap"
+  # OPTIONAL: cask token; defaults to repo name lowercased
+  CASK_TOKEN: "tablift"
+  # OPTIONAL: human-readable app name for 'name' stanza; defaults to repo name
+  APP_READABLE_NAME: "TabLift"
+  # OPTIONAL: fallback .app bundle name if auto-detection fails (without .app)
+  APP_NAME: "TabLift"
+  # One-line description (style-compliant)
+  DESC: "Instantly restores minimized windows when switching apps with CMD+Tab or CMD+`"
+  # Homepage; defaults to current repo
+  HOMEPAGE: "https://tablift.dev/"
+  # Minimum macOS; examples: :ventura, :sonoma, ">= :ventura"
+  MIN_MACOS: ">= :ventura"
+  # Which assets to consider. Ordered preference: dmg, then zip.
+  ASSET_EXTS: "dmg zip"
+  # Regex fragments to identify arch-specific assets (case-insensitive)
+  ARM_HINTS: "arm64|aarch64|apple ?silicon"
+  INTEL_HINTS: "x86_64|x64|amd64|intel"
+
+jobs:
+  cask:
+    name: Build cask from Release and open PR
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+
+      - name: Inspect release assets and choose files
+        id: pick
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const rel = context.payload.release;
+            if (!rel) core.setFailed("No release payload (run from a published release or use workflow_dispatch).");
+
+            const exts = (process.env.ASSET_EXTS || "dmg zip").split(/\s+/).filter(Boolean);
+            const armRx = new RegExp(process.env.ARM_HINTS || "arm64|aarch64|apple ?silicon", "i");
+            const intelRx = new RegExp(process.env.INTEL_HINTS || "x86_64|x64|amd64|intel", "i");
+
+            const assets = (rel.assets || []).filter(a => exts.some(ext => a.name.toLowerCase().endsWith("." + ext)));
+            if (assets.length === 0) core.setFailed(`No assets found with extensions: ${exts.join(", ")}.`);
+
+            // Try to find explicit arch-specific assets
+            let arm = assets.find(a => armRx.test(a.name));
+            let intel = assets.find(a => intelRx.test(a.name) && a.id !== (arm && arm.id));
+            let universal = null;
+
+            // If both arch assets not found, pick a single "best" universal asset (prefer dmg)
+            if (!arm || !intel) {
+              const byExtPref = assets.slice().sort((a, b) => {
+                const aExt = a.name.split(".").pop().toLowerCase();
+                const bExt = b.name.split(".").pop().toLowerCase();
+                const aScore = exts.indexOf(aExt);
+                const bScore = exts.indexOf(bExt);
+                return aScore - bScore;
+              });
+              universal = byExtPref[0];
+            }
+
+            const version = (rel.tag_name || "").replace(/^v/i, "");
+            core.setOutput("version", version);
+            core.setOutput("arm_name", arm ? arm.name : "");
+            core.setOutput("arm_url", arm ? arm.browser_download_url : "");
+            core.setOutput("intel_name", intel ? intel.name : "");
+            core.setOutput("intel_url", intel ? intel.browser_download_url : "");
+            core.setOutput("universal_name", universal ? universal.name : "");
+            core.setOutput("universal_url", universal ? universal.browser_download_url : "");
+
+      - name: Download asset(s) and compute sha256
+        id: shas
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          dl_and_sha() {
+            local url="$1" out="$2"
+            [[ -z "$url" ]] && { echo ""; return 0; }
+            echo "Downloading: $url"
+            curl -L --fail --retry 3 --retry-delay 2 -o "$out" "$url"
+            shasum -a 256 "$out" | awk '{print $1}'
+          }
+
+          ARM_URL="${{ steps.pick.outputs.arm_url }}"
+          INTEL_URL="${{ steps.pick.outputs.intel_url }}"
+          UNI_URL="${{ steps.pick.outputs.universal_url }}"
+
+          if [[ -n "$ARM_URL" && -n "$INTEL_URL" ]]; then
+            echo "mode=dual" >> "$GITHUB_OUTPUT"
+            echo "arm_sha=$(dl_and_sha "$ARM_URL" arm.asset)" >> "$GITHUB_OUTPUT"
+            echo "intel_sha=$(dl_and_sha "$INTEL_URL" intel.asset)" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=single" >> "$GITHUB_OUTPUT"
+            echo "uni_sha=$(dl_and_sha "$UNI_URL" uni.asset)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Determine .app bundle name
+        id: appname
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          app_from_zip() {
+            unzip -l "$1" | awk '{print $4}' | grep -E '\.app/?$' | head -n1 | sed 's:/*$::; s:.*/::'
+          }
+          app_from_dmg() {
+            local dmg="$1"
+            local mnt
+            mnt="$(mktemp -d)"
+            hdiutil attach "$dmg" -mountpoint "$mnt" -nobrowse -quiet
+            local app
+            app="$(find "$mnt" -maxdepth 1 -name "*.app" -print -quit | sed 's:.*/::')"
+            hdiutil detach "$mnt" -quiet || true
+            echo "$app"
+          }
+
+          # Precedence: env APP_NAME -> infer from downloaded asset
+          if [[ -n "${APP_NAME:-}" ]]; then
+            echo "app=${APP_NAME}.app" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          MODE="${{ steps.shas.outputs.mode }}"
+          if [[ "$MODE" == "dual" ]]; then
+            # Use the arm asset to infer
+            ARM_URL="${{ steps.pick.outputs.arm_url }}"
+            ARM_NAME="${{ steps.pick.outputs.arm_name }}"
+            curl -L --fail -o arm.asset "$ARM_URL"
+            if [[ "$ARM_NAME" == *.zip ]]; then
+              app="$(app_from_zip arm.asset)"
+            else
+              app="$(app_from_dmg arm.asset)"
+            fi
+          else
+            UNI_URL="${{ steps.pick.outputs.universal_url }}"
+            UNI_NAME="${{ steps.pick.outputs.universal_name }}"
+            curl -L --fail -o uni.asset "$UNI_URL"
+            if [[ "$UNI_NAME" == *.zip ]]; then
+              app="$(app_from_zip uni.asset)"
+            else
+              app="$(app_from_dmg uni.asset)"
+            fi
+          fi
+
+          if [[ -z "${app:-}" ]]; then
+            echo "Could not infer .app bundle name. Set env.APP_NAME." >&2
+            exit 1
+          fi
+          echo "app=$app" >> "$GITHUB_OUTPUT"
+
+      - name: Compute token, names, owner/repo
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="${CASK_TOKEN}"
+          if [[ -z "$token" ]]; then
+            repo="${GITHUB_REPOSITORY#*/}"
+            token="$(echo "$repo" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9+.-]+/-/g')"
+          fi
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+          owner="${GITHUB_REPOSITORY%/*}"
+          repo="${GITHUB_REPOSITORY#*/}"
+          echo "owner=$owner" >> "$GITHUB_OUTPUT"
+          echo "repo=$repo" >> "$GITHUB_OUTPUT"
+
+          readable="${APP_READABLE_NAME:-$repo}"
+          echo "readable=$readable" >> "$GITHUB_OUTPUT"
+
+          echo "version=${{ steps.pick.outputs.version }}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate cask file content
+        id: gen
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p cask_out/Casks
+          file="cask_out/Casks/${{ steps.meta.outputs.token }}.rb"
+
+          MODE="${{ steps.shas.outputs.mode }}"
+          VERSION="${{ steps.meta.outputs.version }}"
+          APP="${{ steps.appname.outputs.app }}"
+          NAME="${{ steps.meta.outputs.readable }}"
+          DESC="${DESC}"
+          HOMEPAGE="${HOMEPAGE}"
+          MIN_MACOS="${MIN_MACOS}"
+          OWNER="${{ steps.meta.outputs.owner }}"
+          REPO="${{ steps.meta.outputs.repo }}"
+
+          if [[ "$MODE" == "dual" ]]; then
+            ARM_URL="${{ steps.pick.outputs.arm_url }}"
+            INTEL_URL="${{ steps.pick.outputs.intel_url }}"
+            ARM_SHA="${{ steps.shas.outputs.arm_sha }}"
+            INTEL_SHA="${{ steps.shas.outputs.intel_sha }}"
+            cat > "$file" <<RUBY
+          cask "${{ steps.meta.outputs.token }}" do
+            version "${VERSION}"
+
+            on_arm do
+              sha256 "${ARM_SHA}"
+              url "${ARM_URL}",
+                  verified: "github.com/${OWNER}/${REPO}/"
+            end
+
+            on_intel do
+              sha256 "${INTEL_SHA}"
+              url "${INTEL_URL}",
+                  verified: "github.com/${OWNER}/${REPO}/"
+            end
+
+            name "${NAME}"
+            desc "${DESC}"
+            homepage "${HOMEPAGE}"
+
+            auto_updates true
+            depends_on macos: ${MIN_MACOS}
+
+            app "${APP}"
+
+            livecheck do
+              url :url
+              strategy :github_latest
+            end
+          end
+          RUBY
+          else
+            UNI_URL="${{ steps.pick.outputs.universal_url }}"
+            UNI_SHA="${{ steps.shas.outputs.uni_sha }}"
+            cat > "$file" <<RUBY
+          cask "${{ steps.meta.outputs.token }}" do
+            version "${VERSION}"
+            sha256 "${UNI_SHA}"
+
+            url "${UNI_URL}",
+                verified: "github.com/${OWNER}/${REPO}/"
+            name "${NAME}"
+            desc "${DESC}"
+            homepage "${HOMEPAGE}"
+
+            auto_updates true
+            depends_on macos: ${MIN_MACOS}
+
+            app "${APP}"
+
+            livecheck do
+              url :url
+              strategy :github_latest
+            end
+          end
+          RUBY
+          fi
+
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+          echo "----- Cask -----"
+          cat "$file"
+
+      - name: Validate cask (brew style and audit)
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew update-reset || true
+          brew style --fix ./cask_out/Casks/*.rb
+          brew audit --cask --new --online ./cask_out/Casks/*.rb || {
+            echo "::warning::brew audit failed (may be fine for a private tap)."
+          }
+
+      - name: Checkout tap repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.TAP_REPO }}
+          token: ${{ secrets.TAP_TOKEN }}
+          path: tap
+
+      - name: Create branch, copy cask, commit and push
+        shell: bash
+        working-directory: tap
+        run: |
+          set -euo pipefail
+          token="${{ steps.meta.outputs.token }}"
+          ver="${{ steps.meta.outputs.version }}"
+          branch="bump/${token}/${ver}"
+
+          git checkout -b "$branch"
+          mkdir -p Casks
+          cp "../${{ steps.gen.outputs.file }}" "Casks/${token}.rb"
+
+          git add "Casks/${token}.rb"
+          git -c user.name="${GITHUB_ACTOR}" -c user.email="${GITHUB_ACTOR}@users.noreply.github.com" commit -m "cask(${token}): ${ver}"
+          git push --set-upstream origin "$branch"
+
+      - name: Open PR on tap
+        env:
+          GH_TOKEN: ${{ secrets.TAP_TOKEN }}
+        working-directory: tap
+        run: |
+          default_branch="$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name)"
+          gh pr create --fill --base "$default_branch" || true
