@@ -1,5 +1,5 @@
   <p align="center">
-    <img src="Images/banner-wbg.png" alt="TabLift Banner" width="400"/>
+    <img src="https://bucket.tablift.dev/banner.png" alt="TabLift Banner" width="400"/>
   </p>
   
   <p align="center">
@@ -43,13 +43,13 @@
 
 - **Instantly restores minimized windows** when you switch to an app using <code>⌘ Tab</code> or <code>⌘ `</code>
 - **Multiple settings** for customizing the window, dock & app management
-- <img align="right" src="Images/tablift-accessibility.png" alt="Accessibility pop-up" width="320">
+- <img align="right" src="https://bucket.tablift.dev/tablift-accessibility.png" alt="Accessibility pop-up" width="320">
   <strong>Accessibility pop-up</strong> that warns the users when the macOS API is unavailable and what to do.
   <br clear="right">
-- <img align="right" src="Images/tablift-dock.png" alt="Dock Window Preview" width="320">
+- <img align="right" src="https://bucket.tablift.dev/tablift-dock.png" alt="Dock Window Preview" width="320">
   <strong>Dock pop-ups with live window previews:</strong> Shows a beautiful pop-up when you hover Dock icons, including a diamond indicator for minimized windows.
   <br clear="right">
-- <img align="right" src="Images/tablift-tilda.png" alt="Dock Window Preview" width="320">
+- <img align="right" src="https://bucket.tablift.dev/tablift-tilda.png" alt="Dock Window Preview" width="320">
   <strong>App Window Switcher</strong> that displays the windows of the same app and is activated by the <code>⌘ `</code> shortcut
   <br clear="right">
 - **Menu bar icon** with quick popover for access and control
@@ -108,9 +108,9 @@
   ## UI Preview
   
   <p align="center">
-    <img src="Images/tablift-about.png" alt="App About Tab" width="320"/>
-    <img src="Images/tablift-general.png" alt="App General Tab" width="320"/>
-    <img src="Images/tablift-support.png" alt="App Support Tab" width="320"/>
+    <img src="https://bucket.tablift.dev/tablift-about.png" alt="App About Tab" width="320"/>
+    <img src="https://bucket.tablift.dev/tablift-general.png" alt="App General Tab" width="320"/>
+    <img src="https://bucket.tablift.dev/tablift-support.png" alt="App Support Tab" width="320"/>
   </p>
   
   ---
