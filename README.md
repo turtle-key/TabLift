@@ -120,7 +120,7 @@
   
   ## Contributing
   
-  Pull requests are welcome! Give the repo a star to help TabLift reach more people who need it.
+  Pull requests are welcome!
   If you have suggestions, bug reports, or want to help improve TabLift:
   
   1. Fork the repo
@@ -129,6 +129,10 @@
      git checkout -b feature/your-feature-name
      ```
   3. Push and open a PR
+
+  ### Support Development
+- **[Buy me a coffee](https://www.buymeacoffee.com/turtle.key)** to fuel development
+- **[Star the repo](https://github.com/turtle-key/TabLift)** to help others discover TabLift
   
   ---
   
