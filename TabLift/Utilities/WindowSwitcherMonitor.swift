@@ -692,6 +692,14 @@ private struct WindowSwitcherPanel: View {
                         }
                     }
                 )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(
+                            info.isFocused ? Color.white.opacity(0) :
+                                (isHovering ? Color.accentColor.opacity(0.50) : Color(nsColor: .separatorColor).opacity(0.65)),
+                            lineWidth: 2.5 / max(NSScreen.main?.backingScaleFactor ?? 2.0, 1.0)
+                        )
+                )
                 .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
             .buttonStyle(.plain)
