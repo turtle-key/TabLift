@@ -102,6 +102,7 @@ struct GeneralSettingsTab: View {
     @AppStorage("showDockPopups") var showDockPopups: Bool = true
     @AppStorage("startAtLogin") var startAtLogin: Bool = true
     @AppStorage("showDockIcon") var showDockIcon: Bool = false
+    @AppStorage("windowSwitcher") var showWindowSwitcher: Bool = true
     @AppStorage("restoreAllOnDockClick") var restoreAllOnDockClick: Bool = false
     @State private var isHoveringQuit = false
     @AppStorage("maximizeBehavior") var maximizeBehaviorRaw: String = MaximizeBehavior.fill.rawValue
@@ -182,6 +183,13 @@ struct GeneralSettingsTab: View {
                 }
                 Section(header: Label("Window Switching Behavior", systemImage: "arrow.triangle.swap").font(.headline)) {
                     VStack(alignment: .leading, spacing: 24) {
+                        Toggle(isOn: $showWindowSwitcher) {
+                            Text("Show the window switcher pop up for the frontmost app")
+                            if !showWindowSwitcher {
+                                Text("When disabled, the CMD ` doesn't activate the window switching pop up")
+                                    .foregroundColor(.secondary).font(.caption).padding(.top, 2)
+                            }
+                        }
                         DemoSection(
                             toggle: Toggle(isOn: $restoreAllWindows) {
                                 VStack(alignment: .leading, spacing: 2) {

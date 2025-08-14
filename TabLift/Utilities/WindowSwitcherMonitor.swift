@@ -26,7 +26,7 @@ final class WindowSwitcherMonitor {
     private var hosting: NSHostingView<WindowSwitcherPanel>?
     private var lastShownAppPID: pid_t?
     private var commandIsHeld: Bool = false
-
+    private var showWindowSwitcher: Bool {UserDefaults.standard.bool(forKey: "windowSwitcher")}
     // SwiftUI view model for stable updates (prevents marquee glitches)
     private let model = WindowSwitcherViewModel()
 
@@ -99,6 +99,7 @@ final class WindowSwitcherMonitor {
 
     // Return value: non-nil to pass event through; nil to suppress.
     private func handleEvent(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
+        if(!showWindowSwitcher){ return nil; }
         switch type {
         case .keyDown:
             let keycode = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
