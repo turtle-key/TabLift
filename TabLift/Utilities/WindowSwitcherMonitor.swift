@@ -549,7 +549,7 @@ final class WindowSwitcherMonitor {
 
     // Heuristic: filter out tiny Picture-in-Picture / overlay windows or non-standard dialogs.
     private func isProbablyPictureInPicture(window: AXUIElement) -> Bool {
-        if let subrole = window.tlAXSubrole(), subrole == "AXSystemDialog" {
+        if let subrole = window.tlAXSubrole(), subrole == "AXSystemDialog" || subrole == "AXPictureInPictureWindow" {
             return true
         }
         if let title = window.tlAXTitle(), title.lowercased().contains("picture in picture") {

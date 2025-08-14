@@ -844,14 +844,6 @@ class DockIconHoverMonitor {
                 title = ti
             }
 
-            if bundleID != "com.apple.Safari" {
-                if title.isEmpty || title == "(Untitled)" {
-                    if !isMinimized {
-                        if !cgVisible.contains(title) || title.isEmpty { continue }
-                    }
-                }
-            }
-
             infos.append(WindowInfo(
                 axElement: window,
                 app: app,
