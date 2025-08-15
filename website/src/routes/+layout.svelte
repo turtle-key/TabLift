@@ -115,7 +115,22 @@
 </script>
 
 <svelte:head>
-  <link rel="icon" href="https://bucket.tablift.dev/app-icon-168.webp" />
+  <link rel="icon" type="image/x-icon" href={base+"/favicon.ico"}>
+
+  <!-- PNG favicons for browsers -->
+  <link rel="icon" type="image/png" sizes="32x32" href={base+"/favicon-32x32.png"}>
+  <link rel="icon" type="image/png" sizes="16x16" href={base+"/favicon-16x16.png"}>
+
+  <!-- Apple touch icon -->
+  <link rel="apple-touch-icon" sizes="180x180" href={base+"/apple-touch-icon.png"}>
+
+  <!-- Android / Chrome icons -->
+  <link rel="icon" type="image/png" sizes="192x192" href={base+"/android-chrome-192x192.png"}>
+  <link rel="icon" type="image/png" sizes="512x512" href={base+"/android-chrome-512x512.png"}>
+
+  <!-- Web manifest -->
+  <link rel="manifest" href={base+"/site.webmanifest"}>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
