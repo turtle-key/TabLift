@@ -63,6 +63,12 @@ struct SettingsView: View {
         .background(WindowProbe { win in
             let h = win.frame.height - win.contentLayoutRect.height
             let transparent = win.titlebarAppearsTransparent && win.styleMask.contains(.fullSizeContentView)
+            if #available(macOS 11, *) {
+                win.titleVisibility = .hidden
+                win.titlebarAppearsTransparent = false
+            } else {
+                win.titleVisibility = .visible
+            }
             if !transparent && h > 0 {
                 topPad = h
                 compensate = true
