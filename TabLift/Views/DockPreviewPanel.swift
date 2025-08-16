@@ -196,9 +196,13 @@ struct DockPreviewPanel: View {
                         row: row,
                         appBundleID: appBundleID,
                         onTitleClick: { idx, title in
-                            onTitleClick(idx, title)
                             if dockPopupAutoDismiss {
                                 hideDockPreviewImmediately()
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                                    onTitleClick(idx, title)
+                                }
+                            } else {
+                                onTitleClick(idx, title)
                             }
                         },
                         onActionComplete: {
@@ -218,6 +222,7 @@ struct DockPreviewPanel: View {
         .id(windowRows.map(\.id).joined(separator: "|"))
     }
 }
+
 
 
 fileprivate struct RowWithTrafficLights: View {
