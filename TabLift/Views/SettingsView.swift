@@ -104,19 +104,20 @@ struct GeneralSettingsTab: View {
     @AppStorage("showDockIcon") var showDockIcon: Bool = false
     @AppStorage("windowSwitcher") var showWindowSwitcher: Bool = true
     @AppStorage("restoreAllOnDockClick") var restoreAllOnDockClick: Bool = false
-    @State private var isHoveringQuit = false
     @AppStorage("maximizeBehavior") var maximizeBehaviorRaw: String = MaximizeBehavior.fill.rawValue
-    var maximizeBehavior: MaximizeBehavior { MaximizeBehavior(rawValue: maximizeBehaviorRaw) ?? .fullscreen }
-    @State private var openNewWindow: Bool = true
-    @State private var minimizePreviousWindow: Bool = false
-    @State private var hoveredDemo: DemoType? = nil
-    enum DemoType { case restore, opennew, minimizeprev }
-    private let helpTextMaxWidth: CGFloat = 320
-    private let helpTextMaxHeight: CGFloat = 5
+    @AppStorage("dockPopupAutoDismiss") var dockPopupAutoDismiss: Bool = true
     @AppStorage("performanceProfile") var performanceProfileRaw: String = PerformanceProfile.balanced.rawValue
     @AppStorage("dockPreviewSpeed") var dockPreviewSpeed: Double = PerformanceProfile.balanced.hoverDelay
     @AppStorage("dockPreviewFade") var dockPreviewFade: Double = PerformanceProfile.balanced.fadeOutDuration
+    @State private var openNewWindow: Bool = true
+    @State private var minimizePreviousWindow: Bool = false
+    @State private var hoveredDemo: DemoType? = nil
+    @State private var isHoveringQuit = false
+    enum DemoType { case restore, opennew, minimizeprev }
+    private let helpTextMaxWidth: CGFloat = 320
+    private let helpTextMaxHeight: CGFloat = 5
     var selectedProfile: PerformanceProfile { PerformanceProfile(rawValue: performanceProfileRaw) ?? .balanced }
+    var maximizeBehavior: MaximizeBehavior { MaximizeBehavior(rawValue: maximizeBehaviorRaw) ?? .fullscreen }
 
     var body: some View {
         VStack(spacing: 20) {
@@ -176,6 +177,19 @@ struct GeneralSettingsTab: View {
                             : "Disabled: Clicking an app’s Dock icon minimizes only current window if frontmost, restores all if all minimized."
                         )
                         .font(.caption).foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: 340, alignment: .leading)
+                        .padding(.top, 2)
+                    }.padding(.top, 2)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Toggle("Dismiss Dock window preview after click", isOn: $dockPopupAutoDismiss)
+                        Text(
+                            dockPopupAutoDismiss
+                            ? "The Dock window preview popup will disappear after clicking a window or its action buttons."
+                            : "The Dock window preview will remain open after clicking, allowing multiple actions."
+                        )
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: 340, alignment: .leading)
                         .padding(.top, 2)

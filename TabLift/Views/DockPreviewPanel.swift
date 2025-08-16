@@ -24,7 +24,6 @@ enum MaximizeBehavior: String, CaseIterable, Identifiable {
     }
 }
 
-
 fileprivate func axPress(_ element: AXUIElement) {
     AXUIElementPerformAction(element, kAXPressAction as CFString)
 }
@@ -140,7 +139,6 @@ fileprivate func screenForWindow(_ window: AXUIElement) -> NSScreen? {
     return NSScreen.screens.first(where: { $0.frame.contains(mid) }) ?? NSScreen.main
 }
 
-
 fileprivate struct WindowRow: Identifiable, Equatable {
     let id: String
     let title: String
@@ -159,15 +157,19 @@ fileprivate struct WindowRow: Identifiable, Equatable {
     static func == (lhs: WindowRow, rhs: WindowRow) -> Bool { lhs.id == rhs.id }
 }
 
-
 struct DockPreviewPanel: View {
     let appBundleID: String
     let appDisplayName: String
     let appIcon: NSImage
     let windowInfos: [(title: String, isMinimized: Bool, shouldHighlight: Bool)]
-    // Pass index + title so monitor can map reliably (duplicate titles safe)
     let onTitleClick: (Int, String) -> Void
     let onActionComplete: () -> Void
+
+    @State private var dockPopupAutoDismiss = UserDefaults.standard.object(forKey: "dockPopupAutoDismiss") as? Bool ?? true
+
+    private func hideDockPreviewImmediately() {
+        NotificationCenter.default.post(name: NSNotification.Name("DockPreviewPanelShouldDismissImmediately"), object: nil)
+    }
 
     private var windowRows: [WindowRow] {
         windowInfos.enumerated().map { WindowRow(index: $0.offset, tuple: $0.element) }
@@ -193,8 +195,18 @@ struct DockPreviewPanel: View {
                     RowWithTrafficLights(
                         row: row,
                         appBundleID: appBundleID,
-                        onTitleClick: onTitleClick,
-                        onActionComplete: onActionComplete
+                        onTitleClick: { idx, title in
+                            onTitleClick(idx, title)
+                            if dockPopupAutoDismiss {
+                                hideDockPreviewImmediately()
+                            }
+                        },
+                        onActionComplete: {
+                            onActionComplete()
+                            if dockPopupAutoDismiss {
+                                hideDockPreviewImmediately()
+                            }
+                        }
                     )
                 }
             }
@@ -314,7 +326,7 @@ fileprivate struct RowWithTrafficLights: View {
                     if row.isMinimized { MinimizedIndicator().padding(.leading, 5) }
                     Spacer()
                 }
-                .padding(.vertical, 7)
+                .padding(.vertical, 9)
                 .padding(.horizontal, 10)
                 .background(
                     RoundedRectangle(cornerRadius: 10)
