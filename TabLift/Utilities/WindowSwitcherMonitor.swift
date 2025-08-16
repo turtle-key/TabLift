@@ -10,7 +10,6 @@ final class WindowSwitcherMonitor {
     private let cornerRadius: CGFloat = 18
     private let maxVisibleRows: Int = 12
     private let refreshInterval: TimeInterval = 0.10
-    private let autoHideAfterKeyPress: TimeInterval = 1.1
     private let fadeDuration: TimeInterval = 0.10
 
     private var eventTap: CFMachPort?
@@ -18,7 +17,6 @@ final class WindowSwitcherMonitor {
     private var canInterceptEvents = false // we will not intercept; only listen
 
     private var refreshTimer: Timer?
-    private var autoHideTimer: Timer?
 
     private var panel: NSPanel?
     private var containerView: PassthroughContainerView?
@@ -27,7 +25,6 @@ final class WindowSwitcherMonitor {
     private var lastShownAppPID: pid_t?
     private var commandIsHeld: Bool = false
     private var showWindowSwitcher: Bool {UserDefaults.standard.bool(forKey: "windowSwitcher")}
-    // SwiftUI view model for stable updates (prevents marquee glitches)
     private let model = WindowSwitcherViewModel()
 
     // Mapping from stable window id -> AXUIElement
@@ -46,7 +43,6 @@ final class WindowSwitcherMonitor {
     deinit {
         stopKeyEventTap()
         stopRefreshTimer()
-        stopAutoHideTimer()
         NSWorkspace.shared.notificationCenter.removeObserver(self)
         hidePanel(animated: false)
     }
@@ -97,7 +93,6 @@ final class WindowSwitcherMonitor {
         runLoopSource = nil
     }
 
-    // Return value: non-nil to pass event through; nil to suppress.
     private func handleEvent(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
         if(!showWindowSwitcher){ return nil; }
         switch type {
@@ -110,10 +105,7 @@ final class WindowSwitcherMonitor {
                 commandIsHeld = true
 
                 // Give the system a moment to apply the new focused window, then update UI.
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) { [weak self] in
-                    self?.showOrUpdateForFrontmostApp()
-                    self?.restartAutoHideTimer()
-                }
+                showOrUpdateForFrontmostApp()
 
                 // Always pass the event through so the system cycles windows.
                 return Unmanaged.passUnretained(event)
@@ -293,7 +285,6 @@ final class WindowSwitcherMonitor {
 
     private func hidePanel(animated: Bool) {
         stopRefreshTimer()
-        stopAutoHideTimer()
         guard let panel = panel else { return }
         if animated {
             NSAnimationContext.runAnimationGroup { ctx in
@@ -307,20 +298,7 @@ final class WindowSwitcherMonitor {
         }
     }
 
-    private func restartAutoHideTimer() {
-        stopAutoHideTimer()
-        autoHideTimer = Timer.scheduledTimer(withTimeInterval: autoHideAfterKeyPress, repeats: false) { [weak self] _ in
-            guard let self = self else { return }
-            if !self.commandIsHeld {
-                self.hidePanel(animated: true)
-            }
-        }
-    }
 
-    private func stopAutoHideTimer() {
-        autoHideTimer?.invalidate()
-        autoHideTimer = nil
-    }
 
     private func startRefreshTimer() {
         if refreshTimer != nil { return }
@@ -717,11 +695,9 @@ private struct FlexibleMarqueeText: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let w = max(0, proxy.size.width)
-            MarqueeText(text: text, maxWidth: w)
-                .frame(width: w, alignment: .leading)
-                .clipped() // ensure the marquee does not draw outside its lane
-                .allowsHitTesting(false)
+            Text(text)
+                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .lineLimit(1)
         }
         .frame(height: 18) // approx text height to keep row bounds tight
     }
