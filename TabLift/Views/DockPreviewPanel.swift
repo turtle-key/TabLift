@@ -310,7 +310,7 @@ fileprivate struct RowWithTrafficLights: View {
                 onTitleClick(row.index, row.title)
             }) {
                 HStack {
-                    MarqueeText(text: row.title.isEmpty ? "(Untitled)" : row.title, maxWidth: 185).id(row.id)
+                    Text(row.title.isEmpty ? "(Untitled)" : row.title).font(.system(size: 15, weight: .medium, design: .rounded)).lineLimit(1)
                     if row.isMinimized { MinimizedIndicator().padding(.leading, 5) }
                     Spacer()
                 }
