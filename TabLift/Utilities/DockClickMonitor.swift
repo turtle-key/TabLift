@@ -7,7 +7,10 @@ final class DockClickMonitor {
     private var runLoopSource: CFRunLoopSource?
     private var workspaceObserver: NSObjectProtocol?
     private var minimizedObserver: NSObjectProtocol?
-
+    
+    // Track the last focused window per-app for better restore experience
+    private var lastFocusedWindowMap: [pid_t: AXUIElement] = [:]
+    
     // User preference (General > Dock Features > “Dock click toggles all windows”)
     private var restoreAllOnDockClick: Bool {
         UserDefaults.standard.object(forKey: "restoreAllOnDockClick") as? Bool ?? false
@@ -19,7 +22,14 @@ final class DockClickMonitor {
             forName: NSWorkspace.didActivateApplicationNotification,
             object: nil,
             queue: .main
-        ) { _ in }
+        ) { [weak self] notif in
+            guard let self = self else { return }
+            if let app = notif.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication {
+                if let focused = self.focusedWindow(for: app) {
+                    self.lastFocusedWindowMap[app.processIdentifier] = focused
+                }
+            }
+        }
         minimizedObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.activeSpaceDidChangeNotification,
             object: nil,
@@ -33,7 +43,6 @@ final class DockClickMonitor {
         if let observer = workspaceObserver { NSWorkspace.shared.notificationCenter.removeObserver(observer) }
         if let observer = minimizedObserver { NSWorkspace.shared.notificationCenter.removeObserver(observer) }
     }
-
 
     private func setupEventTap() {
         let mask = (1 << CGEventType.leftMouseDown.rawValue)
@@ -60,7 +69,6 @@ final class DockClickMonitor {
         CFRunLoopAddSource(CFRunLoopGetCurrent(), src, .commonModes)
         CGEvent.tapEnable(tap: eventTap, enable: true)
     }
-
 
     private let kAXWindowNumberAttributeStr = "AXWindowNumber" as CFString
 
@@ -157,7 +165,6 @@ final class DockClickMonitor {
         return false
     }
 
-
     private func minimizeWindow(_ window: AXUIElement) {
         var btnAny: AnyObject?
         if AXUIElementCopyAttributeValue(window, kAXMinimizeButtonAttribute as CFString, &btnAny) == .success {
@@ -181,13 +188,23 @@ final class DockClickMonitor {
     private func restoreAllMinimizedWindows(for app: NSRunningApplication) {
         let all = appWindows(for: app)
         var didRestore = false
+        var firstRestored: AXUIElement?
         for w in all where isMinimized(w) {
             restoreWindow(w)
+            if firstRestored == nil { firstRestored = w }
             didRestore = true
         }
         if didRestore {
-            NSApp.activate(ignoringOtherApps: true)
-            _ = app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+            // Do NOT activate TabLift app!
+            app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+            // Focus the window that was previously focused, if possible, or the first restored
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.10) {
+                let winToFocus = self.lastFocusedWindowMap[app.processIdentifier] ?? firstRestored
+                if let win = winToFocus {
+                    AXUIElementSetAttributeValue(AXUIElementCreateApplication(app.processIdentifier), kAXFocusedWindowAttribute as CFString, win)
+                    AXUIElementPerformAction(win, kAXRaiseAction as CFString)
+                }
+            }
         }
     }
 
@@ -204,7 +221,6 @@ final class DockClickMonitor {
             minimizeWindow(first)
         }
     }
-
 
     private func handleClick(event: CGEvent) {
         let mouseLocation = NSEvent.mouseLocation
@@ -259,11 +275,9 @@ final class DockClickMonitor {
                             } else if c.total > 0 && c.minimized == c.total {
                                 self.restoreAllMinimizedWindows(for: app)
                             } else {
-                                // No windows? Just activate (should already be frontmost).
                                 _ = app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
                             }
                         } else {
-                            // Not frontmost: never minimize, only restore all if everything minimized, else activate.
                             if c.total > 0 && c.minimized == c.total {
                                 self.restoreAllMinimizedWindows(for: app)
                             } else {
@@ -275,13 +289,10 @@ final class DockClickMonitor {
                     // Single-window minimize mode
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.20) {
                         if c.total > 0 && c.minimized == c.total {
-                            // All minimized -> restore all
                             self.restoreAllMinimizedWindows(for: app)
                         } else if isFrontmost {
-                            // Only minimize the focused (or first visible) when already frontmost
                             self.minimizeFocusedOrTopVisibleWindow(for: app)
                         } else {
-                            // Bring to front (do not minimize if not already frontmost)
                             _ = app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
                         }
                     }
@@ -290,7 +301,6 @@ final class DockClickMonitor {
             }
         }
     }
-
 
     func refresh() {
         if let eventTap {
@@ -315,7 +325,14 @@ final class DockClickMonitor {
             forName: NSWorkspace.didActivateApplicationNotification,
             object: nil,
             queue: .main
-        ) { _ in }
+        ) { [weak self] notif in
+            guard let self = self else { return }
+            if let app = notif.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication {
+                if let focused = self.focusedWindow(for: app) {
+                    self.lastFocusedWindowMap[app.processIdentifier] = focused
+                }
+            }
+        }
         minimizedObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.activeSpaceDidChangeNotification,
             object: nil,
