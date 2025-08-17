@@ -4,20 +4,16 @@ import ApplicationServices
 import Combine
 
 final class WindowSwitcherMonitor {
-    // UI and behavior constants
     private let panelWidth: CGFloat = 420
     private let rowHeight: CGFloat = 32
     private let edgePadding: CGFloat = 14
     private let cornerRadius: CGFloat = 18
-    private let maxVisibleRows: Int = 12
+    private let maxVisibleRows: Int = 7
     private let refreshInterval: TimeInterval = 0.10
-    private let fadeDuration: TimeInterval = 0.10
 
-    // macOS event tap
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
 
-    // Panel and UI
     private var refreshTimer: Timer?
     private var panel: NSPanel?
     private var containerView: PassthroughContainerView?
@@ -26,7 +22,6 @@ final class WindowSwitcherMonitor {
     private var lastShownAppPID: pid_t?
     private let model = WindowSwitcherViewModel()
 
-    // Window cycling state
     @AppStorage("windowSwitcher") private var showWindowSwitcher: Bool = true
     @AppStorage("shortcutKeyCode") private var keyCodeRaw: Int = 0
     @AppStorage("shortcutModifiers") private var modifiersRaw: Int = 0
@@ -34,7 +29,6 @@ final class WindowSwitcherMonitor {
     private var shortcutModifiers: CGEventFlags { CGEventFlags(rawValue: UInt64(modifiersRaw)) }
     private var shortcutKeyCode: UInt16 { UInt16(keyCodeRaw) }
 
-    // Custom switcher state
     private let deviceIndependentFlags: CGEventFlags = [
         .maskShift, .maskControl, .maskAlternate, .maskCommand, .maskHelp, .maskSecondaryFn
     ]
@@ -44,6 +38,10 @@ final class WindowSwitcherMonitor {
     private var cyclingWindowList: [AXUIElement] = []
     private var currentCycleIndex = 0
     private var idToWindow: [String: AXUIElement] = [:]
+    private var tabliftHasGrab: Bool = false
+    private var mouseClickedDuringSwitch = false
+    private var mouseMonitor: Any?
+    private var panelHiding = false
 
     init() {
         startKeyEventTap()
@@ -53,17 +51,26 @@ final class WindowSwitcherMonitor {
             name: NSWorkspace.didActivateApplicationNotification,
             object: nil
         )
+        mouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]) { [weak self] _ in
+            guard let self = self, self.switcherActive else { return }
+            self.mouseClickedDuringSwitch = true
+            self.hidePanelIfNeeded()
+            self.cleanupSwitcherState()
+        }
     }
 
     deinit {
         stopKeyEventTap()
         stopRefreshTimer()
         NSWorkspace.shared.notificationCenter.removeObserver(self)
-        hidePanel(animated: false)
+        hidePanel()
+        if let monitor = mouseMonitor {
+            NSEvent.removeMonitor(monitor)
+        }
     }
 
     private func startKeyEventTap() {
-        _ = createEventTap(options: .listenOnly)
+        _ = createEventTap(options: .defaultTap)
     }
 
     private func createEventTap(options: CGEventTapOptions) -> Bool {
@@ -107,60 +114,81 @@ final class WindowSwitcherMonitor {
         runLoopSource = nil
     }
 
-    // MARK: - Custom Hotkey Handling
+    private func shouldBlockEvent(_ event: CGEvent) -> Bool {
+        if tabliftHasGrab {
+            let type = event.type
+            if type == .flagsChanged { return false }
+            let keycode = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
+            let allowedKeycodes: Set<UInt16> = [shortcutKeyCode, 18, 19, 20, 21, 23, 22, 26, 28, 25, 29]
+            if allowedKeycodes.contains(keycode) { return false }
+            return true
+        }
+        return false
+    }
 
     private func handleEvent(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
         if !showWindowSwitcher { return Unmanaged.passUnretained(event) }
         let keycode = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
         let flags = event.flags.intersection(deviceIndependentFlags)
         let modifiersNowActive = flags.containsAllFlags(shortcutModifiers)
+        let shiftPressed = flags.contains(.maskShift)
+
+        let numberKeyToIndex: [UInt16: Int] = [
+            18: 0, 19: 1, 20: 2, 21: 3, 23: 4, 22: 5, 26: 6, 28: 7, 25: 8, 29: 8
+        ]
+
+        if shouldBlockEvent(event) {
+            return nil
+        }
 
         switch type {
         case .flagsChanged:
             if modifiersNowActive && !modifierIsHeld {
                 modifierIsHeld = true
-                // Do not show preview yet, wait for trigger key
             } else if !modifiersNowActive && modifierIsHeld {
                 modifierIsHeld = false
                 triggerIsHeld = false
                 if switcherActive {
-                    // Accept current selection and hide preview
-                    if cyclingWindowList.indices.contains(currentCycleIndex),
-                       let app = NSWorkspace.shared.frontmostApplication {
+                    if !mouseClickedDuringSwitch, cyclingWindowList.indices.contains(currentCycleIndex), let app = NSWorkspace.shared.frontmostApplication {
                         focus(window: cyclingWindowList[currentCycleIndex], in: app)
                     }
-                    hidePanel(animated: true)
-                    switcherActive = false
+                    hidePanelIfNeeded()
+                    cleanupSwitcherState()
                 }
-                cyclingWindowList = []
             }
         case .keyDown:
             if modifierIsHeld && keycode == shortcutKeyCode && !triggerIsHeld {
                 triggerIsHeld = true
+                tabliftHasGrab = true
                 if !switcherActive {
-                    // First trigger: show preview and move to next window
                     guard let app = NSWorkspace.shared.frontmostApplication else { break }
                     let winList = fetchWindowList(for: app).windows
                     cyclingWindowList = winList
-                    // Find current focused window index
-                    let focusedIndex = {
-                        guard let app = NSWorkspace.shared.frontmostApplication else { return 0 }
-                        let list = fetchWindowList(for: app)
-                        return list.focusedIndex ?? 0
-                    }()
-                    let count = winList.count
-                    // Move to next window by default (like Cmd+Tab)
-                    currentCycleIndex = (focusedIndex + 1) % max(count, 1)
+                    currentCycleIndex = winList.count > 1 ? 1 : 0
                     if !winList.isEmpty { showOrUpdateForFrontmostApp() }
                     switcherActive = true
+                    panelHiding = false
+                    mouseClickedDuringSwitch = false
                 } else {
-                    // Already active, cycle to next window
                     let count = cyclingWindowList.count
                     if count > 0 {
-                        currentCycleIndex = (currentCycleIndex + 1) % count
+                        currentCycleIndex = shiftPressed
+                            ? (currentCycleIndex - 1 + count) % count
+                            : (currentCycleIndex + 1) % count
+                        showOrUpdateForFrontmostApp()
                     }
                 }
-                return nil // Block further handling
+                return nil
+            }
+            if switcherActive {
+                if let index = numberKeyToIndex[keycode], cyclingWindowList.indices.contains(index) {
+                    if let app = NSWorkspace.shared.frontmostApplication {
+                        focus(window: cyclingWindowList[index], in: app)
+                    }
+                    hidePanelIfNeeded()
+                    cleanupSwitcherState()
+                    return nil
+                }
             }
         case .keyUp:
             if keycode == shortcutKeyCode && triggerIsHeld {
@@ -172,33 +200,44 @@ final class WindowSwitcherMonitor {
         return Unmanaged.passUnretained(event)
     }
 
-    // MARK: - App/Window Switcher Logic
-
     @objc
     private func frontAppChanged(_ note: Notification) {
         guard let app = NSWorkspace.shared.frontmostApplication else {
-            hidePanel(animated: true)
+            hidePanelIfNeeded()
+            cleanupSwitcherState()
             return
         }
         if let lastPID = lastShownAppPID, app.processIdentifier != lastPID {
-            hidePanel(animated: true)
+            hidePanelIfNeeded()
+            cleanupSwitcherState()
         }
     }
 
+    private func cleanupSwitcherState() {
+        switcherActive = false
+        cyclingWindowList = []
+        tabliftHasGrab = false
+        panelHiding = false
+        mouseClickedDuringSwitch = false
+        modifierIsHeld = false
+        triggerIsHeld = false
+    }
+
+    private func hidePanelIfNeeded() {
+        if panelHiding { return }
+        panelHiding = true
+        hidePanel()
+    }
+
     private func focus(window: AXUIElement, in app: NSRunningApplication) {
-        // Unminimize if needed
         var minimizedValue: AnyObject?
         if AXUIElementCopyAttributeValue(window, kAXMinimizedAttribute as CFString, &minimizedValue) == .success,
            let isMin = minimizedValue as? Bool, isMin {
             AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
         }
-
-        // Raise and focus
         AXUIElementPerformAction(window, kAXRaiseAction as CFString)
-
         let appEl = AXUIElementCreateApplication(app.processIdentifier)
         AXUIElementSetAttributeValue(appEl, kAXFocusedWindowAttribute as CFString, window)
-
         app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
     }
 
@@ -207,16 +246,16 @@ final class WindowSwitcherMonitor {
         lastShownAppPID = app.processIdentifier
 
         let list = fetchWindowList(for: app)
-        if list.infos.isEmpty { hidePanel(animated: true); return }
+        if list.infos.isEmpty { hidePanelIfNeeded(); return }
 
         idToWindow = list.idToWindow
 
-        // Only mark the focused one, do not update focus index, to preserve cycling logic
         model.update(appName: app.localizedName ?? app.bundleIdentifier ?? "App",
                      appIcon: app.icon ?? NSImage(size: NSSize(width: 64, height: 64)),
                      windowInfos: list.infos.enumerated().map { idx, info in
                         var info = info
                         info.isFocused = (idx == currentCycleIndex)
+                        info.displayNumber = idx + 1
                         return info
                      })
 
@@ -293,27 +332,15 @@ final class WindowSwitcherMonitor {
     }
 
     private func showPanel(_ panel: NSPanel) {
-        panel.alphaValue = 0
+        panel.alphaValue = 1 // show instantly, for speed
         panel.orderFrontRegardless()
-        NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = fadeDuration
-            panel.animator().alphaValue = 1
-        }
     }
 
-    private func hidePanel(animated: Bool) {
+    private func hidePanel() {
         stopRefreshTimer()
         guard let panel = panel else { return }
-        if animated {
-            NSAnimationContext.runAnimationGroup { ctx in
-                ctx.duration = fadeDuration
-                panel.animator().alphaValue = 0
-            } completionHandler: {
-                panel.orderOut(nil)
-            }
-        } else {
-            panel.orderOut(nil)
-        }
+        panel.alphaValue = 0
+        panel.orderOut(nil)
     }
 
     private func startRefreshTimer() {
@@ -333,12 +360,12 @@ final class WindowSwitcherMonitor {
               app.processIdentifier == lastShownAppPID,
               panel?.isVisible == true
         else {
-            hidePanel(animated: true)
+            hidePanelIfNeeded()
             return
         }
         let list = fetchWindowList(for: app)
         if list.infos.isEmpty {
-            hidePanel(animated: true)
+            hidePanelIfNeeded()
             return
         }
         idToWindow = list.idToWindow
@@ -347,6 +374,7 @@ final class WindowSwitcherMonitor {
                      windowInfos: list.infos.enumerated().map { idx, info in
                         var info = info
                         info.isFocused = (idx == currentCycleIndex)
+                        info.displayNumber = idx + 1
                         return info
                      })
 
@@ -361,16 +389,16 @@ final class WindowSwitcherMonitor {
         guard let app = NSWorkspace.shared.frontmostApplication,
               let ax = idToWindow[id] else { return }
         focus(window: ax, in: app)
-        hidePanel(animated: true)
+        hidePanelIfNeeded()
+        cleanupSwitcherState()
     }
-
-    // MARK: - Window List and Utility
 
     struct WinInfo: Identifiable, Hashable {
         let id: String
         let title: String
         let isMinimized: Bool
         var isFocused: Bool
+        var displayNumber: Int = 0 // 1-based, for UI
     }
 
     private struct WindowList {
@@ -520,7 +548,7 @@ final class WindowSwitcherMonitor {
             }
             if isFocused { focusedIndex = idx }
 
-            infos.append(WinInfo(id: id, title: title, isMinimized: minimized, isFocused: isFocused))
+            infos.append(WinInfo(id: id, title: title, isMinimized: minimized, isFocused: isFocused, displayNumber: idx + 1))
             idToWindow[id] = w
         }
 
@@ -566,7 +594,6 @@ final class WindowSwitcherMonitor {
     }
 }
 
-// Helper: modifier flag matching
 private extension CGEventFlags {
     func containsAllFlags(_ other: CGEventFlags) -> Bool {
         rawValue & other.rawValue == other.rawValue
@@ -599,34 +626,54 @@ private struct WindowSwitcherPanel: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 28, height: 28)
                     .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-
                 Text(model.appName)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.primary)
-
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, 12)
             .padding(.top, 12)
 
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 6) {
-                    ForEach(model.windowInfos, id: \.id) { info in
-                        RowView(info: info) {
-                            onSelect(info.id)
+            ScrollViewReader { proxy in
+                ScrollView(.vertical, showsIndicators: true) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(model.windowInfos, id: \.id) { info in
+                            RowView(info: info) {
+                                onSelect(info.id)
+                            }
+                            .frame(height: 32)
+                            .id(info.id)
                         }
-                        .frame(height: 32)
                     }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 6)
+                .frame(maxWidth: .infinity)
+                .onAppear {
+                    scrollToFocused(proxy: proxy)
+                }
+                .onChange(of: focusedId) { _ in
+                    scrollToFocused(proxy: proxy)
+                }
             }
-            .frame(maxWidth: .infinity)
         }
         .padding(.bottom, 10)
         .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .frame(width: 420)
         .transition(.opacity)
+    }
+
+    private var focusedId: String? {
+        model.windowInfos.first(where: { $0.isFocused })?.id
+    }
+
+    private func scrollToFocused(proxy: ScrollViewProxy) {
+        guard let id = focusedId else { return }
+        DispatchQueue.main.async {
+            withAnimation(.easeInOut(duration: 0.07)) {
+                proxy.scrollTo(id, anchor: .center)
+            }
+        }
     }
 
     private struct RowView: View {
@@ -641,13 +688,22 @@ private struct WindowSwitcherPanel: View {
                         .fill(info.isMinimized ? Color.primary.opacity(0.35) : Color.clear)
                         .frame(width: 6, height: 6)
                         .opacity(info.isMinimized ? 1 : 0)
-
                     FlexibleMarqueeText(text: info.title)
                         .font(.system(size: 13, weight: .regular))
                         .foregroundStyle(.primary)
                         .padding(.vertical, 6)
-
                     Spacer(minLength: 0)
+                    if info.displayNumber > 0 && info.displayNumber <= 9 {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(Color.accentColor.opacity(info.isFocused ? 0.58 : 0.16))
+                                .frame(width: 24, height: 24)
+                            Text("\(info.displayNumber)")
+                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .foregroundColor(info.isFocused ? Color.white : Color.accentColor)
+                        }
+                        .padding(.trailing, 4)
+                    }
                 }
                 .padding(.horizontal, 10)
                 .background(
@@ -690,7 +746,7 @@ private struct WindowSwitcherPanel: View {
 private struct FlexibleMarqueeText: View {
     let text: String
     var body: some View {
-        GeometryReader { proxy in
+        GeometryReader { _ in
             Text(text)
                 .font(.system(size: 15, weight: .medium, design: .rounded))
                 .lineLimit(1)
