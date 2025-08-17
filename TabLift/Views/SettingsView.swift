@@ -119,6 +119,7 @@ struct GeneralSettingsTab: View {
     @State private var minimizePreviousWindow: Bool = false
     @State private var hoveredDemo: DemoType? = nil
     @State private var isHoveringQuit = false
+    @StateObject var shortcutPref = ShortcutPreference()
     enum DemoType { case restore, opennew, minimizeprev }
     private let helpTextMaxWidth: CGFloat = 320
     private let helpTextMaxHeight: CGFloat = 5
@@ -209,6 +210,10 @@ struct GeneralSettingsTab: View {
                                 Text("When disabled, the CMD ` doesn't activate the window switching pop up")
                                     .foregroundColor(.secondary).font(.caption).padding(.top, 2)
                             }
+                        }
+                        if showWindowSwitcher{
+                            ShortcutRecorderView(preference: shortcutPref)
+                                .padding(.vertical, 6)
                         }
                         DemoSection(
                             toggle: Toggle(isOn: $restoreAllWindows) {
