@@ -20,7 +20,6 @@ class ShortcutPreference: ObservableObject {
         if modifiers.contains(.command) { keys.append("⌘") }
         if modifiers.contains(.option) { keys.append("⌥") }
         if modifiers.contains(.control) { keys.append("⌃") }
-        if modifiers.contains(.shift) { keys.append("⇧") }
         if hasShortcut, let kstr = keyCodeToString(keyCode) { keys.append(kstr.uppercased()) }
         return keys
     }
@@ -74,6 +73,13 @@ class ShortcutPreference: ObservableObject {
     }
 }
 
+// Block number keys and shift key from being used as primary shortcut keys
+private let forbiddenKeyCodes: Set<UInt16> = [
+    18, 19, 20, 21, 23, 22, 26, 28, 25, 29, // 1-9
+    27, // 0
+    56, 60 // Shift (left and right)
+]
+
 struct ShortcutRecorderView: View {
     @ObservedObject var preference: ShortcutPreference
     @State private var listening = false
@@ -82,95 +88,103 @@ struct ShortcutRecorderView: View {
     @FocusState private var isFocused: Bool
 
     var body: some View {
-        HStack {
-            Spacer()
-            ZStack {
-                if listening {
-                    Capsule()
-                        .fill(Color.accentColor.opacity(0.15))
-                        .frame(height: 44)
-                        .overlay(
-                            HStack(spacing: 18) {
-                                ProgressView()
-                                    .scaleEffect(0.85)
-                                    .frame(width: 18, height: 18)
-                                Text(showTimeout ? "Timed out" : "Press shortcut…")
-                                    .foregroundColor(showTimeout ? .red : .accentColor)
-                                    .font(.system(.body, design: .monospaced).weight(.medium))
-                            }
-                        )
-                        .frame(minWidth: 200)
-                        .onAppear { setupEventMonitor() }
-                } else if preference.hasShortcut {
-                    // Show the shortcut as a capsule, click to change
-                    Capsule()
-                        .fill(Color.accentColor.opacity(0.12))
-                        .frame(height: 44)
-                        .overlay(
-                            HStack(spacing: 18) {
-                                Text("Shortcut:")
-                                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                                    .foregroundColor(.accentColor)
-                                ForEach(preference.displayKeys, id: \.self) { key in
-                                    Text(key)
-                                        .font(.system(size: 19, weight: .medium, design: .rounded))
-                                        .foregroundColor(.primary)
-                                        .frame(minWidth: 28)
-                                        .padding(.horizontal, 4)
-                                        .padding(.vertical, 3)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                                .fill(Color.white.opacity(0.90))
-                                        )
-                                        .shadow(color: Color.accentColor.opacity(0.11), radius: 1, x: 0, y: 1)
+        VStack(alignment: .leading, spacing: 5) {
+            HStack {
+                Spacer()
+                ZStack {
+                    if listening {
+                        Capsule()
+                            .fill(Color.accentColor.opacity(0.15))
+                            .frame(height: 44)
+                            .overlay(
+                                HStack(spacing: 18) {
+                                    ProgressView()
+                                        .scaleEffect(0.85)
+                                        .frame(width: 18, height: 18)
+                                    Text(showTimeout ? "Timed out" : "Press shortcut…")
+                                        .foregroundColor(showTimeout ? .red : .accentColor)
+                                        .font(.system(.body, design: .monospaced).weight(.medium))
                                 }
+                            )
+                            .frame(minWidth: 200)
+                            .onAppear { setupEventMonitor() }
+                    } else if preference.hasShortcut {
+                        Capsule()
+                            .fill(Color.accentColor.opacity(0.12))
+                            .frame(height: 44)
+                            .overlay(
+                                HStack(spacing: 18) {
+                                    Text("Shortcut:")
+                                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                                        .foregroundColor(.accentColor)
+                                    ForEach(preference.displayKeys, id: \.self) { key in
+                                        Text(key)
+                                            .font(.system(size: 19, weight: .medium, design: .rounded))
+                                            .foregroundColor(.primary)
+                                            .frame(minWidth: 28)
+                                            .padding(.horizontal, 4)
+                                            .padding(.vertical, 3)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                                    .fill(Color.white.opacity(0.90))
+                                            )
+                                            .shadow(color: Color.accentColor.opacity(0.11), radius: 1, x: 0, y: 1)
+                                    }
+                                }
+                            )
+                            .frame(minWidth: 200)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 24)
+                                    .strokeBorder(Color.accentColor.opacity(0.16), lineWidth: 1.2)
+                            )
+                            .onTapGesture {
+                                listening = true
+                                showTimeout = false
+                                isFocused = true
+                                startTimeout()
+                                NSApp.mainWindow?.makeFirstResponder(nil)
                             }
-                        )
-                        .frame(minWidth: 200)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 24)
-                                .strokeBorder(Color.accentColor.opacity(0.16), lineWidth: 1.2)
-                        )
-                        .onTapGesture {
+                            .help("Click to change shortcut")
+                    } else {
+                        Button(action: {
                             listening = true
                             showTimeout = false
                             isFocused = true
                             startTimeout()
                             NSApp.mainWindow?.makeFirstResponder(nil)
+                        }) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "keyboard")
+                                    .font(.title2)
+                                Text("Set Shortcut")
+                                    .font(.system(.body, design: .monospaced).weight(.semibold))
+                            }
+                            .frame(minWidth: 200, minHeight: 44)
+                            .foregroundColor(.accentColor)
+                            .padding(.horizontal, 10)
+                            .background(
+                                Capsule()
+                                    .fill(Color.accentColor.opacity(0.16))
+                            )
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(Color.accentColor.opacity(0.18), lineWidth: 1.2)
+                            )
                         }
-                        .help("Click to change shortcut")
-                } else {
-                    // Show the 'Set Shortcut' button
-                    Button(action: {
-                        listening = true
-                        showTimeout = false
-                        isFocused = true
-                        startTimeout()
-                        NSApp.mainWindow?.makeFirstResponder(nil)
-                    }) {
-                        HStack(spacing: 12) {
-                            Image(systemName: "keyboard")
-                                .font(.title2)
-                            Text("Set Shortcut")
-                                .font(.system(.body, design: .monospaced).weight(.semibold))
-                        }
-                        .frame(minWidth: 200, minHeight: 44)
-                        .foregroundColor(.accentColor)
-                        .padding(.horizontal, 10)
-                        .background(
-                            Capsule()
-                                .fill(Color.accentColor.opacity(0.16))
-                        )
-                        .overlay(
-                            Capsule()
-                                .strokeBorder(Color.accentColor.opacity(0.18), lineWidth: 1.2)
-                        )
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
+                .padding(.vertical, 6)
+                Spacer()
             }
-            .padding(.vertical, 6)
-            Spacer()
+
+            Text("Default shortcut: ⌘ + ` (command + backtick)")
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .padding(.top, 2)
+            Text("You can modify the shortcut here. Numbers (0-9) and Shift are reserved for window switching and cannot be used as the main shortcut.")
+                .font(.footnote)
+                .foregroundColor(.secondary)
         }
         .onDisappear { cancelTimeout() }
     }
@@ -178,16 +192,19 @@ struct ShortcutRecorderView: View {
     private func setupEventMonitor() {
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             guard listening else { return event }
-            // Accept all shortcuts with at least one modifier (cmd, opt, ctrl, shift)
             let mods = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-            if !mods.intersection([.command, .option, .control, .shift]).isEmpty {
-                preference.keyCode = event.keyCode
-                preference.modifiers = mods
-                stopListening()
-                return nil // Consume event
+            // Must have at least one non-shift modifier (cmd/opt/ctrl)
+            let requiredMods = mods.intersection([.command, .option, .control])
+            // Ignore if no required modifier, or if key is forbidden
+            if requiredMods.isEmpty || forbiddenKeyCodes.contains(event.keyCode) || mods.contains(.shift) {
+                // Beep to indicate forbidden shortcut
+                NSSound.beep()
+                return nil
             }
-            // If no modifier, ignore
-            return event
+            preference.keyCode = event.keyCode
+            preference.modifiers = mods
+            stopListening()
+            return nil
         }
     }
 
