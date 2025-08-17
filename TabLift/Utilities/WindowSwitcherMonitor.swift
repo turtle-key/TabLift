@@ -4,6 +4,7 @@ import ApplicationServices
 import Combine
 
 final class WindowSwitcherMonitor {
+    // UI and behavior constants
     private let panelWidth: CGFloat = 420
     private let rowHeight: CGFloat = 32
     private let edgePadding: CGFloat = 14
@@ -12,22 +13,36 @@ final class WindowSwitcherMonitor {
     private let refreshInterval: TimeInterval = 0.10
     private let fadeDuration: TimeInterval = 0.10
 
+    // macOS event tap
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
-    private var canInterceptEvents = false // we will not intercept; only listen
 
+    // Panel and UI
     private var refreshTimer: Timer?
-
     private var panel: NSPanel?
     private var containerView: PassthroughContainerView?
     private var effectView: NSVisualEffectView?
     private var hosting: NSHostingView<WindowSwitcherPanel>?
     private var lastShownAppPID: pid_t?
-    private var commandIsHeld: Bool = false
-    private var showWindowSwitcher: Bool {UserDefaults.standard.bool(forKey: "windowSwitcher")}
     private let model = WindowSwitcherViewModel()
 
-    // Mapping from stable window id -> AXUIElement
+    // Window cycling state
+    @AppStorage("windowSwitcher") private var showWindowSwitcher: Bool = true
+    @AppStorage("shortcutKeyCode") private var keyCodeRaw: Int = 0
+    @AppStorage("shortcutModifiers") private var modifiersRaw: Int = 0
+
+    private var shortcutModifiers: CGEventFlags { CGEventFlags(rawValue: UInt64(modifiersRaw)) }
+    private var shortcutKeyCode: UInt16 { UInt16(keyCodeRaw) }
+
+    // Custom switcher state
+    private let deviceIndependentFlags: CGEventFlags = [
+        .maskShift, .maskControl, .maskAlternate, .maskCommand, .maskHelp, .maskSecondaryFn
+    ]
+    private var modifierIsHeld = false
+    private var triggerIsHeld = false
+    private var switcherActive = false
+    private var cyclingWindowList: [AXUIElement] = []
+    private var currentCycleIndex = 0
     private var idToWindow: [String: AXUIElement] = [:]
 
     init() {
@@ -47,15 +62,14 @@ final class WindowSwitcherMonitor {
         hidePanel(animated: false)
     }
 
-
     private func startKeyEventTap() {
-        // Always listen-only so the system handles Cmd+` switching.
         _ = createEventTap(options: .listenOnly)
-        canInterceptEvents = false
     }
 
     private func createEventTap(options: CGEventTapOptions) -> Bool {
-        let mask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.flagsChanged.rawValue)
+        let mask = (1 << CGEventType.keyDown.rawValue) |
+                   (1 << CGEventType.flagsChanged.rawValue) |
+                   (1 << CGEventType.keyUp.rawValue)
         guard let tap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
             place: .headInsertEventTap,
@@ -93,33 +107,64 @@ final class WindowSwitcherMonitor {
         runLoopSource = nil
     }
 
+    // MARK: - Custom Hotkey Handling
+
     private func handleEvent(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
-        if(!showWindowSwitcher){ return nil; }
+        if !showWindowSwitcher { return Unmanaged.passUnretained(event) }
+        let keycode = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
+        let flags = event.flags.intersection(deviceIndependentFlags)
+        let modifiersNowActive = flags.containsAllFlags(shortcutModifiers)
+
         switch type {
-        case .keyDown:
-            let keycode = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
-            let flags = event.flags
-            let isCmd = flags.contains(.maskCommand)
-            if isCmd && keycode == 50 /* kVK_ANSI_Grave */ {
-                // Let macOS switch windows; we only show/update the popup.
-                commandIsHeld = true
-
-                // Give the system a moment to apply the new focused window, then update UI.
-                showOrUpdateForFrontmostApp()
-
-                // Always pass the event through so the system cycles windows.
-                return Unmanaged.passUnretained(event)
-            }
         case .flagsChanged:
-            let flags = event.flags
-            let nowCmd = flags.contains(.maskCommand)
-            if commandIsHeld && !nowCmd {
-                commandIsHeld = false
-                DispatchQueue.main.async { [weak self] in
-                    self?.hidePanel(animated: true)
+            if modifiersNowActive && !modifierIsHeld {
+                modifierIsHeld = true
+                // Do not show preview yet, wait for trigger key
+            } else if !modifiersNowActive && modifierIsHeld {
+                modifierIsHeld = false
+                triggerIsHeld = false
+                if switcherActive {
+                    // Accept current selection and hide preview
+                    if cyclingWindowList.indices.contains(currentCycleIndex),
+                       let app = NSWorkspace.shared.frontmostApplication {
+                        focus(window: cyclingWindowList[currentCycleIndex], in: app)
+                    }
+                    hidePanel(animated: true)
+                    switcherActive = false
                 }
-            } else if nowCmd {
-                commandIsHeld = true
+                cyclingWindowList = []
+            }
+        case .keyDown:
+            if modifierIsHeld && keycode == shortcutKeyCode && !triggerIsHeld {
+                triggerIsHeld = true
+                if !switcherActive {
+                    // First trigger: show preview and move to next window
+                    guard let app = NSWorkspace.shared.frontmostApplication else { break }
+                    let winList = fetchWindowList(for: app).windows
+                    cyclingWindowList = winList
+                    // Find current focused window index
+                    let focusedIndex = {
+                        guard let app = NSWorkspace.shared.frontmostApplication else { return 0 }
+                        let list = fetchWindowList(for: app)
+                        return list.focusedIndex ?? 0
+                    }()
+                    let count = winList.count
+                    // Move to next window by default (like Cmd+Tab)
+                    currentCycleIndex = (focusedIndex + 1) % max(count, 1)
+                    if !winList.isEmpty { showOrUpdateForFrontmostApp() }
+                    switcherActive = true
+                } else {
+                    // Already active, cycle to next window
+                    let count = cyclingWindowList.count
+                    if count > 0 {
+                        currentCycleIndex = (currentCycleIndex + 1) % count
+                    }
+                }
+                return nil // Block further handling
+            }
+        case .keyUp:
+            if keycode == shortcutKeyCode && triggerIsHeld {
+                triggerIsHeld = false
             }
         default:
             break
@@ -127,6 +172,7 @@ final class WindowSwitcherMonitor {
         return Unmanaged.passUnretained(event)
     }
 
+    // MARK: - App/Window Switcher Logic
 
     @objc
     private func frontAppChanged(_ note: Notification) {
@@ -137,24 +183,6 @@ final class WindowSwitcherMonitor {
         if let lastPID = lastShownAppPID, app.processIdentifier != lastPID {
             hidePanel(animated: true)
         }
-    }
-
-    private enum CycleDirection { case forward, backward }
-
-    private func performCycle(direction: CycleDirection) {
-        guard let app = NSWorkspace.shared.frontmostApplication else { return }
-        let list = fetchWindowList(for: app)
-        guard list.windows.count > 0 else { return }
-
-        var currentIndex = list.focusedIndex ?? 0
-        if direction == .forward {
-            currentIndex = (currentIndex + 1) % list.windows.count
-        } else {
-            currentIndex = (currentIndex - 1 + list.windows.count) % list.windows.count
-        }
-
-        let target = list.windows[currentIndex]
-        focus(window: target, in: app)
     }
 
     private func focus(window: AXUIElement, in app: NSRunningApplication) {
@@ -171,10 +199,8 @@ final class WindowSwitcherMonitor {
         let appEl = AXUIElementCreateApplication(app.processIdentifier)
         AXUIElementSetAttributeValue(appEl, kAXFocusedWindowAttribute as CFString, window)
 
-        // Helps bring some apps forward
         app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
     }
-
 
     private func showOrUpdateForFrontmostApp() {
         guard let app = NSWorkspace.shared.frontmostApplication else { return }
@@ -183,20 +209,16 @@ final class WindowSwitcherMonitor {
         let list = fetchWindowList(for: app)
         if list.infos.isEmpty { hidePanel(animated: true); return }
 
-        // Update model (stable, prevents marquee reset)
-        let appName = app.localizedName ?? app.bundleIdentifier ?? "App"
-        let appIcon: NSImage = {
-            if let icon = app.icon { return icon }
-            if let url = app.bundleURL {
-                return NSWorkspace.shared.icon(forFile: url.path)
-            }
-            return NSImage(size: NSSize(width: 64, height: 64))
-        }()
-
-        // Keep mapping for click selection
         idToWindow = list.idToWindow
 
-        model.update(appName: appName, appIcon: appIcon, windowInfos: list.infos)
+        // Only mark the focused one, do not update focus index, to preserve cycling logic
+        model.update(appName: app.localizedName ?? app.bundleIdentifier ?? "App",
+                     appIcon: app.icon ?? NSImage(size: NSSize(width: 64, height: 64)),
+                     windowInfos: list.infos.enumerated().map { idx, info in
+                        var info = info
+                        info.isFocused = (idx == currentCycleIndex)
+                        return info
+                     })
 
         let requiredHeight = panelHeight(for: list.infos.count)
         let panelFrame = centeredPanelFrame(width: panelWidth, height: requiredHeight)
@@ -206,7 +228,7 @@ final class WindowSwitcherMonitor {
             if !panel.isVisible {
                 showPanel(panel)
             }
-            container.cornerRadius = cornerRadius // keep in sync
+            container.cornerRadius = cornerRadius
             effectView?.layer?.cornerRadius = cornerRadius
         } else {
             createPanel(frame: panelFrame)
@@ -219,7 +241,6 @@ final class WindowSwitcherMonitor {
     }
 
     private func createPanel(frame: CGRect) {
-        // Panel
         let panel = NSPanel(
             contentRect: frame,
             styleMask: [.borderless, .nonactivatingPanel],
@@ -228,29 +249,26 @@ final class WindowSwitcherMonitor {
         )
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = true // shadow drawn by SwiftUI if desired
+        panel.hasShadow = true
         panel.hidesOnDeactivate = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.level = .statusBar
-        panel.ignoresMouseEvents = false // allow clicking rows
+        panel.ignoresMouseEvents = false
 
-        // Container that only accepts clicks inside rounded rect
         let container = PassthroughContainerView(frame: NSRect(origin: .zero, size: frame.size), cornerRadius: cornerRadius)
         container.autoresizingMask = [.width, .height]
         container.wantsLayer = true
         container.layer?.backgroundColor = NSColor.clear.cgColor
 
-        // Visual effect background, clipped to radius
         let effect = NSVisualEffectView(frame: container.bounds)
         effect.autoresizingMask = [.width, .height]
-        effect.material = .hudWindow // subtle and neutral; change to .popover or .menu if preferred
+        effect.material = .hudWindow
         effect.blendingMode = .withinWindow
         effect.state = .active
         effect.wantsLayer = true
         effect.layer?.cornerRadius = cornerRadius
         effect.layer?.masksToBounds = true
 
-        // Hosting SwiftUI contents
         let rootView = WindowSwitcherPanel(
             model: model,
             cornerRadius: cornerRadius,
@@ -298,8 +316,6 @@ final class WindowSwitcherMonitor {
         }
     }
 
-
-
     private func startRefreshTimer() {
         if refreshTimer != nil { return }
         refreshTimer = Timer.scheduledTimer(withTimeInterval: refreshInterval, repeats: true) { [weak self] _ in
@@ -325,11 +341,14 @@ final class WindowSwitcherMonitor {
             hidePanel(animated: true)
             return
         }
-        // Update model and mapping, no rootView replacement
         idToWindow = list.idToWindow
         model.update(appName: app.localizedName ?? app.bundleIdentifier ?? "App",
                      appIcon: app.icon ?? NSImage(size: NSSize(width: 64, height: 64)),
-                     windowInfos: list.infos)
+                     windowInfos: list.infos.enumerated().map { idx, info in
+                        var info = info
+                        info.isFocused = (idx == currentCycleIndex)
+                        return info
+                     })
 
         let newHeight = panelHeight(for: list.infos.count)
         let newFrame = centeredPanelFrame(width: panelWidth, height: newHeight)
@@ -345,13 +364,13 @@ final class WindowSwitcherMonitor {
         hidePanel(animated: true)
     }
 
+    // MARK: - Window List and Utility
 
-    // Prefer AXWindowNumber (stable across refreshes); fallback to AXUIElement pointer.
     struct WinInfo: Identifiable, Hashable {
-        let id: String // "w:<AXWindowNumber>" or "p:<pointer>"
+        let id: String
         let title: String
         let isMinimized: Bool
-        let isFocused: Bool
+        var isFocused: Bool
     }
 
     private struct WindowList {
@@ -361,7 +380,6 @@ final class WindowSwitcherMonitor {
         let idToWindow: [String: AXUIElement]
     }
 
-    // Helper: Z-ordered visible window numbers (front to back) for a PID.
     private func cgOrderedWindowNumbers(forPID pid: pid_t) -> [Int] {
         guard let list = CGWindowListCopyWindowInfo(
             [.optionOnScreenOnly, .excludeDesktopElements],
@@ -369,9 +387,7 @@ final class WindowSwitcherMonitor {
         ) as? [[String: Any]] else {
             return []
         }
-        
         var nums: [Int] = []
-        
         for item in list {
             guard
                 let ownerPID = item[kCGWindowOwnerPID as String] as? pid_t,
@@ -379,10 +395,8 @@ final class WindowSwitcherMonitor {
                 let layer = item[kCGWindowLayer as String] as? Int, layer == 0,
                 let num = item[kCGWindowNumber as String] as? Int
             else { continue }
-            
             nums.append(num)
         }
-        
         return nums
     }
 
@@ -390,14 +404,12 @@ final class WindowSwitcherMonitor {
         let pid = app.processIdentifier
         let appEl = AXUIElementCreateApplication(pid)
 
-        // AX windows for the app
         var windowsValue: AnyObject?
         guard AXUIElementCopyAttributeValue(appEl, kAXWindowsAttribute as CFString, &windowsValue) == .success,
               let axWindows = windowsValue as? [AXUIElement], !axWindows.isEmpty else {
             return WindowList(windows: [], infos: [], focusedIndex: nil, idToWindow: [:])
         }
 
-        // Focused window (AX)
         var focusedValue: AnyObject?
         var focusedWin: AXUIElement?
         if AXUIElementCopyAttributeValue(appEl, kAXFocusedWindowAttribute as CFString, &focusedValue) == .success,
@@ -406,7 +418,6 @@ final class WindowSwitcherMonitor {
         }
         let focusedNum = focusedWin?.tlAXWindowNumber()
 
-        // Build AX maps and filter to actual top-level windows
         var axByNumber: [Int: AXUIElement] = [:]
         var restAX: [AXUIElement] = []
 
@@ -422,17 +433,14 @@ final class WindowSwitcherMonitor {
             if let num = w.tlAXWindowNumber() {
                 axByNumber[num] = w
             } else {
-                restAX.append(w) // no window number; append later
+                restAX.append(w)
             }
         }
 
-        // Z-ordered CG window numbers for this PID (visible, layer 0)
         let orderedNums = cgOrderedWindowNumbers(forPID: pid)
 
-        // Build final ordered AX windows: first those visible on screen by CG order,
-        // then append remaining AX windows (minimized/off-screen/unnumbered).
         var orderedAX: [AXUIElement] = []
-        var seen = Set<String>() // track by stable ID string
+        var seen = Set<String>()
 
         func stableID(for w: AXUIElement) -> String {
             if let num = w.tlAXWindowNumber() { return "w:\(num)" }
@@ -448,8 +456,6 @@ final class WindowSwitcherMonitor {
                 }
             }
         }
-
-        // Append remaining AX windows that weren't visible (e.g., minimized/off-screen)
         for w in axWindows {
             guard isEligible(w) else { continue }
             let sid = stableID(for: w)
@@ -458,7 +464,6 @@ final class WindowSwitcherMonitor {
                 seen.insert(sid)
             }
         }
-        // Finally append those without window number (if any left)
         for w in restAX {
             let sid = stableID(for: w)
             if !seen.contains(sid) {
@@ -477,13 +482,11 @@ final class WindowSwitcherMonitor {
             return WindowList(windows: [], infos: [], focusedIndex: nil, idToWindow: [:])
         }
 
-        // Build infos and locate focused index
         var infos: [WinInfo] = []
         var idToWindow: [String: AXUIElement] = [:]
         var focusedIndex: Int?
 
         for (idx, w) in orderedAX.enumerated() {
-            // Title
             var titleRaw: AnyObject?
             var title = ""
             if AXUIElementCopyAttributeValue(w, kAXTitleAttribute as CFString, &titleRaw) == .success {
@@ -498,12 +501,10 @@ final class WindowSwitcherMonitor {
             }
             if title.isEmpty { title = "(Untitled)" }
 
-            // Minimized
             var minimizedRaw: AnyObject?
             let minimized = AXUIElementCopyAttributeValue(w, kAXMinimizedAttribute as CFString, &minimizedRaw) == .success
                 ? ((minimizedRaw as? Bool) ?? false) : false
 
-            // Stable ID and focus
             let id: String
             if let num = w.tlAXWindowNumber() {
                 id = "w:\(num)"
@@ -526,7 +527,6 @@ final class WindowSwitcherMonitor {
         return WindowList(windows: orderedAX, infos: infos, focusedIndex: focusedIndex, idToWindow: idToWindow)
     }
 
-    // Heuristic: filter out tiny Picture-in-Picture / overlay windows or non-standard dialogs.
     private func isProbablyPictureInPicture(window: AXUIElement) -> Bool {
         if let subrole = window.tlAXSubrole(), subrole == "AXSystemDialog" || subrole == "AXPictureInPictureWindow" {
             return true
@@ -534,7 +534,6 @@ final class WindowSwitcherMonitor {
         if let title = window.tlAXTitle(), title.lowercased().contains("picture in picture") {
             return true
         }
-        // Filter by very small size
         var sizeRaw: AnyObject?
         if AXUIElementCopyAttributeValue(window, kAXSizeAttribute as CFString, &sizeRaw) == .success,
            let anyObj = sizeRaw, CFGetTypeID(anyObj) == AXValueGetTypeID() {
@@ -549,11 +548,9 @@ final class WindowSwitcherMonitor {
         return false
     }
 
-
     private func panelHeight(for count: Int) -> CGFloat {
         let rows = min(count, maxVisibleRows)
         let contentHeight = CGFloat(rows) * rowHeight
-        // Header height ~ 56 + paddings
         let headerHeight: CGFloat = 56 + 8
         return contentHeight + edgePadding * 2 + headerHeight
     }
@@ -569,6 +566,12 @@ final class WindowSwitcherMonitor {
     }
 }
 
+// Helper: modifier flag matching
+private extension CGEventFlags {
+    func containsAllFlags(_ other: CGEventFlags) -> Bool {
+        rawValue & other.rawValue == other.rawValue
+    }
+}
 
 final class WindowSwitcherViewModel: ObservableObject {
     @Published var appName: String = ""
@@ -576,13 +579,11 @@ final class WindowSwitcherViewModel: ObservableObject {
     @Published var windowInfos: [WindowSwitcherMonitor.WinInfo] = []
 
     func update(appName: String, appIcon: NSImage, windowInfos: [WindowSwitcherMonitor.WinInfo]) {
-        // Assign directly; SwiftUI diffing is fine and avoids image equality issues.
         self.appName = appName
         self.appIcon = appIcon
         self.windowInfos = windowInfos
     }
 }
-
 
 private struct WindowSwitcherPanel: View {
     @ObservedObject var model: WindowSwitcherViewModel
@@ -591,7 +592,6 @@ private struct WindowSwitcherPanel: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            // Header with app icon + name
             HStack(spacing: 10) {
                 Image(nsImage: model.appIcon)
                     .resizable()
@@ -609,7 +609,6 @@ private struct WindowSwitcherPanel: View {
             .padding(.horizontal, 12)
             .padding(.top, 12)
 
-            // List of windows
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(model.windowInfos, id: \.id) { info in
@@ -638,7 +637,6 @@ private struct WindowSwitcherPanel: View {
         var body: some View {
             Button(action: { onTap() }) {
                 HStack(spacing: 10) {
-                    // Minimization dot
                     Circle()
                         .fill(info.isMinimized ? Color.primary.opacity(0.35) : Color.clear)
                         .frame(width: 6, height: 6)
@@ -689,20 +687,17 @@ private struct WindowSwitcherPanel: View {
     }
 }
 
-
 private struct FlexibleMarqueeText: View {
     let text: String
-
     var body: some View {
         GeometryReader { proxy in
             Text(text)
                 .font(.system(size: 15, weight: .medium, design: .rounded))
                 .lineLimit(1)
         }
-        .frame(height: 18) // approx text height to keep row bounds tight
+        .frame(height: 18)
     }
 }
-
 
 private final class PassthroughContainerView: NSView {
     var cornerRadius: CGFloat {
@@ -713,7 +708,7 @@ private final class PassthroughContainerView: NSView {
         self.cornerRadius = cornerRadius
         super.init(frame: frameRect)
         wantsLayer = true
-        layer?.masksToBounds = false // we clip subviews individually where needed
+        layer?.masksToBounds = false
         layer?.backgroundColor = NSColor.clear.cgColor
     }
 
@@ -727,12 +722,10 @@ private final class PassthroughContainerView: NSView {
         if roundedPath.contains(point) {
             return super.hitTest(point)
         } else {
-            // Allow clicks outside rounded shape to pass to underlying windows
             return nil
         }
     }
 }
-
 
 private extension AXUIElement {
     func tlAXRole() -> String? {
@@ -740,25 +733,21 @@ private extension AXUIElement {
         guard AXUIElementCopyAttributeValue(self, kAXRoleAttribute as CFString, &v) == .success else { return nil }
         return v as? String
     }
-
     func tlAXSubrole() -> String? {
         var v: AnyObject?
         guard AXUIElementCopyAttributeValue(self, kAXSubroleAttribute as CFString, &v) == .success else { return nil }
         return v as? String
     }
-
     func tlAXTitle() -> String? {
         var v: AnyObject?
         guard AXUIElementCopyAttributeValue(self, kAXTitleAttribute as CFString, &v) == .success else { return nil }
         return v as? String
     }
-
     func tlAXWindowNumber() -> Int? {
         var v: AnyObject?
         guard AXUIElementCopyAttributeValue(self, "AXWindowNumber" as CFString, &v) == .success else { return nil }
         return v as? Int
     }
-
     func tlAXBoolAttribute(_ attr: CFString) -> Bool? {
         var v: AnyObject?
         guard AXUIElementCopyAttributeValue(self, attr, &v) == .success else { return nil }
