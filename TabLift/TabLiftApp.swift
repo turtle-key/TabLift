@@ -65,7 +65,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         screenRecordingObserver = DistributedNotificationCenter.default().addObserver(forName: NSNotification.Name("com.apple.screencapture.interactive"), object: nil, queue: .main) { [weak self] _ in self?.handleGlobalRefresh() }
         displayConfigObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main) { [weak self] _ in self?.handleGlobalRefresh() }
         accessibilityObserver = DistributedNotificationCenter.default().addObserver(forName: NSNotification.Name("com.apple.accessibility.api"), object: nil, queue: .main) { [weak self] _ in self?.handleGlobalRefresh() }
-        DispatchQueue.main.async { self.showUI() }
     }
 
     func handleGlobalRefresh() {
