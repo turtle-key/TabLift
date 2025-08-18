@@ -8,7 +8,7 @@ final class WindowSwitcherMonitor {
     private let rowHeight: CGFloat = 32
     private let edgePadding: CGFloat = 14
     private let cornerRadius: CGFloat = 18
-    private let maxVisibleRows: Int = 7
+    private let maxVisibleRows: Int = 8
     private let refreshInterval: TimeInterval = 0.10
 
     private var eventTap: CFMachPort?

@@ -4,14 +4,12 @@
 <dict>
 	<key>NSAccessibilityUsageDescription</key>
 	<string>Accessibility permissions are used for window management.</string>
-	<key>LSUIElement</key>
-	<true/>
 	<key>NSQuitAlwaysKeepsWindows</key>
 	<false/>
-	<key>SUFeedURL</key>
-	<string>https://tablift.dev/appcast.xml</string>
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
+	<key>SUFeedURL</key>
+	<string>https://tablift.dev/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>NUbqo71QhdMNKoubUuZtAkx0uyZ1zUQhkSDXVm0r1dE=</string>
 	<key>SUScheduledCheckInterval</key>
