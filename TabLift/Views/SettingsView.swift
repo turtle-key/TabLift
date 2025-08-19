@@ -607,7 +607,6 @@ struct TabliftCheatSheetView: View {
     var body: some View {
         VStack(spacing: 15) {
             HStack(alignment: .center, spacing: 18) {
-                KeyboardFaceView()
                 VStack(alignment: .leading, spacing: 2) {
                     Text("TabLift Cheat Sheet")
                         .font(.system(size: 22, weight: .bold, design: .rounded))
@@ -641,14 +640,6 @@ struct TabliftCheatSheetView: View {
     }
 }
 
-struct KeyboardFaceView: View {
-    var body: some View {
-        HStack(spacing: 7) {
-            KeyCap(symbol: "⌘")
-            KeyCapKeyboardFace()
-        }
-    }
-}
 
 struct KeyCap: View {
     let symbol: String
@@ -671,49 +662,6 @@ struct KeyCap: View {
                 .foregroundColor(.accentColor)
         }
         .frame(width: 40, height: 40)
-    }
-}
-
-struct KeyCapKeyboardFace: View {
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(
-                    LinearGradient(gradient: Gradient(colors: [
-                        Color.white,
-                        Color(NSColor.systemGray).opacity(0.18)
-                    ]), startPoint: .top, endPoint: .bottom)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .stroke(Color.accentColor.opacity(0.75), lineWidth: 2)
-                )
-                .shadow(color: Color.accentColor.opacity(0.13), radius: 3, x: 0, y: 1)
-            VStack(spacing: 0) {
-                HStack(spacing: 8) {
-                    Circle().fill(Color.accentColor.opacity(0.85)).frame(width: 5, height: 5)
-                    Circle().fill(Color.accentColor.opacity(0.85)).frame(width: 5, height: 5)
-                }
-                .padding(.top, 8)
-                SmileShape()
-                    .stroke(Color.accentColor.opacity(0.8), lineWidth: 2)
-                    .frame(width: 18, height: 10)
-                    .offset(y: -2)
-            }
-        }
-        .frame(width: 40, height: 40)
-    }
-}
-
-struct SmileShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.addArc(center: CGPoint(x: rect.midX, y: rect.minY + 4),
-                    radius: rect.width * 0.33,
-                    startAngle: .degrees(33),
-                    endAngle: .degrees(147),
-                    clockwise: false)
-        return path
     }
 }
 
@@ -770,19 +718,21 @@ struct CheatSheetRowMouseDock: View {
 struct MouseIcon: View {
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(NSColor.systemGray))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.accentColor.opacity(0.4), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(
+                    LinearGradient(gradient: Gradient(colors: [
+                        Color.white,
+                        Color(NSColor.systemGray).opacity(0.18)
+                    ]), startPoint: .top, endPoint: .bottom)
                 )
-            VStack(spacing: 0) {
-                Rectangle()
-                    .fill(Color.accentColor.opacity(0.85))
-                    .frame(width: 4, height: 12)
-                    .cornerRadius(2)
-                    .offset(y:-8)
-            }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(Color.accentColor.opacity(0.75), lineWidth: 2)
+                )
+                .shadow(color: Color.accentColor.opacity(0.13), radius: 3, x: 0, y: 1)
+            Image(systemName: "cursorarrow")
+                            .font(.system(size: 20, weight: .semibold, design: .rounded))
+                            .foregroundColor(.accentColor)
         }
         .frame(width: 40, height: 40)
     }
