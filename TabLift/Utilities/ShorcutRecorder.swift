@@ -3,8 +3,8 @@ import Combine
 import Carbon.HIToolbox
 
 class ShortcutPreference: ObservableObject {
-    @AppStorage("shortcutKeyCode") private var keyCodeRaw: Int = 0
-    @AppStorage("shortcutModifiers") private var modifiersRaw: Int = 0
+    @AppStorage("shortcutKeyCode") private var keyCodeRaw: Int = 50 
+    @AppStorage("shortcutModifiers") private var modifiersRaw: Int = Int(NSEvent.ModifierFlags.command.rawValue)
 
     var keyCode: UInt16 {
         get { UInt16(keyCodeRaw) }
@@ -126,7 +126,7 @@ struct ShortcutRecorderView: View {
                                             .padding(.vertical, 3)
                                             .background(
                                                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                                    .fill(Color.white.opacity(0.90))
+                                                    .fill( Color(NSColor.controlBackgroundColor))
                                             )
                                             .shadow(color: Color.accentColor.opacity(0.11), radius: 1, x: 0, y: 1)
                                     }

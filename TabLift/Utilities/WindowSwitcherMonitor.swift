@@ -23,8 +23,8 @@ final class WindowSwitcherMonitor {
     private let model = WindowSwitcherViewModel()
 
     @AppStorage("windowSwitcher") private var showWindowSwitcher: Bool = true
-    @AppStorage("shortcutKeyCode") private var keyCodeRaw: Int = 0
-    @AppStorage("shortcutModifiers") private var modifiersRaw: Int = 0
+    @AppStorage("shortcutKeyCode") private var keyCodeRaw: Int = 50
+    @AppStorage("shortcutModifiers") private var modifiersRaw: Int = Int(NSEvent.ModifierFlags.command.rawValue)
 
     private var shortcutModifiers: CGEventFlags { CGEventFlags(rawValue: UInt64(modifiersRaw)) }
     private var shortcutKeyCode: UInt16 { UInt16(keyCodeRaw) }
