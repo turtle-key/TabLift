@@ -621,7 +621,7 @@ struct TabliftCheatSheetView: View {
             VStack(spacing: 8) {
                 CheatSheetRow(keys: ["⌘", "⇧", "M"], description: "Minimize all windows of the frontmost app")
                 CheatSheetRowMouseDock(description: "Restore or minimize windows by clicking the Dock icon")
-                CheatSheetRow(keys: ["⌘", "`"], description: "Restore next window in the frontmost app & show the Windows Preview")
+                CheatSheetRowShortcut()
                 CheatSheetRow(keys: ["⌘", "Tab"], description: "Switch between running apps")
             }
             .padding(.top, 4)
@@ -637,6 +637,32 @@ struct TabliftCheatSheetView: View {
             RoundedRectangle(cornerRadius: 15, style: .continuous)
                 .stroke(Color.accentColor.opacity(0.19), lineWidth: 1)
         )
+    }
+}
+
+struct CheatSheetRowShortcut: View {
+    @ObservedObject var shortcutPref = ShortcutPreference()
+    var body: some View {
+        // fallback to ["⌘", "`"] if displayKeys is empty
+        let keys = shortcutPref.displayKeys.isEmpty ? ["⌘", "`"] : shortcutPref.displayKeys
+        GeometryReader { geometry in
+            HStack(alignment: .center, spacing: 0) {
+                HStack(spacing: 4) {
+                    ForEach(keys, id: \.self) { KeyCap(symbol: $0) }
+                }
+                Text("Restore next window in the frontmost app")
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .foregroundColor(.primary)
+                    .frame(width: geometry.size.width - 40 * CGFloat(keys.count) - 12, alignment: .leading)
+                    .padding(.leading, 12)
+            }
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color(NSColor.controlBackgroundColor).opacity(0.19))
+            )
+        }
+        .frame(height: 56)
     }
 }
 
