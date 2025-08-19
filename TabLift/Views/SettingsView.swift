@@ -6,7 +6,7 @@ private final class _WindowProbe: NSView {
     var onWindow: (NSWindow) -> Void = { _ in }
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
-        if let w = window {
+        if let _ = window {
             DispatchQueue.main.async { [weak self] in
                 if let win = self?.window { self?.onWindow(win) }
             }
@@ -49,15 +49,26 @@ enum PerformanceProfile: String, CaseIterable, Identifiable {
 struct SettingsView: View {
     @State private var compensate = false
     @State private var topPad: CGFloat = 0
+    @State private var didLoad = false
     var body: some View {
         TabView {
             AboutTab()
                 .tabItem { Label("About", systemImage: "info.circle") }
+                .frame(width: 480, height: 560)
             GeneralSettingsTab()
                 .tabItem { Label("General", systemImage: "gearshape") }
+                .frame(width: 480, height: 560)
             SupportTab()
                 .tabItem { Label("Support", systemImage: "lifepreserver") }
+                .frame(width: 480, height: 560)
         }
+        .background(
+            Group {
+                AboutTab().opacity(0).frame(width: 0, height: 0)
+                GeneralSettingsTab().opacity(0).frame(width: 0, height: 0)
+                SupportTab().opacity(0).frame(width: 0, height: 0)
+            }
+        )
         .padding(.top, compensate ? topPad : 0)
         .frame(width: 480, height: 560)
         .background(WindowProbe { win in
@@ -79,7 +90,8 @@ struct SettingsView: View {
                 win.titleVisibility = .visible
             }
         })
-        .animation(.easeInOut(duration: 0.2), value: compensate)
+        .animation(didLoad ? .easeInOut(duration: 0.2) : nil, value: compensate)
+        .onAppear { didLoad = true }
     }
 }
 
@@ -296,6 +308,7 @@ struct GeneralSettingsTab: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             FooterView(isHoveringQuit: $isHoveringQuit)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
             openNewWindow = openNewWindowStorage
             minimizePreviousWindow = minimizePreviousWindowStorage
@@ -519,6 +532,7 @@ struct AboutTab: View {
             .padding(.vertical, 8).padding(.horizontal, 16)
         }
         .frame(width: 480, height: 560)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -604,10 +618,24 @@ struct SupportTab: View {
             .padding(.bottom, 20)
             FooterView(isHoveringQuit: $isHoveringQuit)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
+    
 }
 
 struct TabliftCheatSheetView: View {
+    // Keycap and gap sizes
+    static let keycapWidth: CGFloat = 40
+    static let keycapGap: CGFloat = 4
+    static var threeKeyWidth: CGFloat {
+        3 * keycapWidth + 2 * keycapGap + 10
+    }
+    @ObservedObject var shortcutPref = ShortcutPreference()
+    var dividerXOffset: CGFloat {
+        let keys = shortcutPref.displayKeys.isEmpty ? ["⌘", "`"] : shortcutPref.displayKeys
+        let shortcutWidth = CGFloat(keys.count) * TabliftCheatSheetView.keycapWidth + CGFloat(max(keys.count - 1, 0)) * TabliftCheatSheetView.keycapGap + 10
+        return max(TabliftCheatSheetView.threeKeyWidth, shortcutWidth)
+    }
     var body: some View {
         VStack(spacing: 15) {
             HStack(alignment: .center, spacing: 18) {
@@ -622,13 +650,21 @@ struct TabliftCheatSheetView: View {
                 }
                 Spacer()
             }
-            VStack(spacing: 8) {
-                CheatSheetRow(keys: ["⌘", "⇧", "M"], description: "Minimize all windows of the frontmost app")
-                CheatSheetRowMouseDock(description: "Restore or minimize windows by clicking the Dock icon")
-                CheatSheetRowShortcut()
-                CheatSheetRow(keys: ["⌘", "Tab"], description: "Switch between running apps")
+            ZStack(alignment: .leading) {
+                // Single vertical divider spanning the rows area, flush with right edge of widest keycap/icon
+                Rectangle()
+                    .fill(Color.accentColor.opacity(0.3))
+                    .frame(width: 1)
+                    .padding(.vertical, 0)
+                    .offset(x: dividerXOffset)
+                VStack(spacing: 8) {
+                    CheatSheetRow(keys: ["⌘", "⇧", "M"], description: "Minimize all windows of the frontmost app", dividerXOffset: dividerXOffset)
+                    CheatSheetRowMouseDock(description: "Restore or minimize windows with Dock click", dividerXOffset: dividerXOffset)
+                    CheatSheetRowShortcut(dividerXOffset: dividerXOffset)
+                    CheatSheetRow(keys: ["⌘", "Tab"], description: "Switch between running apps", dividerXOffset: dividerXOffset)
+                }
+                .padding(.top, 4)
             }
-            .padding(.top, 4)
         }
         .padding(.vertical, 16)
         .padding(.horizontal, 12)
@@ -646,26 +682,29 @@ struct TabliftCheatSheetView: View {
 
 struct CheatSheetRowShortcut: View {
     @ObservedObject var shortcutPref = ShortcutPreference()
+    var dividerXOffset: CGFloat
+
     var body: some View {
-        // fallback to ["⌘", "`"] if displayKeys is empty
         let keys = shortcutPref.displayKeys.isEmpty ? ["⌘", "`"] : shortcutPref.displayKeys
-        GeometryReader { geometry in
-            HStack(alignment: .center, spacing: 0) {
-                HStack(spacing: 4) {
-                    ForEach(keys, id: \.self) { KeyCap(symbol: $0) }
-                }
-                Text("Restore next window in the frontmost app")
-                    .font(.system(size: 15, weight: .medium, design: .rounded))
-                    .foregroundColor(.primary)
-                    .frame(width: geometry.size.width - 40 * CGFloat(keys.count) - 12, alignment: .leading)
-                    .padding(.leading, 12)
+        HStack(spacing: 0) {
+            HStack(spacing: 4) {
+                ForEach(keys, id: \.self) { KeyCap(symbol: $0) }
             }
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color(NSColor.controlBackgroundColor).opacity(0.19))
-            )
+            .frame(width: dividerXOffset, alignment: .leading)
+            .padding(.trailing, 6)
+
+            Text("Restore next window in the frontmost app")
+                .font(.system(size: 14, weight: .regular, design: .default))
+                .padding(.leading, 6)
+                .foregroundColor(.primary)
+
+            Spacer()
         }
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color(NSColor.controlBackgroundColor).opacity(0.19))
+        )
         .frame(height: 56)
     }
 }
@@ -693,49 +732,59 @@ struct KeyCap: View {
 struct CheatSheetRow: View {
     let keys: [String]
     let description: String
+    let dividerXOffset: CGFloat
+
     var body: some View {
-        GeometryReader { geometry in
-            HStack(alignment: .center, spacing: 0) {
-                HStack(spacing: 4) {
-                    ForEach(keys, id: \.self) { KeyCap(symbol: $0) }
-                }
-                Text(description)
-                    .font(.system(size: 15, weight: .medium, design: .rounded))
-                    .foregroundColor(.primary)
-                    .frame(width: geometry.size.width - 40 * CGFloat(keys.count) - 12, alignment: .leading)
-                    .padding(.leading, 12)
+        HStack(spacing: 0) {
+            // Keycaps section with fixed width
+            HStack(spacing: 4) {
+                ForEach(keys, id: \.self) { KeyCap(symbol: $0) }
             }
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color(NSColor.controlBackgroundColor).opacity(0.19))
-            )
+            .frame(width: dividerXOffset, alignment: .leading)
+            .padding(.trailing, 6)
+
+            // Text starts immediately after divider
+            Text(description)
+                .font(.system(size: 14, weight: .regular, design: .default))
+                .padding(.leading, 6)
+                .foregroundColor(.primary)
+
+            Spacer()
         }
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color(NSColor.controlBackgroundColor).opacity(0.19))
+        )
         .frame(height: 56)
     }
 }
 
 struct CheatSheetRowMouseDock: View {
     let description: String
+    let dividerXOffset: CGFloat
+
     var body: some View {
-        GeometryReader { geometry in
-            HStack(alignment: .center, spacing: 0) {
-                HStack(spacing: 4) {
-                    MouseIcon()
-                    DockKeyCap()
-                }
-                Text(description)
-                    .font(.system(size: 15, weight: .medium, design: .rounded))
-                    .foregroundColor(.primary)
-                    .frame(width: geometry.size.width - 40 * 2 - 12, alignment: .leading)
-                    .padding(.leading, 12)
+        HStack(spacing: 0) {
+            HStack(spacing: 4) {
+                MouseIcon()
+                DockKeyCap()
             }
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color(NSColor.controlBackgroundColor).opacity(0.19))
-            )
+            .frame(width: dividerXOffset, alignment: .leading)
+            .padding(.trailing, 6)
+
+            Text(description)
+                .font(.system(size: 14, weight: .regular, design: .default))
+                .padding(.leading, 6)
+                .foregroundColor(.primary)
+
+            Spacer()
         }
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color(NSColor.controlBackgroundColor).opacity(0.19))
+        )
         .frame(height: 56)
     }
 }
