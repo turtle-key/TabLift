@@ -521,15 +521,8 @@ struct AboutTab: View {
             }
             .frame(maxWidth: 320).padding(.vertical, 10).padding(.horizontal, 16).multilineTextAlignment(.center)
             Spacer()
-            HStack {
-                Link(destination: URL(string: "https://github.com/turtle-key/TabLift/blob/main/LICENSE")!) {
-                    Text("AGPL-3.0 © Mihai-Eduard Ghețu")
-                        .font(.footnote).foregroundColor(.gray)
-                }
-                Spacer()
-                ModernQuitButton(isHovering: $isHoveringQuit)
-            }
-            .padding(.vertical, 8).padding(.horizontal, 16)
+            .padding(.bottom, 20)
+            FooterView(isHoveringQuit: $isHoveringQuit)
         }
         .frame(width: 480, height: 560)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
