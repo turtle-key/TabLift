@@ -815,8 +815,6 @@ class DockIconHoverMonitor {
         if isMinimized {
             AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
         }
-        NSApp.activate(ignoringOtherApps: true)
-        usleep(50000)
         let didActivate = app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         if !didActivate {
             let bundleID = app.bundleIdentifier ?? ""
