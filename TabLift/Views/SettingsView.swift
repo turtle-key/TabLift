@@ -213,7 +213,6 @@ struct GeneralSettingsTab: View {
                         }
                         if showWindowSwitcher{
                             ShortcutRecorderView(preference: shortcutPref)
-                                .padding(.vertical, 6)
                         }
                         DemoSection(
                             toggle: Toggle(isOn: $restoreAllWindows) {

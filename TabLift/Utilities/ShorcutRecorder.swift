@@ -90,7 +90,6 @@ struct ShortcutRecorderView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack {
-                Spacer()
                 ZStack {
                     if listening {
                         Capsule()
@@ -175,7 +174,6 @@ struct ShortcutRecorderView: View {
                     }
                 }
                 .padding(.vertical, 6)
-                Spacer()
             }
 
             Text("Default shortcut: ⌘ + ` (command + backtick)")
