@@ -427,10 +427,11 @@ struct TrafficLightButtons: View {
 
     private func circle(color: Color, systemName: String, action: @escaping () -> Void) -> some View {
         Button(action: {
-            overlayInteractionChanged(true)
-            action()
-            // unpin on next runloop
-            DispatchQueue.main.async { overlayInteractionChanged(false) }
+            DispatchQueue.main.async {
+                overlayInteractionChanged(true)
+                action()
+                overlayInteractionChanged(false)
+            }
         }) {
             ZStack {
                 Circle().fill(color).frame(width: 16, height: 16)
@@ -451,6 +452,7 @@ struct TrafficLightButtons: View {
                 .shadow(radius: 3, y: 1)
                 .contentShape(RoundedRectangle(cornerRadius: 12))
                 .onTapGesture { onBackplateTap() }
+                .simultaneousGesture(pinGesture)
 
             HStack(spacing: 9) {
                 circle(color: .red, systemName: "xmark", action: onClose).help("Close")
@@ -467,8 +469,6 @@ struct TrafficLightButtons: View {
         .frame(width: isMinimized ? 58 : 85, height: 28)
         .zIndex(1000)
         .allowsHitTesting(true)
-        // Important: use simultaneousGesture on the container, not on the Buttons
-        .simultaneousGesture(pinGesture)
         .onHover { h in
             hovering = h
             overlayHoverChanged(h)
