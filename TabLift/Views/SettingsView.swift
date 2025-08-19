@@ -756,14 +756,12 @@ struct MouseIcon: View {
 
 struct DockKeyCap: View {
     var body: some View {
-        RoundedRectangle(cornerRadius: 10, style: .continuous)
-            .fill(Color(NSColor.controlBackgroundColor))
-            .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(Color.accentColor, lineWidth: 1.2)
-            )
+        Image("FinderIcon")
+            .resizable()
+            .scaledToFill()
+            .frame(width: 50, height: 50)    
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous)) // clip to rounded rect
             .shadow(color: Color.accentColor.opacity(0.09), radius: 1, x: 0, y: 1)
-            .frame(width: 40, height: 40)
     }
 }
 
