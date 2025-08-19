@@ -372,11 +372,13 @@ struct DemoVideoScreen: View {
     let fileName: String
     let play: Bool
     @State private var player: AVPlayer? = nil
+
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 13, style: .continuous)
                 .fill(Color(NSColor.controlBackgroundColor))
                 .shadow(color: Color.black.opacity(0.13), radius: 13, x: 0, y: 2)
+            
             if let url = Bundle.main.url(forResource: fileName, withExtension: "m4v") {
                 VideoFill(player: player ?? AVPlayer(url: url))
                     .frame(width: 320, height: 180)
@@ -387,7 +389,7 @@ struct DemoVideoScreen: View {
                             p.actionAtItemEnd = .pause
                             player = p
                         }
-                        player?.seek(to: .zero)
+                        // Only prepare, do not repeatedly seek
                         player?.pause()
                     }
                     .onChange(of: play) { playing in
@@ -397,12 +399,11 @@ struct DemoVideoScreen: View {
                             p.play()
                         } else {
                             p.pause()
-                            p.seek(to: .zero)
                         }
                     }
-                    .animation(.easeInOut(duration: 0.22), value: play)
             } else {
-                Text("Video missing").foregroundColor(.red)
+                Text("Video missing")
+                    .foregroundColor(.red)
                     .frame(width: 320, height: 180)
             }
         }
