@@ -63,17 +63,20 @@ struct SettingsView: View {
         .background(WindowProbe { win in
             let h = win.frame.height - win.contentLayoutRect.height
             let transparent = win.titlebarAppearsTransparent && win.styleMask.contains(.fullSizeContentView)
+            
+            DispatchQueue.main.async {
+                let newCompensate = !transparent && h > 0
+                if topPad != h || compensate != newCompensate {
+                    topPad = h
+                    compensate = newCompensate
+                }
+            }
+
             if #available(macOS 11, *) {
                 win.titleVisibility = .hidden
                 win.titlebarAppearsTransparent = false
             } else {
                 win.titleVisibility = .visible
-            }
-            if !transparent && h > 0 {
-                topPad = h
-                compensate = true
-            } else {
-                compensate = false
             }
         })
         .animation(.easeInOut(duration: 0.2), value: compensate)
@@ -759,7 +762,7 @@ struct DockKeyCap: View {
         Image("FinderIcon")
             .resizable()
             .scaledToFill()
-            .frame(width: 50, height: 50)    
+            .frame(width: 50, height: 50)
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous)) // clip to rounded rect
             .shadow(color: Color.accentColor.opacity(0.09), radius: 1, x: 0, y: 1)
     }
