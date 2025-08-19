@@ -646,12 +646,7 @@ struct KeyCap: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(
-                    LinearGradient(gradient: Gradient(colors: [
-                        Color.white,
-                        Color(NSColor.systemGray).opacity(0.18)
-                    ]), startPoint: .top, endPoint: .bottom)
-                )
+                .fill(Color(NSColor.controlBackgroundColor))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
                         .stroke(Color.accentColor.opacity(0.75), lineWidth: 2)
@@ -719,20 +714,15 @@ struct MouseIcon: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(
-                    LinearGradient(gradient: Gradient(colors: [
-                        Color.white,
-                        Color(NSColor.systemGray).opacity(0.18)
-                    ]), startPoint: .top, endPoint: .bottom)
-                )
+                .fill(Color(NSColor.controlBackgroundColor))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
                         .stroke(Color.accentColor.opacity(0.75), lineWidth: 2)
                 )
                 .shadow(color: Color.accentColor.opacity(0.13), radius: 3, x: 0, y: 1)
             Image(systemName: "cursorarrow")
-                            .font(.system(size: 20, weight: .semibold, design: .rounded))
-                            .foregroundColor(.accentColor)
+                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                .foregroundColor(.accentColor)
         }
         .frame(width: 40, height: 40)
     }
@@ -741,15 +731,10 @@ struct MouseIcon: View {
 struct DockKeyCap: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 10, style: .continuous)
-            .fill(
-                LinearGradient(gradient: Gradient(colors: [
-                    Color.white,
-                    Color(NSColor.systemGray).opacity(0.18)
-                ]), startPoint: .top, endPoint: .bottom)
-            )
+            .fill(Color(NSColor.controlBackgroundColor))
             .overlay(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(Color.accentColor.opacity(0.3), lineWidth: 1.2)
+                    .stroke(Color.accentColor, lineWidth: 1.2)
             )
             .shadow(color: Color.accentColor.opacity(0.09), radius: 1, x: 0, y: 1)
             .frame(width: 40, height: 40)
