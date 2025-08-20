@@ -76,7 +76,6 @@ class DockIconHoverMonitor {
     private var cachedCGWindowsForPID: pid_t? = nil
 
     init() {
-        guard AXIsProcessTrusted() else { return }
         setupDockObserver()
         updateDockFrame()
         setupClickOutsideMonitor()
