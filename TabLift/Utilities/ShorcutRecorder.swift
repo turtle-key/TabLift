@@ -3,80 +3,49 @@ import Combine
 import Carbon.HIToolbox
 
 class ShortcutPreference: ObservableObject {
-    @AppStorage("shortcutKeyCode") private var keyCodeRaw: Int = 50 
+    @AppStorage("shortcutKeyCode") private var keyCodeRaw: Int = 50
+    @AppStorage("shortcutKeyString") private var keyStringRaw: String = "`"
     @AppStorage("shortcutModifiers") private var modifiersRaw: Int = Int(NSEvent.ModifierFlags.command.rawValue)
 
     var keyCode: UInt16 {
-        get { UInt16(keyCodeRaw) }
+        get { UInt16(max(0, keyCodeRaw)) } // Ensure not negative
         set { keyCodeRaw = Int(newValue) }
+    }
+    var keyString: String {
+        get { keyStringRaw }
+        set { keyStringRaw = newValue }
     }
     var modifiers: NSEvent.ModifierFlags {
         get { NSEvent.ModifierFlags(rawValue: UInt(modifiersRaw)) }
         set { modifiersRaw = Int(newValue.rawValue) }
     }
-    var hasShortcut: Bool { keyCodeRaw != 0 && modifiersRaw != 0 }
+    // Only treat both as zero for "no shortcut"
+    var hasShortcut: Bool { !(keyCodeRaw == 0 && modifiersRaw == 0) }
     var displayKeys: [String] {
         var keys = [String]()
         if modifiers.contains(.command) { keys.append("⌘") }
         if modifiers.contains(.option) { keys.append("⌥") }
         if modifiers.contains(.control) { keys.append("⌃") }
-        if hasShortcut, let kstr = keyCodeToString(keyCode) { keys.append(kstr.uppercased()) }
+        if modifiers.contains(.shift) { keys.append("⇧") }
+        if hasShortcut && !keyString.isEmpty {
+            keys.append(keyString.uppercased())
+        }
         return keys
     }
     var fullString: String {
         displayKeys.joined(separator: " ")
     }
-    private func keyCodeToString(_ keyCode: UInt16) -> String? {
-        if let special = specialKeyString(for: keyCode) { return special }
-        let source = TISCopyCurrentKeyboardLayoutInputSource().takeUnretainedValue()
-        let layoutData = TISGetInputSourceProperty(source, kTISPropertyUnicodeKeyLayoutData)
-        guard let data = layoutData else { return nil }
-        let keyboardLayout = unsafeBitCast(data, to: CFData.self)
-        guard let ptr = CFDataGetBytePtr(keyboardLayout) else { return nil }
-        var keysDown: UInt32 = 0
-        var chars: [UniChar] = [0, 0, 0, 0]
-        var realLength: Int = 0
-        let res = UCKeyTranslate(
-            UnsafePointer(ptr).withMemoryRebound(to: UCKeyboardLayout.self, capacity: 1, { $0 }),
-            keyCode,
-            UInt16(kUCKeyActionDisplay),
-            0,
-            UInt32(LMGetKbdType()),
-            0,
-            &keysDown,
-            chars.count,
-            &realLength,
-            &chars
-        )
-        guard res == noErr, realLength > 0 else { return nil }
-        return String(utf16CodeUnits: chars, count: realLength)
-    }
-    private func specialKeyString(for keyCode: UInt16) -> String? {
-        switch keyCode {
-        case UInt16(kVK_Tab): return "Tab"
-        case UInt16(kVK_Return): return "↩"
-        case UInt16(kVK_Escape): return "⎋"
-        case UInt16(kVK_Delete): return "⌫"
-        case UInt16(kVK_Space): return "Space"
-        case UInt16(kVK_ForwardDelete): return "⌦"
-        case UInt16(kVK_LeftArrow): return "←"
-        case UInt16(kVK_RightArrow): return "→"
-        case UInt16(kVK_UpArrow): return "↑"
-        case UInt16(kVK_DownArrow): return "↓"
-        case UInt16(kVK_Help): return "Help"
-        default: return nil
-        }
-    }
     func clear() {
         keyCodeRaw = 0
+        keyStringRaw = ""
         modifiersRaw = 0
     }
 }
 
-// Block number keys and shift key from being used as primary shortcut keys
+private let forbiddenKeyStrings: Set<String> = [
+    "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"
+]
 private let forbiddenKeyCodes: Set<UInt16> = [
-    18, 19, 20, 21, 23, 22, 26, 28, 25, 29, // 1-9
-    27, // 0
     56, 60 // Shift (left and right)
 ]
 
@@ -86,6 +55,11 @@ struct ShortcutRecorderView: View {
     @State private var showTimeout = false
     @State private var timeoutWorkItem: DispatchWorkItem?
     @FocusState private var isFocused: Bool
+
+    @State private var keyMonitor: Any?
+
+    var onBeginRecording: (() -> Void)? = nil
+    var onEndRecording: (() -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
@@ -108,6 +82,7 @@ struct ShortcutRecorderView: View {
                             )
                             .frame(minWidth: 200)
                             .onAppear { setupEventMonitor() }
+                            .onDisappear { removeEventMonitor() }
                     } else if preference.hasShortcut {
                         Capsule()
                             .fill(Color.accentColor.opacity(0.12))
@@ -126,7 +101,7 @@ struct ShortcutRecorderView: View {
                                             .padding(.vertical, 3)
                                             .background(
                                                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                                    .fill( Color(NSColor.controlBackgroundColor))
+                                                    .fill(Color(NSColor.controlBackgroundColor))
                                             )
                                             .shadow(color: Color.accentColor.opacity(0.11), radius: 1, x: 0, y: 1)
                                     }
@@ -138,20 +113,12 @@ struct ShortcutRecorderView: View {
                                     .strokeBorder(Color.accentColor.opacity(0.16), lineWidth: 1.2)
                             )
                             .onTapGesture {
-                                listening = true
-                                showTimeout = false
-                                isFocused = true
-                                startTimeout()
-                                NSApp.mainWindow?.makeFirstResponder(nil)
+                                beginListening()
                             }
                             .help("Click to change shortcut")
                     } else {
                         Button(action: {
-                            listening = true
-                            showTimeout = false
-                            isFocused = true
-                            startTimeout()
-                            NSApp.mainWindow?.makeFirstResponder(nil)
+                            beginListening()
                         }) {
                             HStack(spacing: 12) {
                                 Image(systemName: "keyboard")
@@ -186,25 +153,60 @@ struct ShortcutRecorderView: View {
                 .font(.footnote)
                 .foregroundColor(.secondary)
         }
-        .onDisappear { cancelTimeout() }
+        .onDisappear {
+            cancelTimeout()
+            removeEventMonitor()
+        }
+    }
+
+    private func beginListening() {
+        listening = true
+        showTimeout = false
+        isFocused = true
+        startTimeout()
+        NSApp.mainWindow?.makeFirstResponder(nil)
+        onBeginRecording?()
+    }
+
+    private func stopListening() {
+        listening = false
+        cancelTimeout()
+        onEndRecording?()
+        removeEventMonitor()
     }
 
     private func setupEventMonitor() {
-        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+        removeEventMonitor()
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             guard listening else { return event }
             let mods = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-            // Must have at least one non-shift modifier (cmd/opt/ctrl)
             let requiredMods = mods.intersection([.command, .option, .control])
-            // Ignore if no required modifier, or if key is forbidden
-            if requiredMods.isEmpty || forbiddenKeyCodes.contains(event.keyCode) || mods.contains(.shift) {
-                // Beep to indicate forbidden shortcut
+            let keyString = event.charactersIgnoringModifiers ?? ""
+            let keyCode = event.keyCode
+
+            // Fix: allow keyCode==0 (A key) as valid!
+            // Only treat no shortcut if both keyCode==0 and modifier==0
+            if requiredMods.isEmpty ||
+                forbiddenKeyStrings.contains(keyString) ||
+                forbiddenKeyCodes.contains(keyCode) ||
+                mods.contains(.shift) ||
+                keyString.isEmpty {
                 NSSound.beep()
                 return nil
             }
-            preference.keyCode = event.keyCode
+
+            preference.keyCode = keyCode
+            preference.keyString = keyString
             preference.modifiers = mods
             stopListening()
             return nil
+        }
+    }
+
+    private func removeEventMonitor() {
+        if let keyMonitor = keyMonitor {
+            NSEvent.removeMonitor(keyMonitor)
+            self.keyMonitor = nil
         }
     }
 
@@ -224,10 +226,5 @@ struct ShortcutRecorderView: View {
         timeoutWorkItem?.cancel()
         timeoutWorkItem = nil
         showTimeout = false
-    }
-
-    private func stopListening() {
-        listening = false
-        cancelTimeout()
     }
 }
