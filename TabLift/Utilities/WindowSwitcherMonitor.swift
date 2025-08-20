@@ -43,6 +43,10 @@ final class WindowSwitcherMonitor {
     private var mouseMonitor: Any?
     private var panelHiding = false
 
+    // --- Debounce state for onChange fix ---
+    private var lastFocusedId: String?
+    private var focusUpdateWorkItem: DispatchWorkItem?
+
     init() {
         startKeyEventTap()
         NSWorkspace.shared.notificationCenter.addObserver(
@@ -134,11 +138,48 @@ final class WindowSwitcherMonitor {
         let shiftPressed = flags.contains(.maskShift)
 
         let numberKeyToIndex: [UInt16: Int] = [
-            18: 0, 19: 1, 20: 2, 21: 3, 23: 4, 22: 5, 26: 6, 28: 7, 25: 8, 29: 8
+            18: 0, 19: 1, 20: 2, 21: 3, 23: 4, 22: 5, 26: 6, 28: 7, 25: 8, 29: 9
         ]
 
-        if shouldBlockEvent(event) {
-            return nil
+        // Improved event handling: block all key events while active except navigation/selection
+        if switcherActive {
+            switch type {
+            case .flagsChanged:
+                if !modifiersNowActive {
+                    if !mouseClickedDuringSwitch, cyclingWindowList.indices.contains(currentCycleIndex), let app = NSWorkspace.shared.frontmostApplication {
+                        focus(window: cyclingWindowList[currentCycleIndex], in: app)
+                    }
+                    hidePanelIfNeeded()
+                    cleanupSwitcherState()
+                }
+                return nil // block everything else
+
+            case .keyDown:
+                if modifiersNowActive, keycode == shortcutKeyCode {
+                    let count = cyclingWindowList.count
+                    if count > 0 {
+                        currentCycleIndex = shiftPressed
+                            ? (currentCycleIndex - 1 + count) % count
+                            : (currentCycleIndex + 1) % count
+                    }
+                    return nil
+                }
+                if let index = numberKeyToIndex[keycode], cyclingWindowList.indices.contains(index) {
+                    if let app = NSWorkspace.shared.frontmostApplication {
+                        focus(window: cyclingWindowList[index], in: app)
+                    }
+                    hidePanelIfNeeded()
+                    cleanupSwitcherState()
+                    return nil
+                }
+                return nil
+
+            case .keyUp:
+                return nil
+
+            default:
+                return nil
+            }
         }
 
         switch type {
@@ -148,13 +189,6 @@ final class WindowSwitcherMonitor {
             } else if !modifiersNowActive && modifierIsHeld {
                 modifierIsHeld = false
                 triggerIsHeld = false
-                if switcherActive {
-                    if !mouseClickedDuringSwitch, cyclingWindowList.indices.contains(currentCycleIndex), let app = NSWorkspace.shared.frontmostApplication {
-                        focus(window: cyclingWindowList[currentCycleIndex], in: app)
-                    }
-                    hidePanelIfNeeded()
-                    cleanupSwitcherState()
-                }
             }
         case .keyDown:
             if modifierIsHeld && keycode == shortcutKeyCode && !triggerIsHeld {
@@ -169,26 +203,8 @@ final class WindowSwitcherMonitor {
                     switcherActive = true
                     panelHiding = false
                     mouseClickedDuringSwitch = false
-                } else {
-                    let count = cyclingWindowList.count
-                    if count > 0 {
-                        currentCycleIndex = shiftPressed
-                            ? (currentCycleIndex - 1 + count) % count
-                            : (currentCycleIndex + 1) % count
-                        showOrUpdateForFrontmostApp()
-                    }
                 }
                 return nil
-            }
-            if switcherActive {
-                if let index = numberKeyToIndex[keycode], cyclingWindowList.indices.contains(index) {
-                    if let app = NSWorkspace.shared.frontmostApplication {
-                        focus(window: cyclingWindowList[index], in: app)
-                    }
-                    hidePanelIfNeeded()
-                    cleanupSwitcherState()
-                    return nil
-                }
             }
         case .keyUp:
             if keycode == shortcutKeyCode && triggerIsHeld {
@@ -649,11 +665,16 @@ private struct WindowSwitcherPanel: View {
                     .padding(.vertical, 6)
                 }
                 .frame(maxWidth: .infinity)
+                // --- Debounced onChange to avoid multiple updates per frame ---
                 .onAppear {
                     scrollToFocused(proxy: proxy)
                 }
-                .onChange(of: focusedId) { _ in
-                    scrollToFocused(proxy: proxy)
+                .onReceive(model.$windowInfos.map { $0.first(where: { $0.isFocused })?.id }
+                    .removeDuplicates()
+                    .debounce(for: .milliseconds(8), scheduler: DispatchQueue.main)
+                ) { newId in
+                    guard let newId else { return }
+                    proxy.scrollTo(newId, anchor: .center)
                 }
             }
         }
@@ -662,20 +683,14 @@ private struct WindowSwitcherPanel: View {
         .frame(width: 420)
         .transition(.opacity)
     }
-
-    private var focusedId: String? {
-        model.windowInfos.first(where: { $0.isFocused })?.id
-    }
-
     private func scrollToFocused(proxy: ScrollViewProxy) {
-        guard let id = focusedId else { return }
+        guard let id = model.windowInfos.first(where: { $0.isFocused })?.id else { return }
         DispatchQueue.main.async {
             withAnimation(.easeInOut(duration: 0.07)) {
                 proxy.scrollTo(id, anchor: .center)
             }
         }
     }
-
     private struct RowView: View {
         let info: WindowSwitcherMonitor.WinInfo
         var onTap: () -> Void
