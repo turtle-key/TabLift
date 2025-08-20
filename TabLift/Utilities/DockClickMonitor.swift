@@ -271,29 +271,29 @@ final class DockClickMonitor {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.20) {
                         if isFrontmost {
                             if c.visible > 0 {
+                                // Only minimize if there WAS a visible window at Dock click time!
                                 self.minimizeAllVisibleWindows(for: app)
                             } else if c.total > 0 && c.minimized == c.total {
+                                // All windows are minimized (none visible), so restore them
                                 self.restoreAllMinimizedWindows(for: app)
                             } else {
+                                // No windows at all, or some are closed: just activate the app (do NOT minimize!)
                                 _ = app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
-                            }
-                        } else {
-                            if c.total > 0 && c.minimized == c.total {
-                                self.restoreAllMinimizedWindows(for: app)
-                            } else {
-                                _ = app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                                // Do NOT minimize anything, do nothing else here
                             }
                         }
                     }
                 } else {
                     // Single-window minimize mode
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.20) {
-                        if c.total > 0 && c.minimized == c.total {
-                            self.restoreAllMinimizedWindows(for: app)
-                        } else if isFrontmost {
-                            self.minimizeFocusedOrTopVisibleWindow(for: app)
-                        } else {
-                            _ = app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                        if isFrontmost {
+                            if c.visible > 0 {
+                                self.minimizeFocusedOrTopVisibleWindow(for: app)
+                            }else if c.total > 0 && c.minimized == c.total {
+                                self.restoreAllMinimizedWindows(for: app)
+                            } else {
+                                _ = app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                            }
                         }
                     }
                 }
