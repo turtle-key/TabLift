@@ -12,7 +12,6 @@ struct TabLiftApp: App {
 
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var appMonitor: AppMonitor?
-    var cmdBacktickMonitor: CmdBacktickMonitor?
     var window: NSWindow?
     private let autoUpdateManager = AutoUpdateManager.shared
     private var globalHotkeyMonitor: HotkeyMonitor?
@@ -52,7 +51,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NotificationCenter.default.addObserver(self, selector: #selector(userDefaultsDidChange(_:)), name: UserDefaults.didChangeNotification, object: nil)
         updateDockIconPolicy()
         windowSwitcherMonitor = WindowSwitcherMonitor()
-        cmdBacktickMonitor = CmdBacktickMonitor()
         appMonitor = AppMonitor()
         appMonitor?.setupEventTap()
         registerLoginItemIfNeeded()
@@ -74,7 +72,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             return
         }
         appMonitor?.refresh()
-        cmdBacktickMonitor?.refresh()
         dockClickMonitor?.refresh()
         dockIconHoverMonitor?.refresh()
         globalHotkeyMonitor?.refresh()
@@ -90,7 +87,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         registerLoginItemIfNeeded(startAtLogin)
         appMonitor?.refresh()
         dockClickMonitor?.refresh()
-        cmdBacktickMonitor?.refresh()
         dockIconHoverMonitor?.refresh()
     }
 
