@@ -71,6 +71,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in self?.handleGlobalRefresh() }
             return
         }
+        windowSwitcherMonitor?.refresh()
         appMonitor?.refresh()
         dockClickMonitor?.refresh()
         dockIconHoverMonitor?.refresh()
@@ -87,6 +88,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         registerLoginItemIfNeeded(startAtLogin)
         appMonitor?.refresh()
         dockClickMonitor?.refresh()
+        windowSwitcherMonitor?.refresh()
         dockIconHoverMonitor?.refresh()
     }
 

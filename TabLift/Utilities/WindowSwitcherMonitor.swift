@@ -43,9 +43,53 @@ final class WindowSwitcherMonitor {
     private var mouseMonitor: Any?
     private var panelHiding = false
 
-    // --- Debounce state for onChange fix ---
     private var lastFocusedId: String?
     private var focusUpdateWorkItem: DispatchWorkItem?
+
+    func refresh() {
+        stopKeyEventTap()
+        stopRefreshTimer()
+        NSWorkspace.shared.notificationCenter.removeObserver(self)
+        hidePanel()
+        if let monitor = mouseMonitor {
+            NSEvent.removeMonitor(monitor)
+            mouseMonitor = nil
+        }
+        // Re-init observers and event tap as in init()
+        startKeyEventTap()
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(frontAppChanged),
+            name: NSWorkspace.didActivateApplicationNotification,
+            object: nil
+        )
+        mouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]) { [weak self] _ in
+            guard let self = self, self.switcherActive else { return }
+            self.mouseClickedDuringSwitch = true
+            self.hidePanelIfNeeded()
+            self.cleanupSwitcherState()
+        }
+    }
+
+    // --- Minimal UI update: only focus row, not all rows ---
+    private func updateFocusedWindowInUI(newIndex: Int) {
+        guard model.windowInfos.indices.contains(newIndex) else { return }
+        var newInfos = model.windowInfos
+        for idx in newInfos.indices {
+            newInfos[idx].isFocused = (idx == newIndex)
+        }
+        model.windowInfos = newInfos
+    }
+
+    // Use this instead of full model.update when cycling focus
+    private func cycleFocus(forward: Bool) {
+        let count = cyclingWindowList.count
+        guard count > 0 else { return }
+        currentCycleIndex = forward
+            ? (currentCycleIndex + 1) % count
+            : (currentCycleIndex - 1 + count) % count
+        updateFocusedWindowInUI(newIndex: currentCycleIndex)
+    }
 
     init() {
         startKeyEventTap()
@@ -141,7 +185,6 @@ final class WindowSwitcherMonitor {
             18: 0, 19: 1, 20: 2, 21: 3, 23: 4, 22: 5, 26: 6, 28: 7, 25: 8, 29: 9
         ]
 
-        // Improved event handling: block all key events while active except navigation/selection
         if switcherActive {
             switch type {
             case .flagsChanged:
@@ -152,16 +195,10 @@ final class WindowSwitcherMonitor {
                     hidePanelIfNeeded()
                     cleanupSwitcherState()
                 }
-                return nil // block everything else
-
+                return nil
             case .keyDown:
                 if modifiersNowActive, keycode == shortcutKeyCode {
-                    let count = cyclingWindowList.count
-                    if count > 0 {
-                        currentCycleIndex = shiftPressed
-                            ? (currentCycleIndex - 1 + count) % count
-                            : (currentCycleIndex + 1) % count
-                    }
+                    cycleFocus(forward: !shiftPressed)
                     return nil
                 }
                 if let index = numberKeyToIndex[keycode], cyclingWindowList.indices.contains(index) {
@@ -173,10 +210,8 @@ final class WindowSwitcherMonitor {
                     return nil
                 }
                 return nil
-
             case .keyUp:
                 return nil
-
             default:
                 return nil
             }
@@ -665,10 +700,7 @@ private struct WindowSwitcherPanel: View {
                     .padding(.vertical, 6)
                 }
                 .frame(maxWidth: .infinity)
-                // --- Debounced onChange to avoid multiple updates per frame ---
-                .onAppear {
-                    scrollToFocused(proxy: proxy)
-                }
+                // Only scroll when focus actually changed
                 .onReceive(model.$windowInfos.map { $0.first(where: { $0.isFocused })?.id }
                     .removeDuplicates()
                     .debounce(for: .milliseconds(8), scheduler: DispatchQueue.main)
