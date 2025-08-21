@@ -46,14 +46,14 @@
   - **Automatically open a window for apps with no windows**: If Finder, Terminal, your browser, or editor has none open, TabLift can create a fresh window so you never land on an empty app
   - **Minimize previous windows on app switch**: After focusing the new app, the one you left gets minimized into the Dock.
 - **Multiple settings** for customizing the window, dock & app management
-- <img align="right" src="https://bucket.tablift.dev/tablift-accessibility.png" alt="Accessibility pop-up" width="320">
-  <strong>Accessibility pop-up</strong> that warns the users when the macOS API is unavailable and what to do
-  <br clear="right">
 - <img align="right" src="https://bucket.tablift.dev/tablift-dock.png" alt="Dock Window Preview" width="320">
   <strong>Dock pop-ups with live window previews:</strong> Shows a beautiful pop-up when you hover Dock icons, including a diamond indicator for minimized windows
   <br clear="right">
 - <img align="right" src="https://bucket.tablift.dev/tablift-tilda.png" alt="Dock Window Preview" width="320">
   <strong>App Window Switcher</strong> that displays the windows of the same app and is activated by the <code>⌘ `</code> shortcut
+  <br clear="right">
+- <img align="right" src="https://bucket.tablift.dev/tablift-accessibility.png" alt="Accessibility pop-up" width="320">
+  <strong>Accessibility pop-up</strong> that warns the users when the macOS API is unavailable and what to do
   <br clear="right">
 - **Menu bar icon** with quick popover for access and control
 - **Runs quietly in the background** with minimal resource usage
