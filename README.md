@@ -7,7 +7,7 @@
       <img src="https://hackatime-badge.hackclub.com/U092L97H9LZ/TabLift" alt="Hackatime Badge" style="margin-right:4px;"/>
     </a>
     <a href="https://github.com/turtle-key/TabLift/blob/main/LICENSE">
-      <img src="https://img.shields.io/github/license/turtle-key/TabLift?color=29c469&label=License" alt="License: MIT" style="margin-right:4px;"/>
+      <img src="https://img.shields.io/github/license/turtle-key/TabLift?color=29c469&label=License" alt="License: AGPL-3.0" style="margin-right:4px;"/>
     </a>
     <a href="https://github.com/turtle-key/TabLift/releases">
       <img src="https://img.shields.io/github/v/release/turtle-key/TabLift?color=007aff&label=Release" alt="Latest Release" style="margin-right:4px;"/>
