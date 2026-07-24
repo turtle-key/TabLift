@@ -66,8 +66,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         displayConfigObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main) { [weak self] _ in self?.handleGlobalRefresh() }
         accessibilityObserver = DistributedNotificationCenter.default().addObserver(forName: NSNotification.Name("com.apple.accessibility.api"), object: nil, queue: .main) { [weak self] _ in self?.handleGlobalRefresh() }
 
-        // 区分用户手动启动 vs 开机自启：开机自启时系统不会发送 Apple Event
-        if NSAppleEventManager.shared().currentAppleEvent?.eventID == kAEOpenApplication {
+        // 区分用户手动启动 vs 开机自启
+        // 开机自启时没有 -psn 参数（Process Serial Number），用户双击则有
+        let isLoginItemLaunch = !ProcessInfo.processInfo.arguments.contains { $0.hasPrefix("-psn_") }
+        if !isLoginItemLaunch && !UserDefaults.standard.bool(forKey: "silentLaunch") {
             DispatchQueue.main.async { self.showUI() }
         }
     }

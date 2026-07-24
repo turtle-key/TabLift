@@ -88,6 +88,8 @@ enum L10nKey: String {
     // Settings - General tab labels
     case appLaunchAppearance
     case startAtLogin
+    case silentLaunch
+    case silentLaunchEnabled
     case showInMenuBar
     case showMenuBarHint
     case showInDock
@@ -214,6 +216,8 @@ enum L10nKey: String {
 
         .appLaunchAppearance: "App Launch & Appearance",
         .startAtLogin: "Start at login",
+        .silentLaunch: "Silent launch",
+        .silentLaunchEnabled: "When enabled, the settings window won\u{2019}t appear when you open the app. Click the menu bar icon or re-open TabLift to access settings.",
         .showInMenuBar: "Show in menu bar",
         .showMenuBarHint: "To show the settings, launch TabLift again.",
         .showInDock: "Show in Dock",
@@ -323,6 +327,8 @@ enum L10nKey: String {
 
         .appLaunchAppearance: "启动与外观",
         .startAtLogin: "开机自启动",
+        .silentLaunch: "静默启动",
+        .silentLaunchEnabled: "开启后，手动打开应用时不会弹出设置窗口。如需访问设置，请点击菜单栏图标或重新打开 TabLift。",
         .showInMenuBar: "在菜单栏显示",
         .showMenuBarHint: "如需显示设置，请再次启动 TabLift。",
         .showInDock: "在 Dock 中显示",

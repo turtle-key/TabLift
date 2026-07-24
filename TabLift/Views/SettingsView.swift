@@ -123,6 +123,7 @@ struct GeneralSettingsTab: View {
     @AppStorage("performanceProfile") var performanceProfileRaw: String = PerformanceProfile.balanced.rawValue
     @AppStorage("dockPreviewSpeed") var dockPreviewSpeed: Double = PerformanceProfile.balanced.hoverDelay
     @AppStorage("dockPreviewFade") var dockPreviewFade: Double = PerformanceProfile.balanced.fadeOutDuration
+    @AppStorage("silentLaunch") var silentLaunch: Bool = false
     @State private var openNewWindow: Bool = true
     @State private var minimizePreviousWindow: Bool = false
     @State private var hoveredDemo: DemoType? = nil
@@ -161,6 +162,13 @@ struct GeneralSettingsTab: View {
                         .frame(maxWidth: 200)
                     }
                     .padding(.vertical, 4)
+                    Toggle(isOn: $silentLaunch) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(loc(.silentLaunch))
+                            Text(loc(.silentLaunchEnabled))
+                                .foregroundColor(.secondary).font(.caption).padding(.top, 2)
+                        }
+                    }
                 }
                 Section(header: Label(loc(.dockFeatures), systemImage: "dock.rectangle").font(.headline)) {
                     Toggle(loc(.showWindowPreviews), isOn: $showDockPopups)
