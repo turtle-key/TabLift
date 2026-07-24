@@ -27,7 +27,7 @@ struct VisualEffectView: NSViewRepresentable {
     }
 }
 
-// Little “keycap” badge for shortcuts
+// Little "keycap" badge for shortcuts
 struct Keycap: View {
     var text: String
     var body: some View {
@@ -85,35 +85,35 @@ struct ShieldNoticeView: View {
                         .padding(.top, 2)
 
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Waiting for macOS Accessibility")
+                        Text(loc(.waitingForAccessibility))
                             .font(.system(size: 15, weight: .semibold))
 
                         VStack(alignment: .leading, spacing: 4) {
                             HStack(spacing: 8) {
-                                Text("Try:")
+                                Text(loc(.tryText))
                                     .font(.system(size: 12))
                                     .foregroundColor(.secondary)
-                                Keycap(text: "⌃")
-                                Keycap(text: "⌘")
+                                Keycap(text: "\u{2303}")
+                                Keycap(text: "\u{2318}")
                                 Keycap(text: "Q")
-                                Text("to lock, then")
+                                Text(loc(.toLockThen))
                                     .font(.system(size: 12))
                                     .foregroundColor(.secondary)
                                 Keycap(text: "Esc")
-                                Text("to dismiss.")
+                                Text(loc(.toDismiss))
                                     .font(.system(size: 12))
                                     .foregroundColor(.secondary)
                             }
-                            Text("This clears a temporary macOS shield that blocks Accessibility for a few seconds. \(appName) will resume automatically.")
+                            Text(loc(.shieldExplanation, appName))
                                 .font(.system(size: 12))
                                 .foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
 
                         HStack(spacing: 10) {
-                            Button("Got it") { onClose() }
+                            Button(loc(.gotIt)) { onClose() }
                                 .buttonStyle(.bordered)
-                            Button("Don’t show again") { onNeverShowAgain() }
+                            Button(loc(.dontShowAgain)) { onNeverShowAgain() }
                                 .buttonStyle(.link)
                         }
                         .padding(.top, 2)

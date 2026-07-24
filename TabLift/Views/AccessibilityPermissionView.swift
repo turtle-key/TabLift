@@ -10,25 +10,23 @@ struct AccessibilityPermissionView: View {
             HStack(spacing: 15) {
                 Image("AccessibilityIcon")
 
-                Text("TabLift needs Accessibility permission")
+                Text(loc(.accessibilityNeeded))
                     .font(.headline)
             }
             .padding(.horizontal)
 
-            Text(
-                "You need to grant Accessibility permission in System Settings > Security & Privacy > Accessibility."
-            )
+            Text(loc(.accessibilityDescription))
             .padding(.horizontal)
 
             HyperLink(URL(string: "https://tablift.dev/faq")!) {
-                Text("Get more help")
+                Text(loc(.getMoreHelp))
             }
             .padding(.horizontal)
 
             Spacer()
 
             HStack {
-                Button("Open Accessibility") {
+                Button(loc(.openAccessibility)) {
                     openAccessibility()
                 }
             }
@@ -70,22 +68,22 @@ struct AccessibilityPermissionCheckView: View {
     
     var body: some View {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Permissions")
+                Text(loc(.permissions))
                     .font(.headline)
                 HStack(spacing: 8) {
                     PingingCircle(color: isAccessibilityEnabled ? .green : .red)
 
                     Text(isAccessibilityEnabled ?
-                         "Accessibility permissions are enabled" :
-                         "Accessibility permissions are not enabled")
+                         loc(.permissionsEnabled) :
+                         loc(.permissionsNotEnabled))
                     .foregroundColor(.secondary)
 
                     Spacer()
-                    Button("Enable Access") {
+                    Button(loc(.enableAccess)) {
                         AccessibilityPermissionWindow.show()
                     }
                     .disabled(isAccessibilityEnabled)
-                    .help("Bring up the permission request window to allow Tablift to control windows.")
+                    .help(loc(.enableAccessHelp))
                 }
             }
             .padding()

@@ -65,7 +65,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         screenRecordingObserver = DistributedNotificationCenter.default().addObserver(forName: NSNotification.Name("com.apple.screencapture.interactive"), object: nil, queue: .main) { [weak self] _ in self?.handleGlobalRefresh() }
         displayConfigObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main) { [weak self] _ in self?.handleGlobalRefresh() }
         accessibilityObserver = DistributedNotificationCenter.default().addObserver(forName: NSNotification.Name("com.apple.accessibility.api"), object: nil, queue: .main) { [weak self] _ in self?.handleGlobalRefresh() }
-        DispatchQueue.main.async { self.showUI() }
+
+        // 区分用户手动启动 vs 开机自启：开机自启时系统不会发送 Apple Event
+        if NSAppleEventManager.shared().currentAppleEvent?.eventID == kAEOpenApplication {
+            DispatchQueue.main.async { self.showUI() }
+        }
     }
 
     func handleGlobalRefresh() {
@@ -141,7 +145,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 defer: false
             )
             if let w = window {
-                w.title = "TabLift Settings"
+                w.title = loc(.settingsWindowTitle)
                 w.titleVisibility = .hidden
                 w.titlebarAppearsTransparent = true
                 w.center()

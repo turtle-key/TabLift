@@ -9,12 +9,17 @@ enum MaximizeBehavior: String, CaseIterable, Identifiable {
     case fullscreen = "Fullscreen"
     var id: String { rawValue }
 
+    var localizedName: String {
+        switch self {
+        case .fill: return loc(.maximizeFill)
+        case .fullscreen: return loc(.maximizeFullscreen)
+        }
+    }
+
     var explanation: String {
         switch self {
-        case .fill:
-            return "Fill: Expands the window to fill the visible screen area (menu bar and Dock remain visible)."
-        case .fullscreen:
-            return "Fullscreen: Enters macOS native fullscreen (window becomes its own Space and menu bar/Dock are hidden)."
+        case .fill: return loc(.fillExplanation)
+        case .fullscreen: return loc(.fullscreenExplanation)
         }
     }
 
@@ -492,7 +497,7 @@ struct MinimizedIndicator: View {
             .stroke(Color.secondary, lineWidth: 1.9)
         }
         .frame(width: 12, height: 12)
-        .help("This window is minimized")
+        .help(loc(.minimizedIndicatorHelp))
     }
 }
 

@@ -1,5 +1,4 @@
 import Combine
-import Defaults
 import Sparkle
 import SwiftUI
 
@@ -61,24 +60,24 @@ struct CheckForUpdatesView: View {
     @ObservedObject var updaterViewModel = UpdaterViewModel.shared
 
     var body: some View {
-        Text("Version: \(TabLift.appVersion)")
+        Text(loc(.version, TabLift.appVersion))
             .foregroundColor(.secondary)
 
         Toggle(isOn: $updaterViewModel.automaticallyChecksForUpdates.animation()) {
-            Text("Check for updates automatically")
+            Text(loc(.checkUpdatesAuto))
         }
 
         if updaterViewModel.automaticallyChecksForUpdates {
-            Picker("Update check interval", selection: $updaterViewModel.updateCheckInterval) {
-                Text("Daily").tag(TimeInterval(86_400))
-                Text("Weekly").tag(TimeInterval(604_800))
-                Text("Monthly").tag(TimeInterval(2_629_800))
+            Picker(loc(.updateInterval), selection: $updaterViewModel.updateCheckInterval) {
+                Text(loc(.daily)).tag(TimeInterval(86_400))
+                Text(loc(.weekly)).tag(TimeInterval(604_800))
+                Text(loc(.monthly)).tag(TimeInterval(2_629_800))
             }
             .modifier(PickerViewModifier())
         }
 
 
-        Button("Check for Updates…", action: updaterViewModel.checkForUpdates)
+        Button(loc(.checkForUpdatesButton), action: updaterViewModel.checkForUpdates)
             .disabled(!updaterViewModel.canCheckForUpdates)
     }
 }
