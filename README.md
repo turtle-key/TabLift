@@ -118,8 +118,8 @@
   
   ---
   ## Star History
-  
-  [![Star History Chart](https://api.star-history.com/svg?repos=turtle-key/TabLift&type=Date)](https://www.star-history.com/#turtle-key/TabLift&Date)
+
+  [![Star History Chart](https://api.star-history.com/chart?repos=turtle-key/Tablift&type=date&legend=top-left&sealed_token=yRL5ExZEmAcKa0o9aMZM1ic3lrlwG7OAV8rW_BsqyA7Vf_DAZ0rB9uxMw0yAA7vmlBdzgx6TZ9KkXr3Vh4Uk6Fq9sYKTGMnibazPEI4AmRJz-9t2C1QENQ)](https://www.star-history.com/?repos=turtle-key%2FTablift&type=date&legend=top-left)
   
   ## Contributing
   
