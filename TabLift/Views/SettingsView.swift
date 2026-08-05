@@ -30,6 +30,13 @@ enum PerformanceProfile: String, CaseIterable, Identifiable {
     case balanced = "Default"
     case fast = "Speedy"
     var id: String { rawValue }
+    var localizedName: String {
+        switch self {
+        case .detailed: return loc(.profileRelaxed)
+        case .balanced: return loc(.profileDefault)
+        case .fast: return loc(.profileSpeedy)
+        }
+    }
     var hoverDelay: Double {
         switch self {
         case .detailed: return 0.40
@@ -49,14 +56,15 @@ enum PerformanceProfile: String, CaseIterable, Identifiable {
 struct SettingsView: View {
     @State private var compensate = false
     @State private var topPad: CGFloat = 0
+    @ObservedObject private var locManager = LocalizationManager.shared
     var body: some View {
         TabView {
             AboutTab()
-                .tabItem { Label("About", systemImage: "info.circle") }
+                .tabItem { Label(loc(.tabAbout), systemImage: "info.circle") }
             GeneralSettingsTab()
-                .tabItem { Label("General", systemImage: "gearshape") }
+                .tabItem { Label(loc(.tabGeneral), systemImage: "gearshape") }
             SupportTab()
-                .tabItem { Label("Support", systemImage: "lifepreserver") }
+                .tabItem { Label(loc(.tabSupport), systemImage: "lifepreserver") }
         }
         .padding(.top, compensate ? topPad : 0)
         .frame(width: 480, height: 560)
@@ -115,10 +123,12 @@ struct GeneralSettingsTab: View {
     @AppStorage("performanceProfile") var performanceProfileRaw: String = PerformanceProfile.balanced.rawValue
     @AppStorage("dockPreviewSpeed") var dockPreviewSpeed: Double = PerformanceProfile.balanced.hoverDelay
     @AppStorage("dockPreviewFade") var dockPreviewFade: Double = PerformanceProfile.balanced.fadeOutDuration
+    @AppStorage("silentLaunch") var silentLaunch: Bool = false
     @State private var openNewWindow: Bool = true
     @State private var minimizePreviousWindow: Bool = false
     @State private var hoveredDemo: DemoType? = nil
     @State private var isHoveringQuit = false
+    @ObservedObject private var locManager = LocalizationManager.shared
     enum DemoType { case restore, opennew, minimizeprev }
     private let helpTextMaxWidth: CGFloat = 320
     private let helpTextMaxHeight: CGFloat = 5
@@ -128,23 +138,44 @@ struct GeneralSettingsTab: View {
     var body: some View {
         VStack(spacing: 20) {
             Form {
-                Section(header: Label("App Launch & Appearance", systemImage: "rectangle.stack").font(.headline)) {
-                    Toggle("Start at login", isOn: $startAtLogin)
+                Section(header: Label(loc(.appLaunchAppearance), systemImage: "rectangle.stack").font(.headline)) {
+                    Toggle(loc(.startAtLogin), isOn: $startAtLogin)
                     Toggle(isOn: $showMenuBarIcon) {
-                        Text("Show in menu bar")
+                        Text(loc(.showInMenuBar))
                         if !showMenuBarIcon {
-                            Text("To show the settings, launch TabLift again.")
+                            Text(loc(.showMenuBarHint))
                                 .foregroundColor(.secondary).font(.caption).padding(.top, 2)
                         }
                     }
-                    Toggle("Show in Dock", isOn: $showDockIcon)
+                    Toggle(loc(.showInDock), isOn: $showDockIcon)
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Picker(loc(.language), selection: Binding(
+                            get: { locManager.currentLanguage },
+                            set: { locManager.setLanguage($0) }
+                        )) {
+                            ForEach(AppLanguage.allCases) { lang in
+                                Text(lang.displayName).tag(lang)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(maxWidth: 200)
+                    }
+                    .padding(.vertical, 4)
+                    Toggle(isOn: $silentLaunch) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(loc(.silentLaunch))
+                            Text(loc(.silentLaunchEnabled))
+                                .foregroundColor(.secondary).font(.caption).padding(.top, 2)
+                        }
+                    }
                 }
-                Section(header: Label("Dock Features", systemImage: "dock.rectangle").font(.headline)) {
-                    Toggle("Show Window Previews in Dock", isOn: $showDockPopups)
+                Section(header: Label(loc(.dockFeatures), systemImage: "dock.rectangle").font(.headline)) {
+                    Toggle(loc(.showWindowPreviews), isOn: $showDockPopups)
                     VStack(alignment: .leading, spacing: 8) {
-                        Picker("Green Button Action", selection: $maximizeBehaviorRaw) {
+                        Picker(loc(.greenButtonAction), selection: $maximizeBehaviorRaw) {
                             ForEach(MaximizeBehavior.allCases) { beh in
-                                Text(beh.rawValue).tag(beh.rawValue)
+                                Text(beh.localizedName).tag(beh.rawValue)
                             }
                         }.pickerStyle(.segmented)
                         Text(maximizeBehavior.explanation)
@@ -154,9 +185,9 @@ struct GeneralSettingsTab: View {
                             .frame(maxWidth: 340, alignment: .leading)
                     }.padding(.top, 2)
                     VStack(alignment: .leading, spacing: 10) {
-                        Picker("Dock preview speed", selection: $performanceProfileRaw) {
+                        Picker(loc(.dockPreviewSpeed), selection: $performanceProfileRaw) {
                             ForEach(PerformanceProfile.allCases) { profile in
-                                Text(profile.rawValue)
+                                Text(profile.localizedName)
                             }
                         }
                         .pickerStyle(.segmented)
@@ -166,21 +197,21 @@ struct GeneralSettingsTab: View {
                             dockPreviewFade = p.fadeOutDuration
                         }
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Profile: \(selectedProfile.rawValue)").font(.headline)
-                            Text("How quickly the Dock preview appears and fades out when you hover.\n")
+                            Text(loc(.profileLabel, selectedProfile.localizedName)).font(.headline)
+                            Text(loc(.profileDescription))
                                 .font(.caption).foregroundColor(.secondary)
                             HStack {
-                                Text("Preview delay: \(String(format: "%.2f", selectedProfile.hoverDelay))s")
-                                Text("Fade out: \(String(format: "%.2f", selectedProfile.fadeOutDuration))s")
+                                Text(loc(.previewDelay, String(format: "%.2f", selectedProfile.hoverDelay)))
+                                Text(loc(.fadeOut, String(format: "%.2f", selectedProfile.fadeOutDuration)))
                             }.font(.caption).foregroundColor(.secondary)
                         }
                     }.padding(.vertical, 2)
                     VStack(alignment: .leading, spacing: 6) {
-                        Toggle("Dock click toggles all windows", isOn: $restoreAllOnDockClick)
+                        Toggle(loc(.dockClickTogglesAll), isOn: $restoreAllOnDockClick)
                         Text(
                             restoreAllOnDockClick
-                            ? "Enabled: Clicking an app’s Dock icon will minimize all if visible, or restore all."
-                            : "Disabled: Clicking an app’s Dock icon minimizes only current window if frontmost, restores all if all minimized."
+                            ? loc(.dockClickEnabled)
+                            : loc(.dockClickDisabled)
                         )
                         .font(.caption).foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -188,11 +219,11 @@ struct GeneralSettingsTab: View {
                         .padding(.top, 2)
                     }.padding(.top, 2)
                     VStack(alignment: .leading, spacing: 6) {
-                        Toggle("Dismiss Dock window preview after click", isOn: $dockPopupAutoDismiss)
+                        Toggle(loc(.dockDismissAfterClick), isOn: $dockPopupAutoDismiss)
                         Text(
                             dockPopupAutoDismiss
-                            ? "The Dock window preview popup will disappear after clicking a window or its action buttons."
-                            : "The Dock window preview will remain open after clicking, allowing multiple actions."
+                            ? loc(.dockDismissEnabled)
+                            : loc(.dockDismissDisabled)
                         )
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -201,21 +232,21 @@ struct GeneralSettingsTab: View {
                         .padding(.top, 2)
                     }.padding(.top, 2)
                 }
-                Section(header: Label("Window Switching Behavior", systemImage: "arrow.triangle.swap").font(.headline)) {
+                Section(header: Label(loc(.windowSwitchingBehavior), systemImage: "arrow.triangle.swap").font(.headline)) {
                     VStack(alignment: .leading, spacing: 24) {
                         Toggle(isOn: $showWindowSwitcher) {
-                            Text("Show the window switcher pop up for the frontmost app")
+                            Text(loc(.showWindowSwitcher))
                             if !showWindowSwitcher {
-                                Text("When disabled, the CMD ` doesn't activate the window switching pop up")
+                                Text(loc(.windowSwitcherDisabled))
                                     .foregroundColor(.secondary).font(.caption).padding(.top, 2)
                             }
                         }
                         DemoSection(
                             toggle: Toggle(isOn: $restoreAllWindows) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Restore all minimized windows on app switch")
+                                    Text(loc(.restoreAllOnSwitch))
                                     if !restoreAllWindows {
-                                        Text("When disabled, only the most recently minimized window will be restored.")
+                                        Text(loc(.restoreAllDisabled))
                                             .foregroundColor(.secondary).font(.caption).padding(.top, 2)
                                     }
                                 }
@@ -223,17 +254,17 @@ struct GeneralSettingsTab: View {
                             demoType: .restore,
                             hoveredDemo: $hoveredDemo,
                             videoName: "restoreall",
-                            helpTextActive: "Enabled: Switching to an app restores all minimized windows.",
-                            helpTextInactive: "Disabled: Only the last minimized window is restored.",
+                            helpTextActive: loc(.restoreHelpEnabled),
+                            helpTextInactive: loc(.restoreHelpDisabled),
                             maxWidth: helpTextMaxWidth,
                             maxHeight: helpTextMaxHeight
                         )
                         DemoSection(
                             toggle: Toggle(isOn: $openNewWindow) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Automatically open a window for apps with no windows")
+                                    Text(loc(.autoOpenWindow))
                                     if !openNewWindow {
-                                        Text("When disabled, switching to an app without windows won't open a new window.")
+                                        Text(loc(.autoOpenDisabled))
                                             .foregroundColor(.secondary).font(.caption).padding(.top, 2)
                                     }
                                 }
@@ -248,21 +279,21 @@ struct GeneralSettingsTab: View {
                             demoType: .opennew,
                             hoveredDemo: $hoveredDemo,
                             videoName: "opennew",
-                            helpTextActive: "Enabled: A new window is opened automatically.",
-                            helpTextInactive: "Disabled: Switching does nothing if no windows.",
+                            helpTextActive: loc(.autoOpenHelpEnabled),
+                            helpTextInactive: loc(.autoOpenHelpDisabled),
                             maxWidth: helpTextMaxWidth,
                             maxHeight: helpTextMaxHeight
                         )
                         DemoSection(
                             toggle: Toggle(isOn: $minimizePreviousWindow) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Minimize previous window on app switch")
+                                    Text(loc(.minimizePrevious))
                                     if !minimizePreviousWindow {
-                                        Text("When disabled, switching to another app won't automatically minimize the previous one.")
+                                        Text(loc(.minimizePreviousDisabled))
                                             .foregroundColor(.secondary).font(.caption).padding(.top, 2)
                                     }
                                     if openNewWindow && minimizePreviousWindow {
-                                        Text("Tip: Cannot enable with 'Automatically open a window'.")
+                                        Text(loc(.tipCannotEnable))
                                             .foregroundColor(.red).font(.caption).padding(.top, 2)
                                     }
                                 }
@@ -277,8 +308,8 @@ struct GeneralSettingsTab: View {
                             demoType: .minimizeprev,
                             hoveredDemo: $hoveredDemo,
                             videoName: "minimizeprev",
-                            helpTextActive: "Enabled: Previous app window minimized.",
-                            helpTextInactive: "Disabled: Previous windows stay visible.",
+                            helpTextActive: loc(.minimizePrevHelpEnabled),
+                            helpTextInactive: loc(.minimizePrevHelpDisabled),
                             maxWidth: helpTextMaxWidth,
                             maxHeight: helpTextMaxHeight
                         )
@@ -298,6 +329,7 @@ struct GeneralSettingsTab: View {
             if value { try? SMAppService.mainApp.register() }
             else { try? SMAppService.mainApp.unregister() }
         }
+        .environmentObject(locManager)
     }
 }
 
@@ -395,7 +427,7 @@ struct DemoVideoScreen: View {
                     }
                     .animation(.easeInOut(duration: 0.22), value: play)
             } else {
-                Text("Video missing").foregroundColor(.red)
+                Text(loc(.videoMissing)).foregroundColor(.red)
                     .frame(width: 320, height: 180)
             }
         }
@@ -457,7 +489,7 @@ struct DemoHelpText: View {
 
 struct AboutTab: View {
     private let appName = "TabLift"
-    private let appDescription = "Minimized App Restorer"
+    @ObservedObject private var locManager = LocalizationManager.shared
     private let appVersion = "v" + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")
     private let appIconName = "AppIcon"
     @State private var isHoveringQuit = false
@@ -480,7 +512,7 @@ struct AboutTab: View {
                     .font(.system(size: 36, weight: .bold))
                     .foregroundColor(.primary)
                     .padding(.top, 2)
-                Text(appDescription)
+                Text(loc(.appDescription))
                     .font(.title2)
                     .foregroundColor(.gray)
                 Link(destination: URL(string: "https://github.com/turtle-key/TabLift/releases/tag/\(appVersion)")!) {
@@ -493,16 +525,16 @@ struct AboutTab: View {
             .frame(maxWidth: .infinity).padding(.bottom, 4)
             Spacer()
             VStack(spacing: 14) {
-                ModernAboutLink(destination: URLs.helppage, systemImage: "info.circle", label: "Tablift Help")
-                ModernAboutLink(destination: URLs.repo, systemImage: "chevron.left.slash.chevron.right", label: "Check out the source code")
-                ModernAboutLink(destination: URLs.donate, systemImage: "heart", label: "Support this project")
-                ModernAboutLink(destination: URLs.email, systemImage: "envelope", label: "Email me")
+                ModernAboutLink(destination: URLs.helppage, systemImage: "info.circle", label: loc(.tabliftHelp))
+                ModernAboutLink(destination: URLs.repo, systemImage: "chevron.left.slash.chevron.right", label: loc(.checkSourceCode))
+                ModernAboutLink(destination: URLs.donate, systemImage: "heart", label: loc(.supportProject))
+                ModernAboutLink(destination: URLs.email, systemImage: "envelope", label: loc(.emailMe))
             }
             .frame(maxWidth: 320).padding(.vertical, 10).padding(.horizontal, 16).multilineTextAlignment(.center)
             Spacer()
             HStack {
                 Link(destination: URL(string: "https://github.com/turtle-key/TabLift/blob/main/LICENSE")!) {
-                    Text("AGPL-3.0 © Mihai-Eduard Ghețu")
+                    Text("AGPL-3.0 \u{a9} Mihai-Eduard Ghe\u{21B}u")
                         .font(.footnote).foregroundColor(.gray)
                 }
                 Spacer()
@@ -551,7 +583,7 @@ struct ModernQuitButton: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: "power").font(.system(size: 14, weight: .semibold))
-                Text("Quit").font(.footnote).fontWeight(.medium)
+                Text(loc(.quit)).font(.footnote).fontWeight(.medium)
             }
             .foregroundColor(isHovering ? .white : .red)
             .padding(.horizontal, 16)
@@ -564,7 +596,7 @@ struct ModernQuitButton: View {
         }
         .buttonStyle(.plain)
         .onHover { isHovering = $0 }
-        .help("Quit TabLift")
+        .help(loc(.quitTabLift))
     }
 }
 
@@ -605,21 +637,21 @@ struct TabliftCheatSheetView: View {
             HStack(alignment: .center, spacing: 18) {
                 KeyboardFaceView()
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("TabLift Cheat Sheet")
+                    Text(loc(.cheatSheetTitle))
                         .font(.system(size: 22, weight: .bold, design: .rounded))
                         .foregroundColor(.accentColor)
                         .shadow(color: Color.accentColor.opacity(0.09), radius: 1, x: 0, y: 1)
-                    Text("Essential shortcuts for smooth window switching.")
+                    Text(loc(.cheatSheetDesc))
                         .font(.callout)
                         .foregroundColor(.secondary)
                 }
                 Spacer()
             }
             VStack(spacing: 8) {
-                CheatSheetRow(keys: ["⌘", "⇧", "M"], description: "Minimize all windows of the frontmost app")
-                CheatSheetRowMouseDock(description: "Restore or minimize windows by clicking the Dock icon")
-                CheatSheetRow(keys: ["⌘", "`"], description: "Restore next window in the frontmost app & show the Windows Preview")
-                CheatSheetRow(keys: ["⌘", "Tab"], description: "Switch between running apps")
+                CheatSheetRow(keys: ["\u{2318}", "\u{21E7}", "M"], description: loc(.cheatMinimizeAll))
+                CheatSheetRowMouseDock(description: loc(.cheatDockClick))
+                CheatSheetRow(keys: ["\u{2318}", "`"], description: loc(.cheatRestoreNext))
+                CheatSheetRow(keys: ["\u{2318}", "Tab"], description: loc(.cheatSwitchApps))
             }
             .padding(.top, 4)
         }
@@ -805,7 +837,7 @@ struct DockKeyCap: View {
 struct ShieldBannerSettings: View {
     @AppStorage("showShieldBanner") private var showShieldBanner: Bool = true
     var body: some View {
-        Toggle("Show accessibility shield tips", isOn: $showShieldBanner)
+        Toggle(loc(.showShieldBanner), isOn: $showShieldBanner)
             .toggleStyle(.switch)
     }
 }

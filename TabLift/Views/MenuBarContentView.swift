@@ -11,11 +11,11 @@ struct MenuBarContentView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("TabLift")
+            Text(loc(.menuBarTitle))
                 .font(.headline)
             Divider()
             Toggle(isOn: $restoreAllWindows) {
-                Text("Restore all minimized windows")
+                Text(loc(.restoreAllMinimizedWindows))
             }
             .toggleStyle(SwitchToggleStyle())
 
@@ -29,7 +29,7 @@ struct MenuBarContentView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "gearshape")
                         .font(.system(size: 15, weight: .medium))
-                    Text("Open Settings")
+                    Text(loc(.openSettings))
                         .font(.body)
                         .fontWeight(.medium)
                 }
@@ -57,7 +57,7 @@ struct MenuBarContentView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "power")
                             .font(.system(size: 13, weight: .bold))
-                        Text("Quit TabLift")
+                        Text(loc(.quitTabLift))
                             .font(.footnote)
                             .fontWeight(.medium)
                     }

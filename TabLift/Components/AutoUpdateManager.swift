@@ -1,4 +1,3 @@
-import Defaults
 import Foundation
 import Sparkle
 import Version
